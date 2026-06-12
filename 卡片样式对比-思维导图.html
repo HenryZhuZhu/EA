@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>思维导图 · 卡片样式对比（同一布局切换）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background: #f1f5f9; }
+    .canvas { background-color:#f8fafc; background-image:radial-gradient(#e2e8f0 1px, transparent 1px); background-size:20px 20px; }
+    .dark-canvas { background-color:#0f172a; background-image:radial-gradient(#1e293b 1px, transparent 1px); background-size:20px 20px; }
+
+    /* 节点定位容器（固定坐标，所有样式共用，便于对比） */
+    .node { position:absolute; transition: transform .18s ease; }
+    .node:hover { transform: translateY(-3px); z-index: 40; }
+    .card-lift { transition: box-shadow .18s ease; }
+    /* hover 整卡向下扩展（绝对定位，不挤压邻卡） */
+    .hv-more { max-height:0; opacity:0; overflow:hidden; transition: max-height .25s ease, opacity .2s ease; }
+    .node:hover .hv-more { max-height:240px; opacity:1; }
+  </style>
+</head>
+<body class="text-slate-800">
+  <div class="w-full px-4 py-3">
+
+    <header class="mb-2 flex items-baseline gap-4 flex-wrap">
+      <h1 class="text-lg font-semibold text-slate-900">思维导图 · 卡片样式对比</h1>
+      <p class="text-xs text-slate-500">
+        同一棵导图（1 Case + 4 怀疑方向 + 1 子思路 + 10 执行任务），<b>卡片位置在所有样式中完全一致</b>。点标签切换样式对比；悬停看 hover 扩展态。
+      </p>
+    </header>
+
+    <!-- 样式切换 -->
+    <div id="tabs" class="z-50 py-1.5 mb-2 flex flex-wrap gap-1.5"></div>
+
+    <!-- 画布（占满视口，内部可滚动） -->
+    <div id="stage" class="rounded-xl border border-slate-200 overflow-auto" style="height:calc(100vh - 110px);">
+      <div id="canvas" class="canvas relative"></div>
+    </div>
+  </div>
+
+  <script>
+    // ════ 颜色/图标映射 ════
+    const STATUS = {
+      待接受: { badge:'bg-amber-50 text-amber-700 border-amber-200',  dot:'bg-amber-400',   bar:'bg-amber-400',   solid:'bg-amber-500',   tint:'bg-amber-50',   tintBd:'border-amber-200',   text:'text-amber-700',   border:'border-amber-300',   icon:'hourglass',    dk:'bg-amber-400/15 text-amber-300' },
+      进行中: { badge:'bg-blue-50 text-blue-700 border-blue-200',     dot:'bg-blue-500',    bar:'bg-blue-500',    solid:'bg-blue-600',    tint:'bg-blue-50',    tintBd:'border-blue-200',    text:'text-blue-700',    border:'border-blue-300',    icon:'clock',        dk:'bg-blue-400/15 text-blue-300' },
+      已拒绝: { badge:'bg-red-50 text-red-700 border-red-200',        dot:'bg-red-500',     bar:'bg-red-500',     solid:'bg-red-600',     tint:'bg-red-50',     tintBd:'border-red-200',     text:'text-red-700',     border:'border-red-300',     icon:'ban',          dk:'bg-red-400/15 text-red-300' },
+      已完成: { badge:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', bar:'bg-emerald-500', solid:'bg-emerald-600', tint:'bg-emerald-50', tintBd:'border-emerald-200', text:'text-emerald-700', border:'border-emerald-300', icon:'check',  dk:'bg-emerald-400/15 text-emerald-300' },
+      已中止: { badge:'bg-slate-100 text-slate-600 border-slate-200',  dot:'bg-slate-400',   bar:'bg-slate-400',   solid:'bg-slate-500',   tint:'bg-slate-50',   tintBd:'border-slate-200',   text:'text-slate-500',   border:'border-slate-300',   icon:'circle-slash', dk:'bg-slate-400/20 text-slate-300' },
+    };
+    const URG = {
+      非常紧急: { stripe:'border-l-red-400',    dot:'bg-red-400',    label:'非常紧急' },
+      紧急:     { stripe:'border-l-orange-400', dot:'bg-orange-400', label:'紧急' },
+      一般:     { stripe:'border-l-sky-400',    dot:'bg-sky-400',    label:'一般' },
+      不紧急:   { stripe:'border-l-slate-300',  dot:'bg-slate-300',  label:'不紧急' },
+    };
+    const LEVEL = { L1:'bg-red-50 text-red-600 border-red-200', L2:'bg-orange-50 text-orange-600 border-orange-200', L3:'bg-amber-50 text-amber-600 border-amber-200', L4:'bg-blue-50 text-blue-600 border-blue-200', L5:'bg-slate-50 text-slate-600 border-slate-200' };
+    const ic = (n, cls, sz=11) => `<i data-lucide="${n}" class="${cls||''}" style="width:${sz}px;height:${sz}px"></i>`;
+
+    function validity(v, dark){
+      if(!v) return '';
+      const c = dark
+        ? ({ 有效:'bg-emerald-400/15 text-emerald-300 border-emerald-700/60', 部分有效:'bg-amber-400/15 text-amber-300 border-amber-700/60', 无效:'bg-rose-400/15 text-rose-300 border-rose-800/60' })[v]
+        : ({ 有效:'bg-emerald-50 text-emerald-700 border-emerald-200', 部分有效:'bg-amber-50 text-amber-700 border-amber-200', 无效:'bg-rose-50 text-rose-700 border-rose-200' })[v];
+      return `<button class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] border ${c} hover:brightness-95 cursor-pointer" title="查看 Workspace 笔记">结论${v} ${ic('external-link','',9)}</button>`;
+    }
+
+    // 上半部分：① 动作 ② 预期 ③ 结论
+    function tte(t, theme){
+      const dark=theme==='dark', titleC=dark?'text-slate-100':'text-slate-800', lbl=dark?'text-slate-500':'text-slate-400', body=dark?'text-slate-300':'text-slate-600', phC=dark?'text-slate-600':'text-slate-300';
+      const conclRow = (t.concl||t.validity)
+        ? `<div class="mt-1 flex items-start gap-1.5"><span class="shrink-0 text-[9px] ${lbl} mt-px w-6">结论</span><div class="flex-1 min-w-0">${t.concl?`<p class="text-[10px] ${body} leading-snug line-clamp-2">${t.concl}</p>`:''}${t.validity?`<div class="mt-0.5">${validity(t.validity,dark)}</div>`:''}</div></div>`
+        : `<div class="mt-1 flex items-center gap-1.5"><span class="shrink-0 text-[9px] ${lbl} w-6">结论</span><span class="text-[10px] ${phC}">待补充</span></div>`;
+      return `<div class="text-[12px] font-semibold ${titleC} leading-snug line-clamp-2">${t.title}</div>
+        <div class="mt-1.5 flex items-start gap-1.5"><span class="shrink-0 text-[9px] ${lbl} mt-px w-6">预期</span><span class="flex-1 text-[10px] ${body} leading-snug line-clamp-2">${t.expect}</span></div>
+        ${conclRow}`;
+    }
+
+    // hover 扩展：负责人/预期完成/数据/点赞 + 工具栏
+    function more(t, theme, pad){
+      pad=pad||''; const dark=theme==='dark';
+      const divider=dark?'border-slate-700':'border-slate-200/70', muted=dark?'text-slate-500':'text-slate-400', body=dark?'text-slate-300':'text-slate-500', chip=dark?'bg-white/5 border-slate-600 text-slate-300':'bg-slate-50 border-slate-200 text-slate-600', btnT=dark?'text-slate-400 hover:text-white hover:bg-white/10':'text-slate-500 hover:text-[#0052D9] hover:bg-slate-900/[0.06]';
+      const toolbar=`<div class="flex items-center justify-end gap-0.5">
+          <button class="w-5 h-5 rounded-full flex items-center justify-center ${btnT}" title="编辑">${ic('pencil','',11)}</button>
+          <button class="w-5 h-5 rounded-full flex items-center justify-center ${btnT}" title="标记整条线">${ic('flag','',11)}</button>
+          <button class="w-5 h-5 rounded-full flex items-center justify-center ${btnT}" title="删除">${ic('trash-2','',11)}</button>
+          <button class="w-5 h-5 rounded-full bg-[#0052D9] text-white flex items-center justify-center hover:bg-[#003FA8]" title="${t.kind==='thought'?'添加执行任务':'基于此动作添加思路'}">${ic('plus','',11)}</button>
+        </div>`;
+      if(t.kind==='thought') return `<div class="hv-more"><div class="${pad} mt-2 pt-2 border-t ${divider} space-y-1.5 text-[10px]">${toolbar}
+          <div class="flex items-center gap-1.5 ${body}">${ic('user','',11)} 负责人：待指派</div>
+          <div class="flex items-center gap-3"><span class="inline-flex items-center gap-1 ${dark?'text-amber-300':'text-amber-600'}">${ic('thumbs-up','',11)} 5</span><span class="inline-flex items-center gap-1 ${muted}">${ic('message-circle','',11)} 1</span></div>
+        </div></div>`;
+      const data=[['file-text','text-rose-500','ICC2分析.pdf'],['image','text-sky-500','wafermap.png'],['file-spreadsheet','text-emerald-500','良率.xlsx']].map(([i,c,n])=>`<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border ${chip}">${ic(i,c,11)} ${n}</span>`).join('');
+      return `<div class="hv-more"><div class="${pad} mt-2 pt-2 border-t ${divider} space-y-1.5 text-[10px]">${toolbar}
+          <div class="flex items-center gap-1.5 ${body}">${ic('user','',11)} 负责人：${t.owner}</div>
+          <div class="flex items-center gap-1.5 ${body}">${ic('calendar','',11)} 预期完成：${t.due}</div>
+          <div class="flex items-start gap-1.5"><span class="shrink-0 ${muted} pt-0.5">数据</span><span class="flex flex-wrap gap-1">${data}</span></div>
+          <div class="flex items-center gap-3 pt-0.5"><span class="inline-flex items-center gap-1 ${dark?'text-blue-300':'text-[#0052D9]'}">${ic('thumbs-up','',11)} 3</span><span class="inline-flex items-center gap-1 ${muted}">${ic('message-circle','',11)} 2</span></div>
+        </div></div>`;
+    }
+
+    function thoughtTop(t, theme){
+      const dark=theme==='dark', lblC=dark?'text-amber-300':'text-amber-700', txtC=dark?'text-slate-200':'text-slate-700';
+      return `<div class="text-[9px] ${lblC} font-medium mb-1">思路 · ${t.tag}</div><div class="text-[12px] ${txtC} leading-snug line-clamp-3">${t.title}</div>`;
+    }
+
+    // ════ 10 种样式 ════
+    function s1(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-amber-50/30 border border-amber-200/70 rounded-lg p-2.5 shadow-sm hover:shadow-lg">${thoughtTop(t,'light')}${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white border border-slate-200 border-l-[3px] ${u.stripe} rounded-lg p-2.5 shadow-sm hover:shadow-lg">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[9px] text-slate-400">任务</span><span class="px-1.5 py-px rounded text-[9px] border ${s.badge}">${t.status}</span></div>
+        ${tte(t,'light')}${more(t,'light')}</div>`;
+    }
+    function s2(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white border-2 border-amber-300 rounded-lg p-2.5 hover:shadow-lg">${thoughtTop(t,'light')}${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white border-2 ${s.border} rounded-lg p-2.5 hover:shadow-lg">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[10px] font-medium ${s.text}">${t.status}</span><span class="w-1.5 h-1.5 rounded-full ${u.dot}" title="${u.label}"></span></div>
+        ${tte(t,'light')}${more(t,'light')}</div>`;
+    }
+    function s3(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg"><div class="h-1 bg-amber-300"></div><div class="p-2.5">${thoughtTop(t,'light')}${more(t,'light')}</div></div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg"><div class="h-1 ${s.bar}"></div><div class="p-2.5">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[9px] ${s.text} font-medium">${t.status}</span><span class="w-1.5 h-1.5 rounded-full ${u.dot}" title="${u.label}"></span></div>
+        ${tte(t,'light')}${more(t,'light')}</div></div>`;
+    }
+    function s4(t){
+      if(t.kind==='thought') return `<div class="card-lift flex bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg"><div class="w-9 bg-amber-50 flex items-center justify-center shrink-0">${ic('lightbulb','text-amber-500',15)}</div><div class="p-2.5 min-w-0 flex-1">${thoughtTop(t,'light')}${more(t,'light')}</div></div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift flex bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg"><div class="w-9 ${s.tint} flex items-center justify-center shrink-0">${ic(s.icon,s.text,15)}</div><div class="p-2.5 min-w-0 flex-1">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[9px] ${s.text} font-medium">${t.status}</span><span class="w-1.5 h-1.5 rounded-full ${u.dot}" title="${u.label}"></span></div>
+        ${tte(t,'light')}${more(t,'light')}</div></div>`;
+    }
+    function s5(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-amber-50 border border-amber-200 rounded-lg p-2.5 hover:shadow-lg">${thoughtTop(t,'light')}${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift ${s.tint} border ${s.tintBd} border-l-[3px] ${u.stripe} rounded-lg p-2.5 hover:shadow-lg">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[9px] text-slate-500">任务</span><span class="px-1.5 py-px rounded text-[9px] bg-white/70 border ${s.tintBd} ${s.text}">${t.status}</span></div>
+        ${tte(t,'light')}${more(t,'light')}</div>`;
+    }
+    function s6(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white rounded-xl p-3 shadow-md hover:shadow-xl"><span class="inline-block px-2 py-0.5 rounded-full text-[9px] text-white bg-amber-500 mb-1.5">思路 · ${t.tag}</span><div class="text-[12px] text-slate-700 leading-snug line-clamp-3">${t.title}</div>${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white rounded-xl p-3 shadow-md hover:shadow-xl">
+        <div class="flex items-center justify-between mb-1.5"><span class="inline-block px-2 py-0.5 rounded-full text-[9px] text-white ${s.solid}">${t.status}</span><span class="w-1.5 h-1.5 rounded-full ${u.dot}" title="${u.label}"></span></div>
+        ${tte(t,'light')}${more(t,'light')}</div>`;
+    }
+    function s7(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white border border-slate-200 rounded-md hover:bg-amber-50/40 overflow-hidden"><div class="flex items-center gap-2 px-2.5 py-1.5">${ic('lightbulb','text-amber-500 shrink-0',12)}<span class="text-[11px] text-slate-600 truncate flex-1">${t.title}</span><span class="text-[9px] text-amber-600 shrink-0">思路</span></div>${more(t,'light','px-2.5 pb-1.5')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white border border-slate-200 rounded-md hover:bg-slate-50 overflow-hidden"><div class="flex items-start gap-2 px-2.5 py-1.5">
+          <span class="w-1.5 h-1.5 rounded-full ${s.dot} shrink-0 mt-1.5" title="${t.status}"></span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2"><span class="text-[11px] font-medium text-slate-700 truncate flex-1">${t.title}</span><span class="inline-block w-0.5 h-3 ${u.dot} shrink-0" title="${u.label}"></span><span class="text-[9px] ${s.text} shrink-0">${t.status}</span></div>
+            <div class="flex items-center gap-1.5 mt-0.5"><span class="text-[9px] text-slate-400 truncate flex-1">预期：${t.expect}</span>${t.validity?validity(t.validity,false):''}</div>
+          </div>
+        </div>${more(t,'light','px-2.5 pb-1.5')}</div>`;
+    }
+    function s8(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white border border-slate-200 rounded-lg p-2.5 shadow-sm hover:shadow-lg"><div class="flex gap-2.5"><div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">${ic('lightbulb','text-amber-500',15)}</div><div class="min-w-0">${thoughtTop(t,'light')}</div></div>${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white border border-slate-200 rounded-lg p-2.5 shadow-sm hover:shadow-lg"><div class="flex gap-2.5"><div class="w-8 h-8 rounded-lg ${s.tint} flex items-center justify-center shrink-0">${ic(s.icon,s.text,15)}</div><div class="min-w-0 flex-1">
+        <div class="flex items-center gap-1.5 text-[9px] mb-1"><span class="${s.text} font-medium">${t.status}</span><span class="w-1 h-1 rounded-full ${u.dot}"></span><span class="text-slate-400">${u.label}</span></div>
+        ${tte(t,'light')}</div></div>${more(t,'light')}</div>`;
+    }
+    function s9(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-slate-800 border border-slate-700 rounded-lg p-2.5 hover:bg-slate-700/70">${thoughtTop(t,'dark')}${more(t,'dark')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-slate-800 border border-slate-700 border-l-[3px] ${u.stripe} rounded-lg p-2.5 hover:bg-slate-700/70">
+        <div class="flex items-center justify-between mb-1.5"><span class="text-[9px] text-slate-500">任务</span><span class="px-1.5 py-px rounded text-[9px] ${s.dk}">${t.status}</span></div>
+        ${tte(t,'dark')}${more(t,'dark')}</div>`;
+    }
+    function s10(t){
+      if(t.kind==='thought') return `<div class="card-lift bg-white rounded-lg px-3 py-2.5 border border-slate-100 hover:border-amber-200 hover:shadow-md"><div class="flex items-center gap-1.5 mb-1"><span class="w-2 h-2 rounded-full bg-amber-300"></span><span class="text-[12px] font-semibold text-slate-700 truncate">${t.title}</span></div><div class="text-[9px] text-slate-400 pl-3.5" style="font-family:ui-monospace,monospace">思路 · ${t.tag}</div>${more(t,'light')}</div>`;
+      const s=STATUS[t.status],u=URG[t.urgency];
+      return `<div class="card-lift bg-white rounded-lg px-3 py-2.5 border border-slate-100 hover:border-slate-200 hover:shadow-md">
+        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${s.dot} shrink-0" title="${t.status}"></span><span class="text-[12px] font-semibold text-slate-800 truncate flex-1">${t.title}</span></div>
+        <div class="text-[9px] text-slate-400 pl-3.5 mb-1" style="font-family:ui-monospace,monospace">${t.status} · ${t.urgency} · ${t.owner} · ${t.due}</div>
+        <div class="pl-3.5 space-y-0.5"><div class="text-[10px] text-slate-500 leading-snug line-clamp-1"><span class="text-slate-400">预期 </span>${t.expect}</div><div class="text-[10px] text-slate-500 leading-snug line-clamp-1"><span class="text-slate-400">结论 </span>${t.concl||'待补充'} ${t.validity?validity(t.validity,false):''}</div></div>
+        ${more(t,'light')}</div>`;
+    }
+
+    // Case 根节点卡
+    function caseCard(c, theme){
+      const dark=theme==='dark', box=dark?'bg-slate-800 border-slate-600':'bg-white border-slate-300', titleC=dark?'text-slate-100':'text-slate-900', muted=dark?'text-slate-400':'text-slate-500';
+      return `<div class="card-lift rounded-xl border-2 ${box} p-3 shadow-lg">
+        <div class="flex items-center gap-2 mb-1.5"><span class="px-2 py-0.5 rounded text-[10px] border ${LEVEL[c.level]}">${c.level}</span><span class="text-[10px] ${muted}">${c.code}</span></div>
+        <div class="text-[13px] font-semibold ${titleC} leading-snug">${c.title}</div>
+        <div class="mt-1.5 flex items-center gap-2 text-[10px] ${muted}">${ic('map-pin','',11)} ${c.site} · 负责人 ${c.owner}</div>
+      </div>`;
+    }
+
+    const STYLES = [
+      { n:1,  name:'极简白卡·左色条',  fn:s1 }, { n:2,  name:'状态描边',     fn:s2 },
+      { n:3,  name:'顶部状态条',       fn:s3 }, { n:4,  name:'左侧色轨+图标', fn:s4 },
+      { n:5,  name:'状态淡底',         fn:s5 }, { n:6,  name:'浮起无边卡',   fn:s6 },
+      { n:7,  name:'紧凑列表行',       fn:s7 }, { n:8,  name:'图标徽记卡',   fn:s8 },
+      { n:9,  name:'深色卡',           fn:s9, dark:true }, { n:10, name:'极简点阵',  fn:s10 },
+    ];
+
+    // ════ 思维导图数据（嵌套树，坐标由 tidy-tree 算法计算）════
+    const caseData = { level:'L2', code:'EA-260511000001', title:'CP1 良率掉点集中在 Wafer 边缘', site:'SiteA', owner:'张伟' };
+    // 执行任务
+    const a = {
+      a1 : { kind:'action', status:'进行中', urgency:'一般',     title:'ICC2 分布分析与 Pattern 定位', owner:'张伟', due:'04-22', expect:'验证边缘 die 在高频 pattern 下 ICC2 是否超出 guardband。', concl:'初步定位为边缘 die ICC2 偏高，疑似 guardband 设置。', validity:'部分有效' },
+      a2 : { kind:'action', status:'已完成', urgency:'不紧急',   title:'测试程式 guardband 复核', owner:'王芳', due:'04-10', expect:'复核 guardband 设定是否过紧导致误判。', concl:'确认 guardband 偏紧约 0.3%，已修正并回归。', validity:'有效' },
+      a3 : { kind:'action', status:'待接受', urgency:'紧急',     title:'多 corner 条件重测验证', owner:'孙磊', due:'04-28', expect:'在 SS/FF/TT 三 corner 下重测确认一致性。', concl:'' },
+      a4 : { kind:'action', status:'进行中', urgency:'紧急',     title:'Bin map 聚类与空间分布分析', owner:'赵敏', due:'04-25', expect:'对 fail bin 做空间聚类，定位异常 wafer 区域。', concl:'聚类显示边缘呈环状分布，指向边缘工艺。', validity:'部分有效' },
+      a5 : { kind:'action', status:'进行中', urgency:'一般',     title:'Wafer 边缘膜厚量测复查', owner:'周涛', due:'04-26', expect:'量测边缘膜厚分布，比对中心区差异。', concl:'边缘膜厚偏薄约 4%，待进一步确认。', validity:'部分有效' },
+      a6 : { kind:'action', status:'待接受', urgency:'非常紧急', title:'刻蚀 profile SEM 复检', owner:'吴敏', due:'04-19', expect:'对边缘 die 做截面 SEM，检查刻蚀均匀性。', concl:'' },
+      a7 : { kind:'action', status:'待接受', urgency:'非常紧急', title:'FSA 失效点 EDS 成分复测', owner:'李娜', due:'04-18', expect:'对失效点做 EDS 成分分析，确认是否存在金属污染。', concl:'' },
+      a8 : { kind:'action', status:'已完成', urgency:'一般',     title:'Probe card 接触电阻检查', owner:'郑昊', due:'04-12', expect:'测量各 pin 接触电阻，排查接触不良。', concl:'接触电阻正常，排除 probe card 因素。', validity:'有效' },
+      a9 : { kind:'action', status:'已中止', urgency:'一般',     title:'Shmoo plot 边界扫描', owner:'刘洋', due:'04-15', expect:'扫描电压/频率边界，定位 marginal 工作区。', concl:'因资源调整，任务中止。' },
+      a10: { kind:'action', status:'已拒绝', urgency:'紧急',     title:'SLT 高温复现实验', owner:'陈强', due:'04-20', expect:'在 105℃ 高温下尝试复现该失效模式。', concl:'经评估与失效模式不符，方向不成立。', validity:'无效' },
+    };
+    const th = (tag,title)=>({ kind:'thought', tag, title });
+
+    const tree = {
+      id:'case', kind:'case', data:caseData, children:[
+        { id:'t1', kind:'thought', data:th('测试程式','怀疑高频 pattern 下 guardband 偏紧，导致边缘 die ICC2 误判'), children:[
+          { id:'a1', kind:'action', data:a.a1 },
+          { id:'a2', kind:'action', data:a.a2 },
+          { id:'a3', kind:'action', data:a.a3 },
+        ]},
+        { id:'t2', kind:'thought', data:th('工艺','怀疑边缘工艺异常导致良率呈环状掉点'), children:[
+          { id:'a4', kind:'action', data:a.a4 },
+          { id:'a5', kind:'action', data:a.a5 },
+          { id:'t2a', kind:'thought', data:th('工艺·细化','进一步怀疑边缘刻蚀均匀性不足'), children:[
+            { id:'a6', kind:'action', data:a.a6 },
+          ]},
+        ]},
+        { id:'t3', kind:'thought', data:th('量测','怀疑 probe card 接触不良造成假性失效'), children:[
+          { id:'a7', kind:'action', data:a.a7 },
+          { id:'a8', kind:'action', data:a.a8 },
+        ]},
+        { id:'t4', kind:'thought', data:th('设计','怀疑设计 marginal，对边缘工艺波动敏感'), children:[
+          { id:'a9',  kind:'action', data:a.a9 },
+          { id:'a10', kind:'action', data:a.a10 },
+        ]},
+      ]
+    };
+
+    // ── tidy-tree 布局：每个叶子占一行（行距 ≥ 卡高，杜绝重叠），父节点居中于子节点 ──
+    const WIDTH = { case:230, thought:250, action:248 };
+    const COLX = 320;   // 列间距（≥ 卡宽 + 连线间隙）
+    const ROW  = 198;   // 行距（≥ 三段式卡片折叠高度，避免纵向重叠）
+    const X0 = 30, Y0 = 20, ANCHOR = 30;
+    let leaf = 0, maxDepth = 0;
+    (function layout(node, depth){
+      maxDepth = Math.max(maxDepth, depth);
+      node.depth = depth; node.w = WIDTH[node.kind]; node.x = X0 + depth * COLX;
+      if (node.children && node.children.length){
+        node.children.forEach(c => layout(c, depth+1));
+        const ys = node.children.map(c => c.y);
+        node.y = (Math.min(...ys) + Math.max(...ys)) / 2;
+      } else { node.y = Y0 + leaf * ROW; leaf++; }
+    })(tree, 0);
+
+    const NODES = [], EDGES = [];
+    (function collect(n){ NODES.push(n); (n.children||[]).forEach(c => { EDGES.push([n.id, c.id]); collect(c); }); })(tree);
+    const byId = Object.fromEntries(NODES.map(n => [n.id, n]));
+    const CW = X0 + maxDepth * COLX + WIDTH.action + 60;
+    const CH = Y0 + leaf * ROW + 220;   // 预留底部空间，供 hover 推开时下方卡片下移
+
+    const canvas = document.getElementById('canvas');
+    const tabsEl = document.getElementById('tabs');
+    canvas.style.width = CW + 'px';
+    canvas.style.minWidth = '100%';   // 内容宽度不足时拉伸铺满整个画布区
+    canvas.style.height = CH + 'px';
+    let active = 0;
+
+    // 连线 SVG（坐标固定，仅颜色随深浅切换）
+    function buildEdges(dark){
+      const stroke = dark ? '#475569' : '#cbd5e1';
+      let paths='';
+      EDGES.forEach(([p,c])=>{
+        const P=byId[p], C=byId[c];
+        const sx=P.x+P.w, sy=P.y+ANCHOR, tx=C.x, ty=C.y+ANCHOR, dx=(tx-sx)/2;
+        paths += `<path d="M ${sx} ${sy} C ${sx+dx} ${sy}, ${tx-dx} ${ty}, ${tx} ${ty}" fill="none" stroke="${stroke}" stroke-width="2"/>`;
+      });
+      return `<svg class="absolute inset-0 pointer-events-none" width="${CW}" height="${CH}">${paths}</svg>`;
+    }
+
+    function paint(){
+      const st = STYLES[active], dark = !!st.dark;
+      canvas.className = (dark ? 'dark-canvas' : 'canvas') + ' relative';
+      let html = buildEdges(dark);
+      NODES.forEach((n,i)=>{
+        const inner = n.kind==='case' ? caseCard(n.data, dark?'dark':'light') : st.fn(n.data);
+        html += `<div class="node" data-i="${i}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;">${inner}</div>`;
+      });
+      canvas.innerHTML = html;
+      lucide.createIcons();
+      requestAnimationFrame(setupPush);
+    }
+
+    // hover 展开时，把下方卡片整体推开（不重叠）
+    function setupPush(){
+      const els = [...canvas.querySelectorAll('.node')];
+      els.forEach(el => {
+        const n = NODES[+el.dataset.i];
+        const hv = el.querySelector('.hv-more');
+        const delta = hv ? hv.scrollHeight : 0;   // 展开会增加的高度 = 推开量
+        el.onmouseenter = () => {
+          if (!delta) return;
+          els.forEach(o => { if (NODES[+o.dataset.i].y > n.y) o.style.transform = `translateY(${delta}px)`; });
+        };
+        el.onmouseleave = () => { els.forEach(o => { o.style.transform = ''; }); };
+      });
+    }
+
+    // 渲染标签
+    STYLES.forEach((st,i)=>{
+      const b=document.createElement('button');
+      b.className='px-2.5 py-1 rounded-md text-xs border transition';
+      b.dataset.i=i;
+      b.textContent = st.n + '. ' + st.name;
+      b.onclick=()=>{ active=i; syncTabs(); paint(); };
+      tabsEl.appendChild(b);
+    });
+    function syncTabs(){
+      [...tabsEl.children].forEach((b,i)=>{
+        b.className = 'px-2.5 py-1 rounded-md text-xs border transition ' +
+          (i===active ? 'bg-[#0052D9] text-white border-[#0052D9] shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-[#0052D9] hover:text-[#0052D9]');
+      });
+    }
+    syncTabs();
+    paint();
+  </script>
+</body>
+</html>
