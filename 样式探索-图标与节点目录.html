@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EA · 卡片图标 & 节点目录 样式探索</title>
+<style>
+  :root{
+    --brand:#0052D9; --brand2:#00A4FF;
+    --ink900:#0f172a; --ink700:#334155; --ink600:#475569; --ink500:#64748b; --ink400:#94a3b8;
+    --line:#e2e8f0; --line2:#f1f5f9; --bg:#f6f8fc;
+    --red:#ef4444; --orange:#f97316; --amber:#f59e0b; --emerald:#10b981; --blue:#3b82f6; --rose:#f43f5e; --violet:#8b5cf6; --slate:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink700);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:32px 28px 80px}
+  h1{font-size:26px;font-weight:800;color:var(--ink900);letter-spacing:-.01em;margin:0}
+  .sub{color:var(--ink500);margin-top:6px;font-size:14px}
+  h2{font-size:18px;font-weight:700;color:var(--ink900);margin:42px 0 4px}
+  h2 .tag{font-size:11px;font-weight:600;color:var(--brand);background:rgba(0,82,217,.08);border:1px solid rgba(0,82,217,.16);border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:middle}
+  .hint{color:var(--ink500);font-size:13px;margin:0 0 14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:1000px){.grid2,.grid3{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .panel .ph{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .panel .ph .nm{font-weight:700;color:var(--ink900)}
+  .panel .ph .badge{font-size:11px;color:#fff;background:var(--brand);border-radius:999px;padding:1px 8px}
+  .panel .pd{color:var(--ink500);font-size:12.5px;margin-bottom:14px}
+  svg{display:inline-block;vertical-align:middle}
+
+  /* sample task card */
+  .cards{display:flex;flex-wrap:wrap;gap:12px}
+  .tcard{width:240px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .tcard .top{height:4px}
+  .tcard .body{padding:11px 12px}
+  .iconbar{display:flex;align-items:center;gap:8px;color:var(--ink400);min-height:18px;margin-bottom:8px}
+  .iconbar .cnt{font-size:9px;margin-left:1px;font-variant-numeric:tabular-nums}
+  .tname{font-size:13px;font-weight:600;color:var(--ink900);line-height:1.35}
+  .tmeta{margin-top:7px;font-size:11px;color:var(--ink500);display:flex;gap:6px}
+  .tmeta .k{color:var(--ink400)}
+  .vbadge{display:inline-flex;align-items:center;gap:4px;font-size:10px;border-radius:5px;padding:2px 6px;border:1px solid;margin-top:7px}
+  /* chip styles for icon versions */
+  .chip-sq{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;color:#fff}
+  .chip-rd{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink600)}
+  .legend .it{display:inline-flex;align-items:center;gap:6px}
+
+  /* node directory */
+  .dir{width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .dir .dh{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line2)}
+  .dir .dh .ic{width:30px;height:30px;border-radius:8px;background:rgba(0,82,217,.08);color:var(--brand);display:grid;place-items:center}
+  .dir .dh .t{font-weight:600;color:var(--ink900);font-size:14px}
+  .dir .dh .s{font-size:11px;color:var(--ink400)}
+  .dir .list{padding:6px;max-height:430px;overflow:auto}
+  .row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:default}
+  .row:hover{background:var(--bg)}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .nm{font-size:13px;color:var(--ink800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .nm.t{font-weight:600;color:var(--ink900)}
+  .muted{color:var(--ink400);font-size:11px;white-space:nowrap}
+  .sdot-待开始{background:var(--slate)} .sdot-待接受{background:var(--amber)} .sdot-进行中{background:var(--blue)} .sdot-已完成{background:var(--emerald)} .sdot-已中止{background:var(--slate)} .sdot-已拒绝{background:var(--rose)}
+  .footnote{margin-top:10px;color:var(--ink400);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>卡片图标 &amp; 节点目录 · 样式探索</h1>
+  <p class="sub">下面分别给出几版「任务卡片图标」与「节点目录」样式。挑选你喜欢的版本（可混搭：比如图标用 B、目录用 ②），告诉我编号我就接入应用。</p>
+
+  <h2>一、任务卡片图标 <span class="tag">选 1 版</span></h2>
+  <p class="hint">同一张卡片在不同图标方案下的样子。顶部为紧急度色条；下方图标条表达：状态 / 结论有效性 / 紧急 / 我的任务 / 语音 / 附件 / 评论。当前线上用的是接近「方案 B」的极简线性。</p>
+  <div class="grid2" id="icon-versions"></div>
+
+  <h2>二、节点目录 <span class="tag">选 1 版</span></h2>
+  <p class="hint">同一棵任务树在不同目录样式下的样子（思路=琥珀、任务=按状态色点）。</p>
+  <div class="grid3" id="dir-versions"></div>
+
+  <p class="footnote">© EA V0.2 · 样式探索（静态预览，非真实交互）</p>
+</div>
+
+<script>
+/* ---------------- icon registry (lucide-style) ---------------- */
+const P = {
+  circle:'<circle cx="12" cy="12" r="9"/>',
+  circleDot:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
+  dot:'<circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/>',
+  hourglass:'<path d="M6 3h12M6 21h12M8 3v3.2a2 2 0 0 0 .6 1.4L12 11l3.4-3.4a2 2 0 0 0 .6-1.4V3M8 21v-3.2a2 2 0 0 1 .6-1.4L12 13l3.4 3.4a2 2 0 0 1 .6 1.4V21"/>',
+  play:'<polygon points="7 4 19 12 7 20" fill="currentColor" stroke="none"/>',
+  playC:'<circle cx="12" cy="12" r="9"/><polygon points="10 8.5 16 12 10 15.5" fill="currentColor" stroke="none"/>',
+  loader:'<path d="M12 3a9 9 0 1 0 9 9"/>',
+  activity:'<path d="M22 12h-4l-3 8L9 4l-3 8H2"/>',
+  inbox:'<path d="M22 12h-5l-2 3h-6l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/>',
+  handshake:'<path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.9-3.9a2 2 0 0 0-2.8 0l-.4.4a2 2 0 0 1-2.8 0l-1.6-1.6a2 2 0 0 1 0-2.8L9 4"/><path d="m21 3-3 3"/><path d="M3 13l4 4"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkC:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.3 2.3 4.7-5"/>',
+  checkCheck:'<path d="M2 12l5 5L18 6"/><path d="m22 7-6.5 6.5"/>',
+  ban:'<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+  octagonX:'<path d="M8 2.5h8L21.5 8v8L16 21.5H8L2.5 16V8z"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/>',
+  xC:'<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  thumbsDown:'<path d="M17 14V2"/><path d="M9 18.1c.9 0 1.5-.7 1.8-1.5l1.8-5.1A2 2 0 0 0 12.5 8H8V4a2 2 0 0 0-2-2c-.5 0-1 .3-1.2.8L2 9v9a2 2 0 0 0 2 2h9.1"/>',
+  flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  alertTri:'<path d="M10.3 4 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  arrowUp:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  shieldCheck:'<path d="M20 12.5c0 4.5-3.2 6.8-7.3 8.4a1 1 0 0 1-.6 0C8 19.3 4.8 17 4.8 12.5V6.2a1 1 0 0 1 .9-1c1.9 0 4.3-1.1 5.9-2.5a1 1 0 0 1 1.3 0c1.6 1.4 4 2.5 5.9 2.5a1 1 0 0 1 .9 1z"/><path d="m9.5 12 1.8 1.8 3.5-3.8"/>',
+  shieldX:'<path d="M20 12.5c0 4.5-3.2 6.8-7.3 8.4a1 1 0 0 1-.6 0C8 19.3 4.8 17 4.8 12.5V6.2a1 1 0 0 1 .9-1c1.9 0 4.3-1.1 5.9-2.5a1 1 0 0 1 1.3 0c1.6 1.4 4 2.5 5.9 2.5a1 1 0 0 1 .9 1z"/><path d="m10 9.5 4 4M14 9.5l-4 4"/>',
+  userCheck:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>',
+  userStar:'<path d="M14 19a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4"/><circle cx="8" cy="7" r="4"/><path d="m18 9 1.2 2.4 2.6.4-1.9 1.8.4 2.6-2.3-1.2-2.3 1.2.4-2.6-1.9-1.8 2.6-.4z"/>',
+  bookmark:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="currentColor" stroke="none"/>',
+  mic:'<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M19 10.5v1a7 7 0 0 1-14 0v-1"/><path d="M12 18.5V22"/>',
+  audio:'<path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2"/>',
+  paperclip:'<path d="m20.5 11.5-8 8a5.5 5.5 0 0 1-7.8-7.8l8.4-8.4a3.7 3.7 0 0 1 5.2 5.2l-8.4 8.4a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/>',
+  file:'<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M16 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>',
+  message:'<path d="M21 14a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  messageDots:'<path d="M21 14a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/>',
+  listTree:'<path d="M9 6h11M12 12h8M15 18h5M3 6v.01M3 6a2 2 0 0 1 2-2M6 12H5a2 2 0 0 1-2-2V6M9 18H7a2 2 0 0 1-2-2v-4"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+};
+function svg(name, size, sw){ return '<svg width="'+(size||14)+'" height="'+(size||14)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||2)+'" stroke-linecap="round" stroke-linejoin="round">'+P[name]+'</svg>'; }
+
+/* status meta */
+const SC = {待开始:'var(--slate)', 待接受:'var(--amber)', 进行中:'var(--blue)', 已完成:'var(--emerald)', 已中止:'var(--slate)', 已拒绝:'var(--rose)'};
+const URG = {非常紧急:'var(--red)', 紧急:'var(--orange)', 一般:'var(--blue)', 不紧急:'var(--slate)'};
+const VAL = {有效:'var(--emerald)', 部分有效:'var(--amber)', 无效:'var(--rose)'};
+
+/* sample tasks */
+const T = {
+  t1:{name:'ICC2 分布分析与 Pattern 定位', status:'已完成', urgency:'非常紧急', dept:'PTE', owner:'张伟', mine:true, validity:'有效', voice:true, atts:2, comments:1, concl:'锁定 Pattern P_ICC2_07 为主要嫌疑。'},
+  t1b:{name:'输出 Pattern 调整方案评审稿', status:'待接受', urgency:'非常紧急', dept:'PTE', owner:'张伟', mine:true, exp:'整理 margin 数据评审稿'},
+  t2:{name:'Shmoo 对比 & 边缘 die 分析', status:'进行中', urgency:'紧急', dept:'DA', owner:'李娜', exp:'确认边缘 die VDDmin 漂移', atts:1},
+  t4:{name:'CP 测试程序 guardband 调整', status:'待开始', urgency:'一般', dept:'CP', owner:'王芳'},
+  t3r:{name:'同步结论至客户沟通稿', status:'已拒绝', urgency:'紧急', dept:'PTE', owner:'张伟', mine:true, rej:'客户口径改由 PM 统一'},
+};
+const ORDER = ['t1','t1b','t2','t4','t3r'];
+
+/* ---- icon version glyph maps ---- */
+const STATUS_GLYPH = {
+  semantic:{待开始:'circle', 待接受:'inbox', 进行中:'loader', 已完成:'checkC', 已中止:'ban', 已拒绝:'xC'},
+  vivid:{待开始:'hourglass', 待接受:'handshake', 进行中:'activity', 已完成:'checkCheck', 已中止:'octagonX', 已拒绝:'thumbsDown'},
+};
+const VAL_GLYPH = {有效:'shieldCheck', 部分有效:'alertTri', 无效:'shieldX'};
+/* real-hex status/validity colors so tinted backgrounds (color+alpha) actually render */
+const SC_HEX = {待开始:'#94a3b8', 待接受:'#f59e0b', 进行中:'#3b82f6', 已完成:'#10b981', 已中止:'#94a3b8', 已拒绝:'#f43f5e'};
+const VAL_HEX = {有效:'#10b981', 部分有效:'#f59e0b', 无效:'#f43f5e'};
+const GREY = '#94a3b8';
+
+/* status glyph for a given version (only the status mark differs across versions) */
+function statusChip(t, ver){
+  const g = (ver==='D' ? STATUS_GLYPH.vivid : STATUS_GLYPH.semantic)[t.status];
+  const c = SC_HEX[t.status];
+  const ti = ' title="状态：'+t.status+'"';
+  switch(ver){
+    case 'A': return '<span'+ti+' style="color:'+c+'">'+svg(g,14)+'</span>';
+    case 'B': return '<span class="chip-rd"'+ti+' style="background:'+c+'22;color:'+c+'">'+svg(g,12,2.2)+'</span>';
+    case 'C': return '<span class="chip-sq"'+ti+' style="background:'+c+'">'+svg(g,12,2.4)+'</span>';
+    case 'D': return '<span'+ti+' style="color:'+c+'">'+svg(g,15,2.2)+'</span>';
+    case 'E': return '<span'+ti+' style="width:20px;height:20px;border-radius:6px;background:'+c+'1f;color:'+c+';display:inline-grid;place-items:center">'+svg(g,12,2.1)+'</span>';
+    case 'F': return '<span'+ti+' style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+c+'66;color:'+c+';display:inline-grid;place-items:center">'+svg(g,11,2)+'</span>';
+    case 'G': return '<span'+ti+' style="display:inline-flex;align-items:center;gap:3px;padding:1px 8px 1px 6px;border-radius:999px;background:'+c+'14;color:'+c+';font-size:10px;font-weight:600;border:1px solid '+c+'33">'+svg(g,11)+t.status+'</span>';
+    case 'H': return '<span'+ti+' style="color:'+c+'">'+svg(g,13)+'</span>';
+  }
+  return '';
+}
+
+function iconbar(t, ver){
+  // ver: A 语义线性 | B 圆徽 | C 方徽 | D 写实 | E 柔底方徽 | F 描边圆环 | G 文字胶囊 | H 极简单色
+  let out = statusChip(t, ver);
+  const mono = (ver==='H');           // 极简单色：辅助图标统一灰，仅状态/紧急/我的着色
+  const realistic = (ver==='D');
+  // validity
+  if(t.validity){ const vc = mono?GREY:VAL_HEX[t.validity]; out += '<span title="结论'+t.validity+'" style="color:'+vc+'">'+svg(VAL_GLYPH[t.validity],13)+'</span>'; }
+  // urgency flame
+  if(t.urgency==='非常紧急'||t.urgency==='紧急'){ out += '<span title="紧急度：'+t.urgency+'" style="color:'+(t.urgency==='非常紧急'?'var(--red)':'var(--orange)')+'">'+svg('flame',12)+'</span>'; }
+  // mine
+  if(t.mine){ out += '<span title="我的任务" style="color:var(--brand)">'+svg(realistic?'userStar':'userCheck',13)+'</span>'; }
+  // voice
+  if(t.voice){ out += '<span title="语音备注">'+svg(realistic?'audio':'mic',12)+'</span>'; }
+  // attachments
+  if(t.atts){ out += '<span title="'+t.atts+' 个附件" style="display:inline-flex;align-items:center">'+svg(realistic?'file':'paperclip',12)+'<span class="cnt">'+t.atts+'</span></span>'; }
+  // comments
+  if(t.comments){ out += '<span title="'+t.comments+' 条评论" style="display:inline-flex;align-items:center">'+svg(realistic?'messageDots':'message',12)+'<span class="cnt">'+t.comments+'</span></span>'; }
+  return '<div class="iconbar">'+out+'</div>';
+}
+function statusBody(t){
+  if(t.status==='进行中'||t.status==='待接受'){ return t.exp?'<div class="tmeta"><span class="k">预期</span>'+t.exp+'</div>':''; }
+  if(t.status==='已完成'){ let h=''; if(t.concl) h+='<div class="tmeta"><span class="k">结论</span>'+t.concl+'</div>'; if(t.validity) h+='<span class="vbadge" style="color:'+VAL_HEX[t.validity]+';border-color:'+VAL_HEX[t.validity]+'55;background:'+VAL_HEX[t.validity]+'12">'+svg(VAL_GLYPH[t.validity],11)+'结论'+t.validity+'</span>'; return h; }
+  if(t.status==='已中止'){ return t.term?'<div class="tmeta"><span class="k">中止</span>'+t.term+'</div>':''; }
+  if(t.status==='已拒绝'){ return t.rej?'<div class="tmeta"><span class="k" style="color:var(--rose)">拒绝</span>'+t.rej+'</div>':''; }
+  return '';
+}
+function card(t, ver){
+  return '<div class="tcard"><div class="top" style="background:'+URG[t.urgency]+'"></div><div class="body">'+
+    iconbar(t,ver)+
+    '<div class="tname">'+t.name+'</div>'+
+    statusBody(t)+
+  '</div></div>';
+}
+
+const ICON_VERS = [
+  {id:'A', nm:'方案 A · 语义线性图标', dsc:'轮廓线图标，每个状态有专属语义符号（待开始◯ / 待接受 收件箱 / 进行中 加载 / 已完成 ✓圈 / 已中止 禁止 / 已拒绝 ✕圈）。轻量、克制。'},
+  {id:'B', nm:'方案 B · 实心圆形徽章', dsc:'图标放进柔和的同色圆底里，辨识度更高、更像成熟 App。状态色更明确。'},
+  {id:'C', nm:'方案 C · 实心方形徽章', dsc:'图标放进实心圆角方块（白色描边图标），最醒目、对比最强，适合远距离一眼识别。'},
+  {id:'D', nm:'方案 D · 高代表性写实图标', dsc:'换用更“写实”的符号：待接受=握手、进行中=心电波、已完成=双勾、已中止=八角禁止、已拒绝=踩灭👎、我的=星标人、语音=声波、附件=文件。代表性最强。'},
+  {id:'E', nm:'方案 E · 柔底方形徽章', dsc:'方形浅色底 + 同色描边图标（非白描边）。介于 B 与 C 之间：比 B 更稳重、比 C 更柔和，与卡片圆角语言统一。'},
+  {id:'F', nm:'方案 F · 描边圆环徽章', dsc:'同色细圆环包裹图标，通透不抢眼；多图标并排时“呼吸感”最好，适合信息较密的卡片。'},
+  {id:'G', nm:'方案 G · 状态文字胶囊', dsc:'状态做成「图标 + 中文」彩色小胶囊，其余维度仍用图标。一眼读出状态，不必记图标语义，最易上手。'},
+  {id:'H', nm:'方案 H · 极简单色', dsc:'仅状态、紧急、我的着色，其余（有效性/语音/附件/评论）统一中性灰。最克制、最不打扰，适合追求“安静”界面。'},
+];
+document.getElementById('icon-versions').innerHTML = ICON_VERS.map(function(v){
+  return '<div class="panel"><div class="ph"><span class="badge">'+v.id+'</span><span class="nm">'+v.nm.replace(/^方案 .· /,'')+'</span></div>'+
+    '<div class="pd">'+v.dsc+'</div>'+
+    '<div class="cards">'+ORDER.map(function(k){return card(T[k],v.id);}).join('')+'</div>'+
+    '<div class="legend">'+
+      Object.keys(SC).map(function(s){const g=(v.id==='D'?STATUS_GLYPH.vivid:STATUS_GLYPH.semantic)[s];return '<span class="it" style="color:'+SC[s]+'">'+svg(g,13)+'<span style="color:var(--ink600)">'+s+'</span></span>';}).join('')+
+    '</div></div>';
+}).join('');
+
+/* ---------------- node directory variants ---------------- */
+const TREE = [
+  {kind:'t', name:'Pattern 异常导致 ICC2 超规格', cat:'测试程式', children:[
+    {name:'ICC2 分布分析与 Pattern 定位', status:'已完成', dept:'PTE', owner:'张伟', prog:100},
+    {name:'输出 Pattern 调整方案评审稿', status:'待接受', dept:'PTE', owner:'张伟', prog:40},
+  ]},
+  {kind:'t', name:'wafer 工艺偏移导致边缘 die 异常', cat:'工艺', children:[
+    {name:'Shmoo 对比 & 边缘 die 分析', status:'进行中', dept:'DA', owner:'李娜', prog:65},
+    {name:'CP 测试程序 guardband 调整', status:'待开始', dept:'CP', owner:'王芳', prog:0},
+    {name:'同步结论至客户沟通稿', status:'已拒绝', dept:'PTE', owner:'张伟', prog:10},
+  ]},
+];
+function thoughtCount(){return TREE.length;}
+function taskCount(){return TREE.reduce(function(s,t){return s+t.children.length;},0);}
+
+function dirHeader(extra){
+  return '<div class="dh"><span class="ic">'+svg('listTree',18)+'</span><div style="flex:1"><div class="t">节点目录</div><div class="s">跟随思维导图结构</div></div>'+(extra||'')+'</div>';
+}
+
+/* ① 极简缩进 */
+function dir1(){
+  let rows='';
+  TREE.forEach(function(t){
+    rows+='<div class="row"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span><span class="nm t" style="color:#b45309">'+t.name+'</span></div>';
+    t.children.forEach(function(c){
+      rows+='<div class="row" style="padding-left:24px"><span class="dot sdot-'+c.status+'"></span><span class="nm">'+c.name+'</span></div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader()+'<div class="list">'+rows+'</div></div>';
+}
+/* ② 树线连接（file-tree） */
+function dir2(){
+  let rows='';
+  TREE.forEach(function(t,ti){
+    rows+='<div class="row"><span style="color:var(--amber)">'+svg('target',14)+'</span><span class="nm t">'+t.name+'</span></div>';
+    t.children.forEach(function(c,ci){
+      const last = ci===t.children.length-1;
+      rows+='<div class="row" style="padding-left:14px"><span style="color:var(--ink400);font-family:monospace;width:16px;flex:none;text-align:center">'+(last?'└':'├')+'</span><span class="dot sdot-'+c.status+'"></span><span class="nm">'+c.name+'</span></div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader()+'<div class="list">'+rows+'</div></div>';
+}
+/* ③ 分组卡片 */
+function dir3(){
+  let groups='';
+  TREE.forEach(function(t){
+    let items='';
+    t.children.forEach(function(c){
+      items+='<div class="row"><span class="dot sdot-'+c.status+'"></span><span class="nm">'+c.name+'</span><span class="muted">'+c.status+'</span></div>';
+    });
+    groups+='<div style="margin:6px;border:1px solid var(--line2);border-radius:10px;overflow:hidden">'+
+      '<div style="display:flex;align-items:center;gap:7px;padding:8px 10px;background:#fffaf0;border-bottom:1px solid #fde9c8"><span style="color:#d97706">'+svg('bookmark',12)+'</span><span style="font-size:12.5px;font-weight:600;color:#b45309;flex:1">'+t.name+'</span><span class="muted">'+t.cat+'</span></div>'+
+      '<div style="padding:4px">'+items+'</div></div>';
+  });
+  return '<div class="dir">'+dirHeader('<span class="muted">思路 '+thoughtCount()+' · 任务 '+taskCount()+'</span>')+'<div class="list" style="padding:2px">'+groups+'</div></div>';
+}
+/* ④ 紧凑双行 + 进度 */
+function dir4(){
+  let rows='';
+  TREE.forEach(function(t){
+    rows+='<div class="row" style="align-items:flex-start"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none;margin-top:5px"></span><span class="nm t" style="color:#b45309">'+t.name+'</span></div>';
+    t.children.forEach(function(c){
+      rows+='<div class="row" style="padding-left:22px;align-items:flex-start">'+
+        '<span class="dot sdot-'+c.status+'" style="margin-top:5px"></span>'+
+        '<div style="flex:1;min-width:0"><div class="nm" style="display:block">'+c.name+'</div>'+
+        '<div class="muted" style="margin-top:1px">'+c.dept+' · '+c.owner+' · '+c.prog+'%</div></div>'+
+      '</div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader()+'<div class="list">'+rows+'</div></div>';
+}
+
+/* ⑤ 时间线 */
+function dir5(){
+  let rows='';
+  TREE.forEach(function(t){
+    rows+='<div class="row" style="padding-left:6px"><span style="color:var(--amber)">'+svg('target',14)+'</span><span class="nm t" style="color:#b45309">'+t.name+'</span></div>';
+    t.children.forEach(function(c,ci){
+      const last = ci===t.children.length-1;
+      rows+='<div style="display:flex;gap:10px;padding:2px 8px 2px 14px">'+
+        '<div style="position:relative;width:12px;flex:none;display:flex;justify-content:center">'+
+          '<span style="position:absolute;top:-6px;bottom:'+(last?'50%':'-6px')+';width:2px;background:var(--line)"></span>'+
+          '<span class="dot sdot-'+c.status+'" style="position:relative;margin-top:7px;width:9px;height:9px;box-shadow:0 0 0 3px #fff"></span>'+
+        '</div>'+
+        '<div class="row" style="flex:1;padding:5px 6px"><span class="nm">'+c.name+'</span><span class="muted">'+c.status+'</span></div>'+
+      '</div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader()+'<div class="list">'+rows+'</div></div>';
+}
+/* ⑥ 编号大纲 */
+function dir6(){
+  let rows='';
+  TREE.forEach(function(t,ti){
+    rows+='<div class="row"><span style="font-size:12px;font-weight:700;color:#b45309;width:18px;flex:none">'+(ti+1)+'</span><span class="nm t" style="color:#b45309">'+t.name+'</span></div>';
+    t.children.forEach(function(c,ci){
+      rows+='<div class="row" style="padding-left:18px"><span style="font-size:11px;color:var(--ink400);width:26px;flex:none;font-variant-numeric:tabular-nums">'+(ti+1)+'.'+(ci+1)+'</span><span class="dot sdot-'+c.status+'"></span><span class="nm">'+c.name+'</span></div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader('<span class="muted">思路 '+thoughtCount()+' · 任务 '+taskCount()+'</span>')+'<div class="list">'+rows+'</div></div>';
+}
+/* ⑦ 进度条行 */
+function dir7(){
+  let rows='';
+  TREE.forEach(function(t){
+    rows+='<div class="row"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span><span class="nm t" style="color:#b45309">'+t.name+'</span></div>';
+    t.children.forEach(function(c){
+      const col = SC_HEX[c.status];
+      rows+='<div class="row" style="padding-left:22px;gap:8px">'+
+        '<span class="dot sdot-'+c.status+'"></span>'+
+        '<div style="flex:1;min-width:0"><div class="nm" style="display:block">'+c.name+'</div>'+
+          '<div style="height:4px;border-radius:3px;background:var(--line2);margin-top:4px;overflow:hidden"><span style="display:block;height:100%;width:'+c.prog+'%;background:'+col+';border-radius:3px"></span></div></div>'+
+        '<span class="muted" style="width:30px;text-align:right">'+c.prog+'%</span>'+
+      '</div>';
+    });
+  });
+  return '<div class="dir">'+dirHeader()+'<div class="list">'+rows+'</div></div>';
+}
+/* ⑧ 状态分组（按状态归类） */
+function dir8(){
+  const ORDER_S = ['进行中','待接受','待开始','已完成','已拒绝','已中止'];
+  const flat = [];
+  TREE.forEach(function(t){ t.children.forEach(function(c){ flat.push(Object.assign({thought:t.name},c)); }); });
+  let groups='';
+  ORDER_S.forEach(function(s){
+    const items = flat.filter(function(c){return c.status===s;});
+    if(!items.length) return;
+    let li='';
+    items.forEach(function(c){ li+='<div class="row" style="padding:5px 8px"><span class="nm">'+c.name+'</span><span class="muted">'+c.owner+'</span></div>'; });
+    groups+='<div style="margin:6px 4px"><div style="display:flex;align-items:center;gap:7px;padding:4px 6px"><span class="dot sdot-'+s+'"></span><span style="font-size:12px;font-weight:600;color:'+SC_HEX[s]+'">'+s+'</span><span class="muted">'+items.length+'</span></div>'+li+'</div>';
+  });
+  return '<div class="dir">'+dirHeader('<span class="muted">按状态</span>')+'<div class="list">'+groups+'</div></div>';
+}
+
+const DIRS = [
+  {nm:'① 极简缩进', dsc:'只留色点 + 名称，思路琥珀点、任务按状态色点；最干净通透。', fn:dir1},
+  {nm:'② 树线连接', dsc:'文件树式 ├ └ 连接线，层级关系最直观。', fn:dir2},
+  {nm:'③ 分组卡片', dsc:'每个思路一张浅色分组卡，任务收在其下，附状态文字。', fn:dir3},
+  {nm:'④ 紧凑双行', dsc:'名称 + 第二行（部门·负责人·进度），信息量最大。', fn:dir4},
+  {nm:'⑤ 时间线', dsc:'竖向时间线 + 状态节点，像“处理时序”，过程感最强。', fn:dir5},
+  {nm:'⑥ 编号大纲', dsc:'1 / 1.1 / 1.2 层级编号，便于口头/文档引用某条。', fn:dir6},
+  {nm:'⑦ 进度条行', dsc:'每个任务带细进度条 + 百分比，进展一目了然。', fn:dir7},
+  {nm:'⑧ 状态分组', dsc:'打破思路分组，按状态聚类（进行中/待接受/…），便于盯“卡在哪”。', fn:dir8},
+];
+document.getElementById('dir-versions').innerHTML = DIRS.map(function(d){
+  return '<div class="panel"><div class="ph"><span class="nm">'+d.nm+'</span></div><div class="pd">'+d.dsc+'</div>'+d.fn()+'</div>';
+}).join('');
+</script>
+</body>
+</html>
