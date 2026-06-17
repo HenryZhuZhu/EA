@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>我的待办 · 任务卡片 20 版创意方案</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#00A4FF;--red:#FF3B30;--orange:#FF9500;--green:#34C759;--amber:#f59e0b;
+    --ink:#1c2430;--ink2:#374252;--sub:#5f6a78;--mute:#9aa5b3;
+    --line:#e7ebf1;--line2:#f1f4f8;--bg:#edf0f4;
+    --mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;background:var(--bg);color:var(--ink);padding:34px 44px 100px;line-height:1.5;font-size:13px;-webkit-font-smoothing:antialiased}
+  .head{max-width:1180px;margin:0 auto}
+  .head h1{font-size:21px;font-weight:750;letter-spacing:-.4px}
+  .head p{color:var(--sub);font-size:12.5px;margin-top:7px;max-width:920px}
+  .sc{max-width:1180px;margin:34px auto 0}
+  .sc-h{display:flex;align-items:baseline;gap:11px;margin-bottom:12px}
+  .sc-n{font-size:12px;font-weight:750;color:#fff;background:#1c2430;border-radius:7px;padding:2px 9px;align-self:center}
+  .sc-t{font-size:14.5px;font-weight:700;letter-spacing:-.2px}
+  .sc-d{font-size:12px;color:var(--mute);margin-left:auto;text-align:right;max-width:560px}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{cursor:pointer;border:none;font:inherit}
+  svg{display:block}
+  .tip{max-width:1180px;margin:44px auto 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px 22px;font-size:12.5px;color:var(--sub)}
+  .tip b{color:var(--ink)}
+  .star{color:var(--blue)}
+  /* 通用小件 */
+  .u-red{color:var(--red)}.u-org{color:var(--orange)}
+  .due-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .d-red{background:#fdecea;color:#d4362a}.d-amb{background:#fbf1e3;color:#a86413}
+  .mono{font-family:var(--mono)}
+  .accept{background:var(--green);color:#fff;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:650;display:inline-flex;align-items:center;gap:5px}
+  .reject{background:#fff;color:var(--sub);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>我的待办 · 任务卡片 · 20 版创意方案</h1>
+  <p>目标：跳出「传统列表行」，让用户<b>一眼看清「我现在要做什么」</b>。下面 20 版从克制到玩味发散（含游戏任务卡、工单票根、登机牌、终端任务等）。同一组示例任务：<b>动作=该做的事</b>、紧急度、来源 Case、负责人、截止/进度、接受/去处理。</p>
+</div>
+
+<!-- 1 游戏任务卡 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">01</span><span class="sc-t">游戏任务卡 · Quest</span><span class="sc-d">RPG 接任务风：难度星级、奖励感、醒目「接受任务」。趣味强、动作清晰。</span></div>
+<div class="row">
+  <div style="width:380px;background:linear-gradient(160deg,#1e2942,#0f1830);border:1px solid #34406a;border-radius:14px;padding:16px 18px;color:#dfe6f5;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-20px;top:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#FF3B3055,transparent 70%)"></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;font-weight:700;letter-spacing:1px;color:#ff8a80;border:1px solid #ff8a8055;border-radius:5px;padding:1px 7px">紧急任务</span><span style="font-size:11px;color:#ffd27a">★★★☆☆ 难度</span></div>
+    <div style="font-size:16px;font-weight:750;margin-top:10px;line-height:1.4">SEM 复检边缘 die 的 Bondpad 形貌</div>
+    <div style="font-size:11.5px;color:#9fb0d4;margin-top:6px">来自任务线 · 晶圆批次良率异常下降排查</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:12px;font-size:11.5px;color:#aebbd9"><span>⏳ 剩 2 天</span><span>👤 张伟 · PTE</span><span>🎯 验证微裂纹</span></div>
+    <div style="display:flex;gap:9px;margin-top:14px"><button class="btn" style="flex:1;background:linear-gradient(90deg,#ffb347,#ff7a18);color:#3a1c00;font-weight:750;border-radius:9px;padding:9px;font-size:13px">⚔ 接受任务</button><button class="btn" style="background:#2a3658;color:#9fb0d4;border-radius:9px;padding:9px 14px;font-size:12.5px">放弃</button></div>
+  </div>
+</div></div>
+
+<!-- 2 工单票根 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">02</span><span class="sc-t">工单票根 · Ticket</span><span class="sc-d">撕票根 + 打孔边，强「派单」感；编号与截止像票面信息。</span></div>
+<div class="row">
+  <div style="width:420px;display:flex;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px -4px rgba(15,23,42,.1)">
+    <div style="width:84px;background:#0052D9;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative"><div style="font-size:10px;opacity:.8">剩余</div><div style="font-size:24px;font-weight:800;line-height:1">2</div><div style="font-size:10px;opacity:.8">天</div><div style="position:absolute;right:-6px;top:0;bottom:0;width:12px;background:radial-gradient(circle at left,transparent 5px,#0052D9 5px) repeat-y;background-size:12px 14px"></div></div>
+    <div style="flex:1;padding:13px 16px;border-left:2px dashed var(--line)">
+      <div style="display:flex;align-items:center;gap:7px"><span class="due-chip d-red">非常紧急</span><span class="mono" style="font-size:10.5px;color:var(--mute)">EA-260415.004</span></div>
+      <div style="font-size:14.5px;font-weight:700;margin-top:7px">SEM 复检边缘 die 的 Bondpad 形貌</div>
+      <div style="font-size:11.5px;color:var(--sub);margin-top:5px">晶圆批次良率异常下降排查 · 张伟 · PTE</div>
+      <div style="display:flex;gap:8px;margin-top:11px"><button class="btn accept">✓ 接受</button><button class="btn reject">拒绝</button></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- 3 复选清单 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">03</span><span class="sc-t">复选清单 · Checklist</span><span class="sc-d">超大复选框 + 勾掉快感；最朴素直接，「做完打勾」心智。</span></div>
+<div class="row" style="flex-direction:column;gap:9px;max-width:560px">
+  <div style="display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 16px">
+    <div style="width:26px;height:26px;border:2px solid var(--green);border-radius:8px;flex-shrink:0"></div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:650">SEM 复检边缘 die 的 Bondpad 形貌</div><div style="font-size:11.5px;color:var(--sub);margin-top:2px">晶圆批次良率… · 张伟</div></div>
+    <span class="due-chip d-red">剩2天</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:13px;background:#fbfcfd;border:1px solid var(--line);border-radius:12px;padding:13px 16px;opacity:.7">
+    <div style="width:26px;height:26px;background:var(--green);border-radius:8px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:800">✓</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:650;text-decoration:line-through;color:var(--mute)">整理 margin 数据形成评审稿</div></div>
+    <span style="font-size:11px;color:var(--green);font-weight:600">已完成</span>
+  </div>
+</div></div>
+
+<!-- 4 看板卡 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">04</span><span class="sc-t">看板卡 · Kanban</span><span class="sc-d">顶部状态色条 + 标签 + 头像，熟悉的卡片范式，可拖动语义。</span></div>
+<div class="row">
+  <div style="width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden"><div style="height:4px;background:var(--red)"></div><div style="padding:13px 15px"><div style="display:flex;gap:6px"><span class="due-chip d-red">非常紧急</span><span style="font-size:10.5px;background:#eef3fe;color:#0052D9;border-radius:5px;padding:2px 7px;font-weight:600">待接受</span></div><div style="font-size:14px;font-weight:700;margin-top:9px">SEM 复检边缘 die Bondpad 形貌</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px"><span style="font-size:11px;color:var(--sub)">⏳ 剩2天 · 张伟</span><span style="width:24px;height:24px;border-radius:50%;background:#eef2f7;color:#5f6a78;font-size:10px;font-weight:700;display:grid;place-items:center">张</span></div></div></div>
+</div></div>
+
+<!-- 5 派发通知 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">05</span><span class="sc-t">派发通知 · 你有新任务</span><span class="sc-d">「XX 给你派了任务」消息体 + 接受/拒绝，强到达感与责任归属。</span></div>
+<div class="row">
+  <div style="width:440px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:12px">
+    <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0052D9,#00A4FF);color:#fff;font-weight:700;display:grid;place-items:center;flex-shrink:0">周</div>
+    <div style="flex:1"><div style="font-size:12px;color:var(--sub)"><b style="color:var(--ink)">周主管</b> 给你派发了一个新任务 · 2 小时前</div><div style="background:#f7f9fc;border:1px solid var(--line2);border-radius:10px;padding:11px 13px;margin-top:8px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span class="due-chip d-red">非常紧急</span><span class="due-chip d-red">剩2天</span></div><div style="font-size:14px;font-weight:700">SEM 复检边缘 die 的 Bondpad 形貌</div><div style="font-size:11.5px;color:var(--sub);margin-top:3px">预期：确认是否存在划片诱发微裂纹</div></div><div style="display:flex;gap:9px;margin-top:10px"><button class="btn accept">接受任务</button><button class="btn reject">拒绝</button></div></div>
+  </div>
+</div></div>
+
+<!-- 6 倒计时主导 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">06</span><span class="sc-t">倒计时主导 · Countdown</span><span class="sc-d">大号剩余天数作主视觉，截止压力一眼可感；适合临期驱动。</span></div>
+<div class="row">
+  <div style="width:400px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px">
+    <div style="text-align:center;flex-shrink:0"><div style="font-size:40px;font-weight:850;line-height:1;color:var(--red);letter-spacing:-2px">2</div><div style="font-size:11px;color:var(--mute);font-weight:600">天后截止</div></div>
+    <div style="flex:1;border-left:1px solid var(--line2);padding-left:16px"><div style="font-size:14.5px;font-weight:700">SEM 复检边缘 die Bondpad 形貌</div><div style="font-size:11.5px;color:var(--sub);margin-top:4px">晶圆批次良率… · 张伟 · PTE</div><button class="btn accept" style="margin-top:10px">✓ 接受并开始</button></div>
+  </div>
+</div></div>
+
+<!-- 7 CTA 大按钮 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">07</span><span class="sc-t">行动号召 · 大按钮卡</span><span class="sc-d">每卡一个超大主行动按钮（开始/接受），引导「下一步就点这」。</span></div>
+<div class="row">
+  <div style="width:360px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px">
+    <div><div style="display:flex;gap:6px;margin-bottom:8px"><span class="due-chip d-red">非常紧急</span><span class="due-chip d-amb">剩2天</span></div><div style="font-size:15px;font-weight:750">SEM 复检边缘 die 的 Bondpad 形貌</div><div style="font-size:11.5px;color:var(--sub);margin-top:4px">晶圆批次良率异常下降排查 · 张伟</div></div>
+    <button class="btn" style="background:linear-gradient(90deg,#0052D9,#00A4FF);color:#fff;font-size:14px;font-weight:700;border-radius:11px;padding:13px;letter-spacing:.5px">立即接受并处理 →</button>
+  </div>
+</div></div>
+
+<!-- 8 步骤进度 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">08</span><span class="sc-t">步骤进度 · Stepper</span><span class="sc-d">现象→假设→验证→结论，高亮当前步，让人知道「现在卡在哪一步」。</span></div>
+<div class="row">
+  <div style="width:480px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 18px">
+    <div style="font-size:14.5px;font-weight:700">EDS 成分分析裂纹截面</div>
+    <div style="display:flex;align-items:center;margin-top:14px">
+      <div style="text-align:center"><div style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px;margin:0 auto">✓</div><div style="font-size:10px;color:var(--sub);margin-top:4px">现象</div></div>
+      <div style="flex:1;height:2px;background:var(--green);margin:0 2px;margin-bottom:18px"></div>
+      <div style="text-align:center"><div style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px;margin:0 auto">✓</div><div style="font-size:10px;color:var(--sub);margin-top:4px">假设</div></div>
+      <div style="flex:1;height:2px;background:#cfe0fb;margin:0 2px;margin-bottom:18px"></div>
+      <div style="text-align:center"><div style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:12px;margin:0 auto;box-shadow:0 0 0 4px #0052d925">3</div><div style="font-size:10px;color:var(--blue);font-weight:700;margin-top:4px">验证·进行中</div></div>
+      <div style="flex:1;height:2px;background:#e7ecf3;margin:0 2px;margin-bottom:18px"></div>
+      <div style="text-align:center"><div style="width:26px;height:26px;border-radius:50%;background:#eef2f7;color:var(--mute);display:grid;place-items:center;font-size:12px;margin:0 auto">4</div><div style="font-size:10px;color:var(--mute);margin-top:4px">结论</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- 9 便利贴 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">09</span><span class="sc-t">便利贴 · Sticky</span><span class="sc-d">便签纸质感、轻微旋转，亲切随手；适合轻量任务墙。</span></div>
+<div class="row">
+  <div style="width:220px;background:#fff7cc;border-radius:3px;padding:15px;box-shadow:0 6px 14px -6px rgba(0,0,0,.2);transform:rotate(-2deg);position:relative"><div style="position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:50px;height:16px;background:#ffffff88;border:1px solid #00000010"></div><div style="font-size:13.5px;font-weight:700;color:#5a4a00">SEM 复检边缘 die Bondpad 形貌</div><div style="font-size:11px;color:#8a7400;margin-top:8px">⏳ 剩2天 · 张伟</div><div style="font-size:11px;color:var(--red);font-weight:700;margin-top:4px">⚑ 非常紧急</div></div>
+  <div style="width:220px;background:#d8f0ff;border-radius:3px;padding:15px;box-shadow:0 6px 14px -6px rgba(0,0,0,.2);transform:rotate(1.5deg)"><div style="font-size:13.5px;font-weight:700;color:#0a4a6e">EDS 成分分析裂纹截面</div><div style="font-size:11px;color:#3a7da0;margin-top:8px">进行中 · 60%</div></div>
+</div></div>
+
+<!-- 10 今日日程 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">10</span><span class="sc-t">今日日程 · Schedule</span><span class="sc-d">按截止时间排成时间轴日程，回答「今天/这周先做哪个」。</span></div>
+<div class="row" style="flex-direction:column;max-width:560px;gap:0">
+  <div style="display:flex;gap:14px"><div style="width:54px;text-align:right;font-size:11px;color:var(--red);font-weight:700;padding-top:13px">今天</div><div style="flex:1;border-left:2px solid var(--red);padding:11px 0 16px 16px;position:relative"><div style="position:absolute;left:-6px;top:15px;width:10px;height:10px;border-radius:50%;background:var(--red)"></div><div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 14px"><div style="font-size:13.5px;font-weight:700">SEM 复检边缘 die Bondpad 形貌</div><div style="font-size:11px;color:var(--sub);margin-top:3px">非常紧急 · 张伟 · 待接受</div></div></div></div>
+  <div style="display:flex;gap:14px"><div style="width:54px;text-align:right;font-size:11px;color:var(--mute);font-weight:600;padding-top:13px">+5 天</div><div style="flex:1;border-left:2px solid var(--line);padding:11px 0 0 16px;position:relative"><div style="position:absolute;left:-6px;top:15px;width:10px;height:10px;border-radius:50%;background:var(--mute)"></div><div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 14px"><div style="font-size:13.5px;font-weight:700">EDS 成分分析裂纹截面</div><div style="font-size:11px;color:var(--sub);margin-top:3px">进行中 · 60%</div></div></div></div>
+</div></div>
+
+<!-- 11 优先级象限 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">11</span><span class="sc-t">优先级象限 · Matrix</span><span class="sc-d">紧急×重要四象限散点，任务以小卡落位，先做「又急又重」那格。</span></div>
+<div class="row">
+  <div style="width:420px;height:230px;background:#fff;border:1px solid var(--line);border-radius:14px;position:relative;padding:14px">
+    <div style="position:absolute;left:50%;top:14px;bottom:14px;width:1px;background:var(--line2)"></div><div style="position:absolute;top:50%;left:14px;right:14px;height:1px;background:var(--line2)"></div>
+    <div style="position:absolute;left:8px;top:6px;font-size:10px;color:var(--mute)">重要 ↑</div><div style="position:absolute;right:10px;bottom:6px;font-size:10px;color:var(--mute)">紧急 →</div>
+    <div style="position:absolute;left:58%;top:20%;background:#fdecea;border:1px solid #f6c9c4;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:650;color:#b83227;max-width:150px">SEM 复检边缘 die … <span style="display:block;font-weight:400;color:#b8736d">剩2天</span></div>
+    <div style="position:absolute;left:54%;top:60%;background:#fbf1e3;border:1px solid #f0dcb8;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:650;color:#a06614">EDS 分析 <span style="display:block;font-weight:400">60%</span></div>
+  </div>
+</div></div>
+
+<!-- 12 卡牌对战 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">12</span><span class="sc-t">属性卡牌 · Trading Card</span><span class="sc-d">类宝可梦卡：属性条（紧急/进度/部门），收集/出战的玩味感。</span></div>
+<div class="row">
+  <div style="width:240px;background:linear-gradient(160deg,#fff,#eef3fe);border:2px solid #0052D9;border-radius:14px;padding:13px;box-shadow:0 6px 16px -8px rgba(0,82,217,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;font-weight:800;color:#0052D9">EA · 执行任务</span><span style="font-size:11px;font-weight:800;color:var(--red)">⚡急</span></div>
+    <div style="height:64px;border-radius:9px;background:linear-gradient(135deg,#0052D9,#00A4FF);margin:9px 0;display:grid;place-items:center;color:#fff;font-size:24px">🔬</div>
+    <div style="font-size:13px;font-weight:750;line-height:1.3">SEM 复检边缘 die Bondpad</div>
+    <div style="margin-top:9px;font-size:10.5px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:5px"><span style="width:34px;color:var(--mute)">紧急</span><div style="flex:1;height:5px;border-radius:3px;background:#e7ecf3"><i style="display:block;width:90%;height:100%;border-radius:3px;background:var(--red)"></i></div></div>
+      <div style="display:flex;align-items:center;gap:5px"><span style="width:34px;color:var(--mute)">进度</span><div style="flex:1;height:5px;border-radius:3px;background:#e7ecf3"><i style="display:block;width:20%;height:100%;border-radius:3px;background:var(--blue)"></i></div></div>
+    </div>
+    <div style="font-size:10px;color:var(--mute);margin-top:8px">PTE · 张伟 · 剩2天</div>
+  </div>
+</div></div>
+
+<!-- 13 任务护照 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">13</span><span class="sc-t">任务护照 · 印章</span><span class="sc-d">接受时盖「已接受」印章的仪式感；强承诺与归属。</span></div>
+<div class="row">
+  <div style="width:380px;background:#fbf8f1;border:1px solid #e7dcc6;border-radius:12px;padding:15px 18px;position:relative">
+    <div style="font-size:10px;letter-spacing:2px;color:#9c8a63;font-weight:700">ENGINEERING TASK · 受理单</div>
+    <div style="font-size:14.5px;font-weight:750;margin-top:8px;color:#3a3220">SEM 复检边缘 die 的 Bondpad 形貌</div>
+    <div style="font-size:11.5px;color:#7c6f52;margin-top:6px">来源 · 晶圆批次良率异常下降排查<br>负责人 · 张伟 · PTE · 截止 04-28</div>
+    <div style="position:absolute;right:18px;top:42px;border:3px solid #c0392b;color:#c0392b;border-radius:8px;padding:4px 10px;font-size:14px;font-weight:800;transform:rotate(-14deg);opacity:.85">待接受</div>
+    <button class="btn accept" style="margin-top:12px">盖章接受</button>
+  </div>
+</div></div>
+
+<!-- 14 进度环大卡 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">14</span><span class="sc-t">进度环 Hero</span><span class="sc-d">大进度环作主视觉，进行中任务的完成感最直观。</span></div>
+<div class="row">
+  <div style="width:380px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px">
+    <div style="width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--blue) 60%,#e7ecf3 0);display:grid;place-items:center;flex-shrink:0"><div style="width:54px;height:54px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:16px;font-weight:800;color:#374252">60%</div></div>
+    <div style="flex:1"><span style="font-size:10.5px;background:#eef3fe;color:#0052D9;border-radius:5px;padding:2px 7px;font-weight:600">进行中</span><div style="font-size:14.5px;font-weight:700;margin-top:7px">EDS 成分分析裂纹截面</div><div style="font-size:11.5px;color:var(--sub);margin-top:4px">封装空洞率超标分析 · 剩5天</div></div>
+  </div>
+</div></div>
+
+<!-- 15 IM 任务消息 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">15</span><span class="sc-t">聊天派单 · IM 气泡</span><span class="sc-d">像收到一条消息卡，接受/拒绝就地操作，轻量高频。</span></div>
+<div class="row">
+  <div style="width:400px;display:flex;gap:10px"><div style="width:30px;height:30px;border-radius:50%;background:#eef2f7;color:#5f6a78;font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0">周</div>
+  <div style="background:#fff;border:1px solid var(--line);border-radius:3px 12px 12px 12px;padding:12px 14px;flex:1"><div style="font-size:11px;color:var(--sub)">@你 · 请处理这个任务</div><div style="font-size:14px;font-weight:700;margin-top:5px">SEM 复检边缘 die Bondpad 形貌</div><div style="font-size:11px;color:var(--red);font-weight:600;margin-top:3px">非常紧急 · 剩2天</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn accept" style="padding:5px 12px">接受</button><button class="btn reject" style="padding:5px 12px">拒绝</button></div></div></div>
+</div></div>
+
+<!-- 16 文件夹标签 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">16</span><span class="sc-t">文件夹标签卡 · Folder</span><span class="sc-d">顶部带 Case 名标签的文件夹卡，强「这个任务属于哪个 Case」。</span></div>
+<div class="row">
+  <div style="width:340px"><div style="display:inline-block;background:#eef3fe;color:#0052D9;font-size:11px;font-weight:650;padding:5px 14px;border-radius:9px 9px 0 0;border:1px solid var(--line);border-bottom:none">📁 晶圆批次良率异常下降排查</div>
+  <div style="background:#fff;border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:14px 16px"><div style="display:flex;gap:6px;margin-bottom:8px"><span class="due-chip d-red">非常紧急</span><span class="due-chip d-amb">剩2天</span></div><div style="font-size:14.5px;font-weight:700">SEM 复检边缘 die 的 Bondpad 形貌</div><div style="font-size:11.5px;color:var(--sub);margin-top:5px">张伟 · PTE · 待接受</div></div></div>
+</div></div>
+
+<!-- 17 登机牌 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">17</span><span class="sc-t">登机牌 · Boarding Pass</span><span class="sc-d">起点→终点＝现状→预期；把「要达成什么」表达成一段旅程。</span></div>
+<div class="row">
+  <div style="width:460px;display:flex;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden">
+    <div style="flex:1;padding:14px 16px"><div style="font-size:10px;letter-spacing:1px;color:var(--mute);font-weight:700">TASK PASS · 执行任务</div><div style="display:flex;align-items:center;gap:12px;margin-top:9px"><div><div style="font-size:18px;font-weight:800;color:var(--ink)">现状</div><div style="font-size:10px;color:var(--sub)">边缘 die 异常</div></div><div style="flex:1;border-top:2px dashed var(--line);position:relative;text-align:center">✈</div><div><div style="font-size:18px;font-weight:800;color:var(--blue)">预期</div><div style="font-size:10px;color:var(--sub)">确认微裂纹</div></div></div><div style="font-size:13px;font-weight:700;margin-top:11px">SEM 复检边缘 die Bondpad 形貌</div></div>
+    <div style="width:96px;border-left:2px dashed var(--line);padding:14px 12px;text-align:center;background:#fbfcfd"><div style="font-size:10px;color:var(--mute)">截止</div><div style="font-size:13px;font-weight:800;color:var(--red);margin-top:4px">剩2天</div><div style="margin-top:8px;font-size:18px;letter-spacing:1px">▮▮▯▮▯▮</div><div style="font-size:9px;color:var(--mute);margin-top:4px">.004</div></div>
+  </div>
+</div></div>
+
+<!-- 18 终端任务 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">18</span><span class="sc-t">终端任务 · Terminal</span><span class="sc-d">暗色代码终端 mission 感，工程师极客向；信息密度高。</span></div>
+<div class="row">
+  <div style="width:440px;background:#0d1117;border:1px solid #222d3a;border-radius:12px;padding:14px 16px;font-family:var(--mono);color:#c9d4e0">
+    <div style="font-size:11px;color:#5f7080">$ task --show EA-260415.004</div>
+    <div style="font-size:11px;margin-top:6px"><span style="color:#ff6b6b">[URGENT]</span> <span style="color:#ffd56b">due:2d</span> <span style="color:#6bd49a">owner:张伟</span></div>
+    <div style="font-size:14px;font-weight:700;margin-top:8px;color:#e8eef5;font-family:-apple-system,sans-serif">SEM 复检边缘 die 的 Bondpad 形貌</div>
+    <div style="font-size:11px;color:#7d8a98;margin-top:5px;font-family:-apple-system,sans-serif">case: 晶圆批次良率异常下降排查</div>
+    <div style="margin-top:11px;display:flex;gap:8px"><button class="btn" style="background:#1f6feb;color:#fff;border-radius:6px;padding:6px 13px;font-size:12px;font-family:-apple-system">▶ accept</button><button class="btn" style="background:transparent;color:#7d8a98;border:1px solid #2c3a48;border-radius:6px;padding:6px 13px;font-size:12px;font-family:-apple-system">reject</button></div>
+  </div>
+</div></div>
+
+<!-- 19 成就奖章 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">19</span><span class="sc-t">成就奖章 · Badge</span><span class="sc-d">奖章式徽记 + 完成可解锁感，激励驱动；适合配合积分体系。</span></div>
+<div class="row">
+  <div style="width:340px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px">
+    <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#ffb347,#ff7a18);display:grid;place-items:center;font-size:26px;flex-shrink:0;box-shadow:0 6px 14px -6px #ff7a1880">🏅</div>
+    <div style="flex:1"><div style="font-size:14.5px;font-weight:750">SEM 复检边缘 die Bondpad</div><div style="font-size:11px;color:var(--sub);margin-top:3px">完成 +50 积分 · 剩2天 · 非常紧急</div><div style="margin-top:7px;height:6px;border-radius:3px;background:#e7ecf3"><i style="display:block;width:20%;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffb347,#ff7a18)"></i></div></div>
+  </div>
+</div></div>
+
+<!-- 20 极简大字 -->
+<div class="sc"><div class="sc-h"><span class="sc-n">20</span><span class="sc-t">极简大字行动卡 · Verb-first <span class="star">★ 推荐（克制版）</span></span><span class="sc-d">动词开头、超大标题，一眼就知「要干嘛」；元信息弱化为副行。最克制又最直观，契合工程语境。</span></div>
+<div class="row" style="flex-direction:column;gap:9px;max-width:620px">
+  <div style="background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:12px;padding:15px 18px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="due-chip d-red">非常紧急 · 剩2天</span><span style="font-size:10.5px;color:#0052D9;background:#eef3fe;border-radius:5px;padding:2px 7px;font-weight:600">待接受</span></div>
+    <div style="font-size:17px;font-weight:750;letter-spacing:-.3px">复检 边缘 die 的 Bondpad 形貌（SEM）</div>
+    <div style="font-size:11.5px;color:var(--sub);margin-top:6px">晶圆批次良率异常下降排查 · 张伟 · PTE · <span class="mono">EA-260415.004</span></div>
+    <div style="display:flex;gap:9px;margin-top:11px"><button class="btn accept" style="padding:6px 14px">接受</button><button class="btn reject" style="padding:6px 14px">拒绝</button></div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:12px;padding:15px 18px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="due-chip d-amb">紧急 · 剩5天</span><span style="font-size:10.5px;color:#0052D9;background:#eef3fe;border-radius:5px;padding:2px 7px;font-weight:600">进行中 60%</span></div>
+    <div style="font-size:17px;font-weight:750;letter-spacing:-.3px">分析 裂纹截面成分（EDS）</div>
+    <div style="font-size:11.5px;color:var(--sub);margin-top:6px">封装空洞率超标分析 · 张伟 · PTE</div>
+    <div style="margin-top:10px"><button class="btn" style="color:#0052D9;border:1px solid #0052D933;background:#fff;border-radius:8px;padding:6px 14px;font-size:12.5px;font-weight:600">去处理 →</button></div>
+  </div>
+</div></div>
+
+<div class="tip">
+  <b>怎么选：</b>想<b>趣味/激励</b> → 01 游戏任务卡 · 12 属性卡牌 · 13 任务护照 · 19 成就奖章；想<b>动作最直观</b> → 20 极简大字（★ 工程语境推荐）· 06 倒计时 · 07 大按钮；想<b>派发到达感</b> → 05 派发通知 · 15 聊天派单 · 02 工单票根；想<b>看清进度/步骤</b> → 08 步骤进度 · 14 进度环；想<b>排优先级</b> → 10 今日日程 · 11 优先级象限。<br>
+  告诉我编号（可组合，如「20 的动词大字 + 01 的接受按钮趣味」），我实装到我的待办的「我的任务」列表。
+</div>
+
+</body>
+</html>

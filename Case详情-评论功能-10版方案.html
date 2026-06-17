@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>Case 详情 · 评论功能 10 版方案</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#00A4FF;
+    --ink:#1c2430;--ink2:#374252;--sub:#5f6a78;--mute:#9aa5b3;
+    --line:#e7ebf1;--line2:#f1f4f8;--bg:#eef0f4;--card:#fff;
+    --violet:#8b5cf6;--amber:#f59e0b;
+    --mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;
+    background:var(--bg);color:var(--ink);padding:34px 44px 100px;line-height:1.5;font-size:13px;-webkit-font-smoothing:antialiased}
+  .head{max-width:1120px;margin:0 auto}
+  .head h1{font-size:21px;font-weight:750;letter-spacing:-.4px}
+  .head p{color:var(--sub);font-size:12.5px;margin-top:7px;max-width:900px}
+  .head .note{margin-top:10px;font-size:11.5px;color:#334155;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 13px}
+  .head .note b{color:var(--blue)}
+
+  .sc{max-width:1120px;margin:36px auto 0}
+  .sc-h{display:flex;align-items:flex-start;gap:13px;margin-bottom:13px}
+  .sc-n{font-size:13px;font-weight:750;color:#fff;background:#1c2430;border-radius:8px;min-width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sc-t{font-size:15px;font-weight:700;letter-spacing:-.2px}
+  .sc-d{font-size:12px;color:var(--sub);margin-top:2px;max-width:840px}
+  .star{color:var(--blue)}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .ph{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--line2)}
+  .ph svg{width:15px;height:15px;stroke:var(--blue);fill:none;stroke-width:2}
+  .ph h3{font-size:13.5px;font-weight:650;color:var(--ink2)}
+  .ph .sub{font-size:11px;color:var(--mute)}
+  .ph .cnt{margin-left:auto;font-size:11px;color:var(--mute)}
+
+  /* timeline */
+  .tl{position:relative;padding:14px 18px 14px 34px}
+  .tl::before{content:'';position:absolute;left:23px;top:18px;bottom:18px;width:1px;background:var(--line)}
+  .ti{position:relative;margin-bottom:13px}
+  .ti:last-child{margin-bottom:0}
+  .ti .dot{position:absolute;left:-17px;top:3px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px #fff}
+  .d-owner{background:var(--violet)}.d-level{background:#3b82f6}.d-status{background:var(--blue)}.d-due{background:var(--amber)}.d-create{background:#94a3b8}
+  .ti .txt{font-size:12.5px;color:var(--ink2)}
+  .ti .meta{font-size:11px;color:var(--mute);margin-top:1px}
+  .strike{text-decoration:line-through;color:var(--mute)}
+
+  /* comments */
+  .clist{padding:14px 18px;display:flex;flex-direction:column;gap:14px}
+  .cm{display:flex;gap:10px}
+  .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:11px;font-weight:600;display:grid;place-items:center;flex-shrink:0}
+  .av.g{background:#eef2f7;color:#5f6a78}
+  .cm .body{flex:1;min-width:0}
+  .cm .top{display:flex;align-items:baseline;gap:7px}
+  .cm .nm{font-size:12.5px;font-weight:650;color:var(--ink)}
+  .cm .role{font-size:10px;color:var(--mute);background:#f1f4f8;border-radius:4px;padding:0 5px}
+  .cm .tm{font-size:10.5px;color:var(--mute);margin-left:auto}
+  .cm .ct{font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.55}
+  .at{color:var(--blue);font-weight:600}
+  .cm .acts{display:flex;gap:14px;margin-top:5px;font-size:11px;color:var(--mute)}
+  .cm .acts span{display:inline-flex;align-items:center;gap:3px;cursor:pointer}
+  .cm .acts svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+  .reply{margin-top:9px;padding-left:11px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:9px}
+
+  .input{display:flex;align-items:center;gap:9px;padding:11px 16px;border-top:1px solid var(--line2);background:#fbfcfd}
+  .input .box{flex:1;height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;display:flex;align-items:center;padding:0 11px;color:var(--mute);font-size:12px;gap:7px}
+  .input .send{height:34px;padding:0 15px;border-radius:9px;background:var(--blue);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;cursor:pointer}
+  .tool{color:var(--mute);display:inline-flex;gap:8px}
+  .tool svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  .tabs{display:flex;gap:2px;padding:8px 14px 0}
+  .tab{font-size:12.5px;font-weight:600;color:var(--mute);padding:7px 13px;border-radius:8px 8px 0 0;cursor:pointer}
+  .tab.on{color:var(--blue);background:#eef3fe}
+  .pin{background:#fffaf0;border:1px solid #fde9c8;border-radius:9px;padding:9px 11px}
+  .pintag{font-size:10px;color:#b4791a;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  svg{display:block}
+  .tip{max-width:1120px;margin:44px auto 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px 22px;font-size:12.5px;color:var(--sub)}
+  .tip b{color:var(--ink)}
+  .mut{color:var(--mute)}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="clock" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="chat" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+  <symbol id="reply" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l-5-5 5-5M4 12h12a4 4 0 0 1 4 4v2"/></symbol>
+  <symbol id="like" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11M2 13v6a2 2 0 0 0 2 2h13.5a2 2 0 0 0 2-1.7l1.2-7a2 2 0 0 0-2-2.3H14l1-4.5A2 2 0 0 0 13 3l-6 7H4a2 2 0 0 0-2 2z"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></symbol>
+  <symbol id="paperclip" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.2 20.3a5 5 0 0 1-7.1-7.1l9.2-9.2a3.3 3.3 0 0 1 4.7 4.7l-9.2 9.2a1.7 1.7 0 0 1-2.4-2.4l8.5-8.5"/></symbol>
+  <symbol id="send" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.8V4h6v6.8l2 2.2H7l2-2.2z"/></symbol>
+  <symbol id="chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></symbol>
+</svg>
+
+<div class="head">
+  <h1>Case 详情 · 「Case 评论」功能 · 10 版方案</h1>
+  <p>在 Case 详情页新增<b>Case 级评论</b>（区别于任务级评论）。你的设想是放在<b>Case 流转日志右侧</b>——下面 10 版围绕这个思路，并给出几种替代位置/形态供对比。示例统一用同一组日志与评论数据。</p>
+  <div class="note">现状：<b>Case 流转日志</b> 是思维导图下方的一个全宽时间线模块（记录 Owner / 层级 / 状态等变更）。评论需要：发言输入、@提及、回复、点赞，并与日志区分清楚。</div>
+</div>
+
+<!-- ============ 1 左右双栏（推荐） ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">1</span><div><div class="sc-t">左右双栏 · 左日志 / 右评论 <span class="star">★ 推荐（你的设想）</span></div><div class="sc-d">把原全宽模块拆成两栏：左侧保留流转日志，右侧是 Case 评论（讨论流 + 底部常驻输入框）。日志是「系统事实」、评论是「人的讨论」，左右并置、各司其职。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3><span class="sub">系统变更</span></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+        <div class="ti"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+        <div class="ti"><span class="dot d-status"></span><div class="txt">李娜 接受任务 EA-260415.004</div><div class="meta">04-18 10:30</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="ph"><svg><use href="#chat"/></svg><h3>Case 评论</h3><span class="cnt">3 条讨论</span></div>
+      <div class="clist" style="flex:1">
+        <div class="cm"><div class="av">周</div><div class="body"><div class="top"><span class="nm">周主管</span><span class="role">PTE 主管</span><span class="tm">2 小时前</span></div><div class="ct">边缘 die 优先排查，<span class="at">@张伟</span> 跟进 Pattern 方向，先出 SEM 复检。</div><div class="acts"><span><svg><use href="#like"/></svg> 3</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+        <div class="cm"><div class="av">李</div><div class="body"><div class="top"><span class="nm">李娜</span><span class="role">DA</span><span class="tm">1 小时前</span></div><div class="ct">工艺侧我同步 implant split 数据到 WS。</div><div class="acts"><span><svg><use href="#like"/></svg> 1</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+        <div class="cm"><div class="av">张</div><div class="body"><div class="top"><span class="nm">张伟</span><span class="role">PTE</span><span class="tm">30 分钟前</span></div><div class="ct">SEM 显示边缘氧化层偏薄约 4nm，倾向工艺漂移。</div><div class="acts"><span><svg><use href="#like"/></svg> 2</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+      </div>
+      <div class="input"><div class="box"><span class="tool"><svg><use href="#at"/></svg><svg><use href="#paperclip"/></svg></span>写下你的评论，@ 可提及成员…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 2 Tab 切换 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">2</span><div><div class="sc-t">同卡 Tab 切换 · 日志 / 评论</div><div class="sc-d">保持原模块单列宽度，用 Tab 在「流转日志」与「评论」间切换。占位最省，适合详情页较窄时。</div></div></div>
+<div class="panel">
+  <div class="tabs"><span class="tab">流转日志</span><span class="tab on">评论 · 3</span></div>
+  <div class="clist" style="border-top:1px solid var(--line2)">
+    <div class="cm"><div class="av">周</div><div class="body"><div class="top"><span class="nm">周主管</span><span class="role">PTE 主管</span><span class="tm">2 小时前</span></div><div class="ct">边缘 die 优先排查，<span class="at">@张伟</span> 跟进 Pattern 方向。</div><div class="acts"><span><svg><use href="#like"/></svg> 3</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+    <div class="cm"><div class="av">张</div><div class="body"><div class="top"><span class="nm">张伟</span><span class="role">PTE</span><span class="tm">30 分钟前</span></div><div class="ct">SEM 显示氧化层偏薄约 4nm，倾向工艺漂移。</div><div class="acts"><span><svg><use href="#like"/></svg> 2</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+  </div>
+  <div class="input"><div class="box"><span class="tool"><svg><use href="#at"/></svg><svg><use href="#paperclip"/></svg></span>写下你的评论…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+</div></div>
+
+<!-- ============ 3 合并活动流 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">3</span><div><div class="sc-t">合并活动流 · 评论与日志同一时间线</div><div class="sc-d">不分栏：评论作为带头像的气泡，与系统日志（小圆点）按时间穿插在同一条流里。信息最连贯，能看清「谁在什么节点说了什么」。</div></div></div>
+<div class="panel">
+  <div class="ph"><svg><use href="#clock"/></svg><h3>Case 活动 · 日志 + 评论</h3><span class="cnt">混合时间线</span></div>
+  <div class="tl">
+    <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+    <div class="ti" style="margin-bottom:16px"><span class="dot" style="background:var(--blue);width:11px;height:11px;left:-18px"></span><div style="background:#f7f9fc;border:1px solid var(--line2);border-radius:10px;padding:9px 12px;margin-top:-2px"><div class="top" style="display:flex;align-items:baseline;gap:7px"><span class="av" style="width:22px;height:22px;font-size:9px">周</span><span class="nm">周主管</span><span class="tm">2 小时前</span></div><div class="ct">边缘 die 优先，<span class="at">@张伟</span> 跟进 Pattern 方向。</div></div></div>
+    <div class="ti"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+    <div class="ti" style="margin-bottom:0"><span class="dot" style="background:var(--blue);width:11px;height:11px;left:-18px"></span><div style="background:#f7f9fc;border:1px solid var(--line2);border-radius:10px;padding:9px 12px;margin-top:-2px"><div class="top" style="display:flex;align-items:baseline;gap:7px"><span class="av" style="width:22px;height:22px;font-size:9px">张</span><span class="nm">张伟</span><span class="tm">30 分钟前</span></div><div class="ct">SEM 显示氧化层偏薄约 4nm，倾向工艺漂移。</div></div></div>
+  </div>
+  <div class="input"><div class="box"><span class="tool"><svg><use href="#at"/></svg></span>发表评论会插入到时间线…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+</div></div>
+
+<!-- ============ 4 宽日志 + 窄评论栏 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">4</span><div><div class="sc-t">主日志 + 右侧窄评论栏</div><div class="sc-d">日志占主（约 2/3），右侧一条更窄的常驻评论栏。日志为主、评论为辅时适用。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:1.8fr 1fr">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+        <div class="ti"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+        <div class="ti"><span class="dot d-status"></span><div class="txt">李娜 接受任务 EA-260415.004</div><div class="meta">04-18 10:30</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;background:#fbfcfd">
+      <div class="ph"><svg><use href="#chat"/></svg><h3>评论</h3><span class="cnt">3</span></div>
+      <div class="clist" style="flex:1;gap:11px">
+        <div class="cm"><div class="av" style="width:24px;height:24px;font-size:10px">周</div><div class="body"><div class="top"><span class="nm" style="font-size:12px">周主管</span><span class="tm">2h</span></div><div class="ct" style="font-size:12px"><span class="at">@张伟</span> 跟进 Pattern。</div></div></div>
+        <div class="cm"><div class="av" style="width:24px;height:24px;font-size:10px">张</div><div class="body"><div class="top"><span class="nm" style="font-size:12px">张伟</span><span class="tm">30m</span></div><div class="ct" style="font-size:12px">氧化层偏薄 4nm。</div></div></div>
+      </div>
+      <div class="input" style="padding:9px 12px"><div class="box" style="height:30px;font-size:11.5px">评论…</div><div class="send" style="height:30px;padding:0 11px"><svg style="width:12px;height:12px;stroke:#fff"><use href="#send"/></svg></div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 5 置顶讨论 + 日志在下 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">5</span><div><div class="sc-t">讨论区置顶 + 日志在下</div><div class="sc-d">把「评论/讨论」作为更重要的协作区放上方（支持置顶关键结论），系统日志收到下方。强调讨论优先。</div></div></div>
+<div class="panel">
+  <div class="ph"><svg><use href="#chat"/></svg><h3>Case 讨论</h3><span class="cnt">3 条 · 1 置顶</span></div>
+  <div class="clist">
+    <div class="pin"><div class="pintag"><svg style="width:12px;height:12px;stroke:#b4791a"><use href="#pin"/></svg> 置顶 · 周主管</div><div class="ct" style="margin-top:4px">结论方向：测试侧 Pattern + 工艺侧 implant 双线推进，本周五前出评审稿。</div></div>
+    <div class="cm"><div class="av">张</div><div class="body"><div class="top"><span class="nm">张伟</span><span class="tm">30 分钟前</span></div><div class="ct">SEM 显示氧化层偏薄约 4nm，倾向工艺漂移。</div><div class="acts"><span><svg><use href="#like"/></svg> 2</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+  </div>
+  <div class="input"><div class="box"><span class="tool"><svg><use href="#at"/></svg></span>参与讨论…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+  <div style="border-top:1px solid var(--line)">
+    <div class="ph" style="border:0"><svg><use href="#clock"/></svg><h3 style="font-size:12.5px">流转日志</h3><span class="sub">系统变更</span></div>
+    <div class="tl" style="padding-top:0">
+      <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+      <div class="ti" style="margin-bottom:0"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 6 聊天气泡 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">6</span><div><div class="sc-t">聊天气泡式评论（右栏）</div><div class="sc-d">右侧评论用 IM 气泡（自己靠右、他人靠左），轻松高频沟通氛围；左侧仍是日志。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19</div></div>
+        <div class="ti" style="margin-bottom:0"><span class="dot d-status"></span><div class="txt">李娜 接受任务</div><div class="meta">04-18</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="ph"><svg><use href="#chat"/></svg><h3>讨论</h3></div>
+      <div style="flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:11px">
+        <div style="display:flex;gap:8px"><span class="av" style="width:24px;height:24px;font-size:10px">周</span><div><div style="font-size:10.5px;color:var(--mute);margin-bottom:3px">周主管</div><div style="background:#f1f4f8;border-radius:3px 12px 12px 12px;padding:8px 11px;font-size:12.5px;color:var(--ink2);max-width:230px"><span class="at">@张伟</span> 跟进 Pattern 方向，先出 SEM。</div></div></div>
+        <div style="display:flex;gap:8px;flex-direction:row-reverse"><span class="av" style="width:24px;height:24px;font-size:10px">张</span><div style="text-align:right"><div style="font-size:10.5px;color:var(--mute);margin-bottom:3px">我</div><div style="background:#0052D9;color:#fff;border-radius:12px 3px 12px 12px;padding:8px 11px;font-size:12.5px;max-width:230px;text-align:left">收到，今天出 SEM 复检结果。</div></div></div>
+      </div>
+      <div class="input"><div class="box">发消息…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg></div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 7 可折叠评论面板 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">7</span><div><div class="sc-t">日志右侧 · 可折叠评论面板</div><div class="sc-d">默认日志全宽；右侧评论面板可展开/收起。不讨论时不占地方，需要时一键拉出。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:1fr 320px">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+        <div class="ti" style="margin-bottom:0"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;background:#fbfcfd">
+      <div class="ph"><svg style="transform:rotate(0)"><use href="#chevron"/></svg><h3>评论 · 3</h3><span class="cnt mut" style="cursor:pointer">收起</span></div>
+      <div class="clist" style="flex:1;gap:11px">
+        <div class="cm"><div class="av" style="width:24px;height:24px;font-size:10px">周</div><div class="body"><div class="top"><span class="nm" style="font-size:12px">周主管</span><span class="tm">2h</span></div><div class="ct" style="font-size:12px"><span class="at">@张伟</span> 跟进 Pattern。</div></div></div>
+        <div class="cm"><div class="av" style="width:24px;height:24px;font-size:10px">张</div><div class="body"><div class="top"><span class="nm" style="font-size:12px">张伟</span><span class="tm">30m</span></div><div class="ct" style="font-size:12px">氧化层偏薄 4nm。</div></div></div>
+      </div>
+      <div class="input" style="padding:9px 12px"><div class="box" style="height:30px;font-size:11.5px">评论…</div><div class="send" style="height:30px;padding:0 11px"><svg style="width:12px;height:12px;stroke:#fff"><use href="#send"/></svg></div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 8 卡片化富评论 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">8</span><div><div class="sc-t">卡片化富评论 · 回复/点赞/引用日志</div><div class="sc-d">右栏评论支持嵌套回复、点赞、@提及，并能「引用」某条日志事件展开讨论。协作信息量最大。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:.9fr 1.1fr">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>流转日志</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+        <div class="ti" style="margin-bottom:0"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="ph"><svg><use href="#chat"/></svg><h3>Case 评论</h3><span class="cnt">3 条</span></div>
+      <div class="clist">
+        <div class="cm"><div class="av">周</div><div class="body"><div class="top"><span class="nm">周主管</span><span class="role">PTE 主管</span><span class="tm">2 小时前</span></div><div style="font-size:10.5px;color:var(--mute);background:#f1f4f8;border-radius:6px;padding:4px 8px;margin-top:4px;border-left:2px solid var(--blue)">引用日志 · 系统 调整等级 L3 → L1</div><div class="ct">既然升 L1，<span class="at">@张伟</span> 优先 Pattern 方向，先出 SEM。</div><div class="acts"><span><svg><use href="#like"/></svg> 3</span><span><svg><use href="#reply"/></svg> 回复</span></div>
+          <div class="reply"><div class="cm"><div class="av g">张</div><div class="body"><div class="top"><span class="nm">张伟</span><span class="tm">1 小时前</span></div><div class="ct">已安排，今天出结果。</div></div></div></div>
+        </div></div>
+      </div>
+      <div class="input"><div class="box"><span class="tool"><svg><use href="#at"/></svg><svg><use href="#paperclip"/></svg></span>写下你的评论…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ 9 浮动评论抽屉 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">9</span><div><div class="sc-t">日志全宽 + 浮动评论抽屉</div><div class="sc-d">日志保持全宽不动；右下角一个浮动「评论 N」按钮，点开从右侧滑出抽屉。改动最小、最不打扰原布局。</div></div></div>
+<div class="panel" style="position:relative">
+  <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3><span class="sub">Owner / 时间 / 层级 / 状态等变更</span></div>
+  <div class="tl">
+    <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+    <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+    <div class="ti" style="margin-bottom:0"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner <span class="strike">王强</span> → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:16px;background:var(--blue);color:#fff;border-radius:22px;padding:8px 15px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px -6px rgba(0,82,217,.5)"><svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><use href="#chat"/></svg> 评论 3</div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:300px;background:#fff;border-left:1px solid var(--line);box-shadow:-12px 0 24px -16px rgba(15,23,42,.2);display:flex;flex-direction:column">
+    <div class="ph"><svg><use href="#chat"/></svg><h3>Case 评论</h3><span class="cnt mut" style="cursor:pointer">✕</span></div>
+    <div class="clist" style="flex:1;gap:11px"><div class="cm"><div class="av" style="width:24px;height:24px;font-size:10px">周</div><div class="body"><div class="top"><span class="nm" style="font-size:12px">周主管</span><span class="tm">2h</span></div><div class="ct" style="font-size:12px"><span class="at">@张伟</span> 跟进 Pattern。</div></div></div></div>
+    <div class="input" style="padding:9px 12px"><div class="box" style="height:30px;font-size:11.5px">评论…</div><div class="send" style="height:30px;padding:0 11px"><svg style="width:12px;height:12px;stroke:#fff"><use href="#send"/></svg></div></div>
+  </div>
+</div></div>
+
+<!-- ============ 10 双栏 + 顶部快捷输入 ============ -->
+<div class="sc"><div class="sc-h"><span class="sc-n">10</span><div><div class="sc-t">双栏 · 评论输入置顶</div><div class="sc-d">与方案 1 同为左右双栏，但右侧把输入框放到<b>顶部</b>（先发言、后浏览历史），鼓励快速参与。</div></div></div>
+<div class="panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr">
+    <div style="border-right:1px solid var(--line)">
+      <div class="ph"><svg><use href="#clock"/></svg><h3>Case 流转日志</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dot d-create"></span><div class="txt">张伟 创建了 Case</div><div class="meta">04-15 09:20</div></div>
+        <div class="ti"><span class="dot d-level"></span><div class="txt">系统 调整等级 <span class="strike">L3</span> → <b>L1</b></div><div class="meta">04-19 14:02</div></div>
+        <div class="ti" style="margin-bottom:0"><span class="dot d-owner"></span><div class="txt">周主管 转移 Owner → <b>张伟</b></div><div class="meta">04-20 10:11</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="ph"><svg><use href="#chat"/></svg><h3>Case 评论</h3><span class="cnt">3</span></div>
+      <div class="input" style="border-top:0;border-bottom:1px solid var(--line2)"><div class="av" style="width:28px;height:28px">我</div><div class="box"><span class="tool"><svg><use href="#at"/></svg></span>说点什么…</div><div class="send"><svg style="width:13px;height:13px;stroke:#fff"><use href="#send"/></svg> 发送</div></div>
+      <div class="clist" style="flex:1">
+        <div class="cm"><div class="av">周</div><div class="body"><div class="top"><span class="nm">周主管</span><span class="tm">2 小时前</span></div><div class="ct"><span class="at">@张伟</span> 跟进 Pattern 方向。</div><div class="acts"><span><svg><use href="#like"/></svg> 3</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+        <div class="cm"><div class="av">张</div><div class="body"><div class="top"><span class="nm">张伟</span><span class="tm">30 分钟前</span></div><div class="ct">氧化层偏薄约 4nm，倾向工艺漂移。</div><div class="acts"><span><svg><use href="#like"/></svg> 2</span><span><svg><use href="#reply"/></svg> 回复</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<div class="tip">
+  <b>我的推荐：方案 1「左右双栏 · 左日志 / 右评论」</b>——正是你的设想，且语义最干净：<b>左＝系统事实（流转日志）</b>、<b>右＝人的讨论（评论）</b>，并置不互相干扰，右栏底部常驻输入随时发言。<br>
+  若详情页偏窄 → <b>2 Tab 切换</b>最省空间；若希望「谁在哪个节点说了什么」一目了然 → <b>3 合并活动流</b>；想最小改动原布局 → <b>9 浮动抽屉</b>；协作讨论很重 → <b>8 富评论</b> 或 <b>5 置顶讨论</b>。<br>
+  告诉我选哪版（可组合，如「方案 1 布局 + 方案 8 的回复/引用能力」），我接入真实 Case 评论数据并实装到详情页。
+</div>
+
+</body>
+</html>
