@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>我的待办 · 应用任务卡片方案 2（工单票根）· V1.0.2 真实页面还原</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#00A4FF;--red:#FF3B30;--orange:#FF9500;--sky:#38BDF8;--green:#34C759;
+    --ink:#0f172a;--ink2:#1e293b;--sub:#64748b;--mute:#94a3b8;
+    --line:#e2e8f0;--line2:#eef2f7;--mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;color:var(--ink);line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased;height:100vh;display:flex;background:linear-gradient(135deg,#f8fafc,#fff 40%,#f8fafc)}
+  svg{display:block}
+
+  /* 侧边栏 */
+  .side{width:236px;flex-shrink:0;height:100%;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .brand{height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line2)}
+  .brand .logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#00A4FF,#0052D9);color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+  .brand .t1{font-size:14px;color:#0f172a;letter-spacing:.3px}.brand .t2{font-size:11px;color:var(--mute)}
+  .nav{flex:1;padding:12px 8px;overflow-y:auto}
+  .nav .grp{font-size:11px;text-transform:uppercase;color:var(--mute);padding:8px 12px;letter-spacing:1px}
+  .nav a{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;font-size:14px;color:var(--sub);cursor:pointer;margin-bottom:2px}
+  .nav a svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+  .nav a:hover{background:#f8fafc;color:#0f172a}
+  .nav a.on{background:rgba(0,82,217,.08);color:var(--blue);box-shadow:inset 2px 0 0 0 var(--blue)}
+  .nav a .lab{flex:1}.nav a .badge{font-size:10px;padding:1px 7px;border-radius:20px;background:#f1f5f9;color:#64748b}
+  .nav a.on .badge{background:var(--blue);color:#fff}
+  .sfoot{padding:12px;border-top:1px solid var(--line2)}
+  .ucard{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f8fafc}
+  .ucard .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00A4FF,#0052D9);color:#fff;display:grid;place-items:center;font-size:12px}
+  .ucard .un{font-size:13.5px;color:#0f172a}.ucard .ur{font-size:11px;color:var(--sub)}
+  .ucard .lo{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--mute);cursor:pointer}
+  .ucard .lo svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* 主体 */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0}
+  .crumb{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--sub)}
+  .crumb svg{width:14px;height:14px;stroke:#cbd5e1;fill:none;stroke-width:2}
+  .crumb .cur{color:#0f172a}.crumb a{color:var(--sub);cursor:pointer}.crumb a:hover{color:var(--blue)}
+  .sp{flex:1}
+  .ver{height:24px;display:inline-flex;align-items:center;padding:0 8px;border-radius:6px;background:#f8fafc;border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--sub);letter-spacing:.5px}
+  .tb-new{height:32px;padding:0 12px;border-radius:7px;background:linear-gradient(90deg,#0052D9,#003FA8);color:#fff;font-size:14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none}
+  .tb-new svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2}
+  .tb-sug{height:32px;padding:0 12px;border-radius:7px;background:#fff;color:var(--blue);border:1px solid rgba(0,82,217,.3);font-size:14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .tb-sug svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .tb-bell{position:relative;width:32px;height:32px;border-radius:7px;display:grid;place-items:center;color:var(--sub);cursor:pointer}
+  .tb-bell:hover{background:#f1f5f9}.tb-bell svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+  .tb-bell .dot{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:20px;background:#ef4444;color:#fff;font-size:10px;display:grid;place-items:center}
+
+  .scroll{flex:1;overflow-y:auto;position:relative}
+  .page{max-width:1400px;margin:0 auto;padding:32px}
+  h1.hi{font-size:24px;font-weight:700;letter-spacing:-.5px;margin-bottom:22px}
+  .toggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:2px;box-shadow:0 1px 2px rgba(15,23,42,.05);margin-bottom:24px}
+  .toggle button{padding:0 16px;height:32px;border:0;border-radius:7px;font-size:13px;background:transparent;color:var(--sub);cursor:pointer}
+  .toggle button.on{background:linear-gradient(180deg,#0052D9,#003FA8);color:#fff;box-shadow:0 1px 2px rgba(0,82,217,.3)}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(203,213,225,.7);border:1px solid rgba(203,213,225,.7);border-radius:12px;overflow:hidden;margin-bottom:30px}
+  .stat{background:#fff;padding:18px 20px;position:relative}
+  .stat .ac{position:absolute;left:0;top:18px;bottom:18px;width:2px;border-radius:0 2px 2px 0}
+  .stat .lb{font-size:11px;color:var(--sub);letter-spacing:.5px;text-transform:uppercase}
+  .stat .nv{display:flex;align-items:baseline;gap:6px;margin-top:8px}
+  .stat .nv b{font-size:32px;font-weight:700;line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+  .stat .nv span{font-size:12px;color:var(--mute)}
+  .stat .tr{margin-top:8px;font-size:11px;display:flex;align-items:center;gap:5px}
+  .stat .tr i{width:4px;height:4px;border-radius:50%;display:inline-block}
+
+  .sech{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .sech .ic{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#0052D9,#7A3DFF);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,82,217,.25)}
+  .sech .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .sech h3{font-size:15px;font-weight:700}.sech p{font-size:12px;color:var(--sub);margin-top:1px}
+  .grouplab{display:flex;align-items:center;gap:8px;margin:22px 0 12px;font-size:12.5px;color:var(--sub)}
+  .grouplab .gd{width:7px;height:7px;border-radius:50%}.grouplab b{font-size:13px;color:#1e293b;font-weight:700}
+
+  /* 任务卡：工单票根 */
+  .due-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .d-red{background:#fdecea;color:#d4362a}.d-amb{background:#fbf1e3;color:#a86413}.d-ok{background:#eef2f7;color:#5b6678}
+  .st-chip{font-size:10.5px;color:#0052D9;background:#eef3fe;border-radius:5px;padding:2px 7px;font-weight:600}
+  .src{font-size:11.5px;color:#0052D9;background:#eff5ff;border:1px solid #dbe8ff;border-radius:6px;padding:1px 8px;display:inline-flex;align-items:center;gap:5px;max-width:100%}
+  .src svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+  .src span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .code{font-family:var(--mono);font-size:11px;color:var(--mute)}
+  .btn{cursor:pointer;border:none;font:inherit}
+  .accept{background:var(--green);color:#fff;border-radius:8px;padding:6px 15px;font-size:12.5px;font-weight:650}
+  .reject{background:#fff;color:var(--sub);border:1px solid var(--line);border-radius:8px;padding:6px 15px;font-size:12.5px;font-weight:600}
+  .go{background:#fff;color:var(--blue);border:1px solid #0052D933;border-radius:8px;padding:6px 15px;font-size:12.5px;font-weight:600}
+
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+  .tgrid .ticket{margin-bottom:0;height:100%}
+  .ticket{display:flex;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px -2px rgba(15,23,42,.1);transition:box-shadow .15s;margin-bottom:12px}
+  .ticket:hover{box-shadow:0 8px 22px -10px rgba(15,23,42,.2)}
+  .stub{width:88px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;flex-shrink:0}
+  .stub .lb{font-size:10px;opacity:.85}.stub .num{font-size:25px;font-weight:800;line-height:1}
+  .stub .perf{position:absolute;right:-6px;top:0;bottom:0;width:12px;background:radial-gradient(circle at left,transparent 5px,var(--stub) 5px) repeat-y;background-size:12px 14px}
+  .s-red{--stub:var(--red);background:var(--red)}.s-org{--stub:var(--orange);background:var(--orange)}.s-sky{--stub:var(--sky);background:var(--sky)}
+  .tbody{flex:1;padding:13px 18px;border-left:2px dashed var(--line);min-width:0}
+  .trow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ttitle{font-size:15px;font-weight:700;margin-top:8px}
+  .tmeta{font-size:11.5px;color:var(--sub);margin-top:5px}
+  .tact{display:flex;gap:8px;margin-top:11px}
+  .foot{padding:20px 0 10px;text-align:center;font-size:11px;color:var(--mute);display:flex;align-items:center;justify-content:center;gap:6px}
+  .foot svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="inbox" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="folderk" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></symbol>
+  <symbol id="users" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="logout" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="help" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="flame" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></symbol>
+  <symbol id="trend" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></symbol>
+</svg>
+
+<!-- 侧边栏（V1.0.2 还原） -->
+<aside class="side">
+  <div class="brand"><div class="logo">E</div><div><div class="t1">EA Platform</div><div class="t2">Engineering Portal</div></div></div>
+  <nav class="nav">
+    <div class="grp">工作台</div>
+    <a class="on"><svg><use href="#inbox"/></svg><span class="lab">我的待办</span><span class="badge">6</span></a>
+    <a><svg><use href="#folderk"/></svg><span class="lab">Case 中心</span></a>
+    <a><svg><use href="#users"/></svg><span class="lab">管理者视图</span></a>
+  </nav>
+  <div class="sfoot"><div class="ucard"><div class="av">Z</div><div style="flex:1;min-width:0"><div class="un">张伟</div><div class="ur">PTE Engineer · PTE</div></div><div class="lo"><svg><use href="#logout"/></svg></div></div></div>
+</aside>
+
+<!-- 主体 -->
+<div class="main">
+  <header class="topbar">
+    <div class="crumb"><a>EA 平台</a><svg><use href="#chev"/></svg><span class="cur">我的待办</span></div>
+    <div class="sp"></div>
+    <span class="ver">V1.0.2</span>
+    <button class="tb-new"><svg><use href="#plus"/></svg>新建 Case</button>
+    <button class="tb-sug"><svg><use href="#help"/></svg>系统建议</button>
+    <div class="tb-bell"><svg><use href="#bell"/></svg><span class="dot">3</span></div>
+  </header>
+
+  <div class="scroll"><div class="page">
+    <h1 class="hi">早上好，张伟</h1>
+    <div class="toggle"><button class="on">我的任务 · 6</button><button>我的 Case · 2</button></div>
+
+    <div class="stats">
+      <div class="stat"><span class="ac" style="background:#0052D9"></span><div class="lb">我的任务（含子）</div><div class="nv"><b>6</b><span>件</span></div><div class="tr" style="color:#64748b"><i style="background:#0052D9"></i>分布 5 个 Case</div></div>
+      <div class="stat"><span class="ac" style="background:#E54545"></span><div class="lb">非常紧急</div><div class="nv"><b>3</b><span>件</span></div><div class="tr" style="color:#dc2626"><i style="background:#E54545"></i>2 项已逾期</div></div>
+      <div class="stat"><span class="ac" style="background:#F7A000"></span><div class="lb">今日到期</div><div class="nv"><b>1</b><span>件</span></div><div class="tr" style="color:#64748b"><i style="background:#F7A000"></i>优先完成</div></div>
+    </div>
+
+    <div class="sech"><span class="ic"><svg><use href="#flame"/></svg></span><div><h3>我的任务</h3><p>6 个 · 跨 5 个 Case · 卡片样式：工单票根</p></div></div>
+
+    <!-- 待接受 -->
+    <div class="grouplab"><span class="gd" style="background:var(--red)"></span><b>待接受</b><span>· 3 个</span></div>
+
+    <div class="tgrid">
+    <div class="ticket"><div class="stub s-red"><span class="lb">剩余</span><span class="num">2</span><span class="lb">天</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-red">非常紧急</span><span class="st-chip">待接受</span><span class="src"><svg><use href="#folder"/></svg><span>晶圆批次良率异常下降排查</span></span></div>
+        <div class="ttitle">SEM 复检边缘 die 的 Bondpad 形貌</div><div class="tmeta">张伟 · PTE · <span class="code">EA-260511000003.004</span> · 预期确认是否存在划片诱发微裂纹</div>
+        <div class="tact"><button class="btn accept">✓ 接受</button><button class="btn reject">拒绝</button></div></div></div>
+
+    <div class="ticket"><div class="stub s-red"><span class="lb">逾期</span><span class="num">1</span><span class="lb">天</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-red">非常紧急</span><span class="st-chip">待接受</span><span class="src"><svg><use href="#folder"/></svg><span>键合强度批量失效复测</span></span></div>
+        <div class="ttitle">复测 键合强度批量失效样本</div><div class="tmeta">赵敏 · CP · <span class="code">EA-260418000002.002</span> · 重新抽样 20 颗复测 pull / shear</div>
+        <div class="tact"><button class="btn accept">✓ 接受</button><button class="btn reject">拒绝</button></div></div></div>
+
+    <div class="ticket"><div class="stub s-org"><span class="lb">剩余</span><span class="num">3</span><span class="lb">天</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-amb">紧急</span><span class="st-chip">待接受</span><span class="src"><svg><use href="#folder"/></svg><span>CP 测试接触不良复现</span></span></div>
+        <div class="ttitle">拉取 datalog 并比对 SPC 趋势</div><div class="tmeta">王强 · PTE · <span class="code">EA-260420000001.001</span> · 定位接触不良集中站点</div>
+        <div class="tact"><button class="btn accept">✓ 接受</button><button class="btn reject">拒绝</button></div></div></div>
+
+    </div>
+
+    <!-- 进行中 -->
+    <div class="grouplab"><span class="gd" style="background:var(--blue)"></span><b>进行中</b><span>· 3 个</span></div>
+
+    <div class="tgrid">
+    <div class="ticket"><div class="stub s-red"><span class="lb">今日</span><span class="num" style="font-size:19px">到期</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-red">非常紧急</span><span class="st-chip">进行中 40%</span><span class="src"><svg><use href="#folder"/></svg><span>晶圆批次良率异常下降排查</span></span></div>
+        <div class="ttitle">测量 die 边缘崩缺尺寸分布</div><div class="tmeta">张伟 · PTE · <span class="code">EA-260511000003.007</span></div>
+        <div class="tact"><button class="btn go">去处理 →</button></div></div></div>
+
+    <div class="ticket"><div class="stub s-org"><span class="lb">剩余</span><span class="num">5</span><span class="lb">天</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-amb">紧急</span><span class="st-chip">进行中 60%</span><span class="src"><svg><use href="#folder"/></svg><span>封装空洞率超标分析</span></span></div>
+        <div class="ttitle">分析 裂纹截面成分（EDS）</div><div class="tmeta">张伟 · PTE · <span class="code">EA-260511000007.003</span></div>
+        <div class="tact"><button class="btn go">去处理 →</button></div></div></div>
+
+    <div class="ticket"><div class="stub s-sky"><span class="lb">剩余</span><span class="num">7</span><span class="lb">天</span><span class="perf"></span></div>
+      <div class="tbody"><div class="trow"><span class="due-chip d-ok">一般</span><span class="st-chip">进行中 30%</span><span class="src"><svg><use href="#folder"/></svg><span>DDR4 Lot 退货影响分析</span></span></div>
+        <div class="ttitle">整理 margin 数据形成评审稿</div><div class="tmeta">孙楠 · PE · <span class="code">EA-260511000005.006</span></div>
+        <div class="tact"><button class="btn go">去处理 →</button></div></div></div>
+    </div>
+
+    <div class="foot"><svg><use href="#trend"/></svg>数据刷新于 2026-04-22 11:05 · 每 5 分钟自动同步</div>
+  </div></div>
+</div>
+
+</body>
+</html>

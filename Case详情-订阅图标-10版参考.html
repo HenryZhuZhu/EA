@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>订阅控件 · 重新设计（更合理方案）</title>
+<style>
+  :root{--blue:#0052D9;--amber:#b4791a;--amberbg:#fdf6ec;--amberbd:#f0dcb8;
+    --ink:#1c2430;--sub:#5f6a78;--mute:#9aa5b3;--line:#e7ebf1;--line2:#f1f4f8;--bg:#eef0f4;--green:#00B578}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;background:var(--bg);color:var(--ink);padding:34px 44px 90px;font-size:13px;line-height:1.5}
+  .wrap{max-width:1060px;margin:0 auto}
+  h1{font-size:21px;font-weight:750;letter-spacing:-.4px}
+  .lead{color:var(--sub);font-size:12.5px;margin-top:8px;line-height:1.7}
+  .lead b{color:var(--ink)}
+
+  .sec{margin-top:30px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:13px}
+  .sec-h .tag{font-size:11px;font-weight:750;color:#fff;background:#1c2430;border-radius:6px;padding:2px 9px}
+  .sec-h .tag.rec{background:var(--blue)}
+  .sec-h .t{font-size:15px;font-weight:750}
+  .sec-h .d{font-size:12px;color:var(--mute);margin-left:auto;text-align:right;max-width:560px}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel.rec{border-color:#bcd0f5;box-shadow:0 0 0 3px rgba(0,82,217,.05)}
+
+  /* buttons */
+  .btn{height:32px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#5f6a78;font-size:12.5px;font-weight:550;padding:0 12px;cursor:pointer}
+  .btn.icon{width:32px;padding:0}
+  .btn.on{background:var(--amberbg);border-color:var(--amberbd);color:var(--amber)}
+  .btn.on-blue{background:#eef3fe;border-color:#bcd0f5;color:var(--blue)}
+  .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;display:block}
+  .btn .fillable{fill:none}
+  .btn.on .fillable,.btn.on-blue .fillable{fill:currentColor}
+
+  .pair{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .cell .lb{font-size:10.5px;color:var(--mute)}
+  .vdiv{width:1px;height:40px;background:var(--line)}
+
+  .recnote{font-size:12px;color:var(--sub);margin-top:13px;padding-top:13px;border-top:1px solid var(--line2);line-height:1.7}
+  .recnote b{color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .opt{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px;display:flex;align-items:center;gap:16px}
+  .opt .meta{flex:1;min-width:0}
+  .opt .nm{font-size:13.5px;font-weight:700}
+  .opt .note{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5}
+  .opt .states{display:flex;gap:12px;flex-shrink:0}
+
+  /* real context preview */
+  .ctx{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+  .ctx .ttl{display:block;font-size:11px;color:var(--mute);font-family:ui-monospace,Menlo,monospace}
+  .ctx .name{font-size:16px;font-weight:750;margin-top:2px}
+  .ctx .bar{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;margin-top:0}
+  .ctx-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .b2{height:32px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#5f6a78;font-size:12.5px;padding:0 11px}
+  .b2.pri{color:var(--blue);border-color:#0052D940}
+  .b2.ok{color:var(--green);border-color:#00B57840}
+  .b2.icon{width:32px;padding:0;justify-content:center}
+  .b2 svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .sepv{width:1px;height:20px;background:var(--line);margin:0 2px;align-self:center}
+
+  .tip{margin-top:30px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px;font-size:12.5px;color:var(--sub);line-height:1.7}
+  .tip b{color:var(--ink)}
+  svg{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>「订阅」控件 · 重新设计（更合理方案）</h1>
+  <p class="lead">
+    上一版用单一图标（铃 / 星 / 书签…）始终有歧义——铃像通知、星像收藏、书签像稍后读。<b>根因：一个孤立的小图标承载不了「订阅以接收此 Case 更新」这层含义。</b>
+    所以这版换思路：<b>主推「图标 + 文字」的可切换控件</b>（订阅 / 已订阅），文字消除一切猜测；再给几版真正克制、语义清晰的<b>纯图标备选</b>（空间紧张时用）。激活态统一用<b>琥珀填充</b>，与顶部中性通知铃天然区分。
+  </p>
+
+  <!-- ===== 推荐：图标+文字可切换控件 ===== -->
+  <div class="sec">
+    <div class="sec-h"><span class="tag rec">推荐</span><span class="t">图标 + 文字 · 可切换控件「订阅 / 已订阅」</span><span class="d">文字直接表义、零歧义；切换态清晰。这是企业系统里最稳的做法。</span></div>
+    <div class="panel rec">
+      <div class="pair">
+        <div class="cell">
+          <span class="btn"><svg viewBox="0 0 24 24"><path class="fillable" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>订阅</span>
+          <span class="lb">未订阅 · 书签+文字</span>
+        </div>
+        <div class="cell">
+          <span class="btn on"><svg viewBox="0 0 24 24"><path class="fillable" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>已订阅</span>
+          <span class="lb">已订阅 · 琥珀填充</span>
+        </div>
+        <div class="vdiv"></div>
+        <div class="cell">
+          <span class="btn"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>关注</span>
+          <span class="lb">未关注 · 眼睛+文字</span>
+        </div>
+        <div class="cell">
+          <span class="btn on-blue"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle class="fillable" cx="12" cy="12" r="3"/></svg>已关注</span>
+          <span class="lb">已关注 · 蓝填充</span>
+        </div>
+        <div class="vdiv"></div>
+        <div class="cell">
+          <span class="btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>订阅</span>
+          <span class="lb">未订阅 · 加号圈</span>
+        </div>
+        <div class="cell">
+          <span class="btn on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.4 12 2.6 2.6 4.6-5"/></svg>已订阅</span>
+          <span class="lb">已订阅 · 对勾圈</span>
+        </div>
+      </div>
+      <div class="recnote">三种图标都可搭文字使用，任选其一。<b>最稳：书签+文字</b>（与全应用已统一的书签图标一致，加文字后再无歧义）；<b>语义最贴：眼睛「关注」</b>（GitHub Watch 心智，盯着看更新）；<b>动作最直白：加号圈→对勾圈</b>（加入 / 已加入）。</div>
+    </div>
+  </div>
+
+  <!-- ===== 纯图标备选 ===== -->
+  <div class="sec">
+    <div class="sec-h"><span class="tag">备选</span><span class="t">纯图标候选（横向空间紧张时）</span><span class="d">均避开铃 / 星；未订阅描边、已订阅琥珀填充。真实 32px 按钮。</span></div>
+    <div class="grid">
+
+      <div class="opt">
+        <div class="meta"><div class="nm">① 眼睛 · 关注 Watch</div><div class="note">盯着看更新（GitHub Watch 同款），与通知 / 收藏均不同形。</div></div>
+        <div class="states">
+          <div class="cell"><span class="btn icon"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lb">未订阅</span></div>
+          <div class="cell"><span class="btn icon on"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle class="fillable" cx="12" cy="12" r="3"/></svg></span><span class="lb">已订阅</span></div>
+        </div>
+      </div>
+
+      <div class="opt">
+        <div class="meta"><div class="nm">② 加号圈 → 对勾圈</div><div class="note">加入 / 已加入的开关语义最直白，与收藏星无关。</div></div>
+        <div class="states">
+          <div class="cell"><span class="btn icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></span><span class="lb">未订阅</span></div>
+          <div class="cell"><span class="btn icon on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.4 12 2.6 2.6 4.6-5"/></svg></span><span class="lb">已订阅</span></div>
+        </div>
+      </div>
+
+      <div class="opt">
+        <div class="meta"><div class="nm">③ 动态脉冲 · Activity</div><div class="note">「跟踪此 Case 的动态」，波形造型独特，绝不与铃 / 星混。</div></div>
+        <div class="states">
+          <div class="cell"><span class="btn icon"><svg viewBox="0 0 24 24"><path d="M22 12h-3l-3 8-4-16-3 8H2"/></svg></span><span class="lb">未订阅</span></div>
+          <div class="cell"><span class="btn icon on"><svg viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M22 12h-3l-3 8-4-16-3 8H2"/></svg></span><span class="lb">已订阅</span></div>
+        </div>
+      </div>
+
+      <div class="opt">
+        <div class="meta"><div class="nm">④ 书签 · Bookmark</div><div class="note">当前全应用在用；纯图标时仍可能被读成「稍后读」，建议配文字。</div></div>
+        <div class="states">
+          <div class="cell"><span class="btn icon"><svg viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="lb">未订阅</span></div>
+          <div class="cell"><span class="btn icon on"><svg viewBox="0 0 24 24"><path class="fillable" d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="lb">已订阅</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== 真实上下文预览 ===== -->
+  <div class="sec">
+    <div class="sec-h"><span class="tag">预览</span><span class="t">放进 Case 详情右上按钮行的真实效果</span><span class="d">演示 · 编辑 · 结案 ｜ 订阅 · 分享 · 评论（推荐：订阅带文字）。</span></div>
+    <div class="ctx">
+      <div class="ctx-row">
+        <div><span class="ttl">EA-260511000005</span><div class="name">DDR4 Lot 退货影响分析</div></div>
+        <div class="bar">
+          <span class="b2"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>演示</span>
+          <span class="b2 pri"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>编辑</span>
+          <span class="b2 ok"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>结案</span>
+          <span class="sepv"></span>
+          <span class="b2" style="color:var(--amber);background:var(--amberbg);border-color:var(--amberbd)"><svg viewBox="0 0 24 24" style="fill:currentColor"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>已订阅</span>
+          <span class="b2 icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>
+          <span class="b2 icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <div class="ctx-row">
+        <div><span class="ttl">EA-260511000003</span><div class="name">晶圆批次良率异常下降排查</div></div>
+        <div class="bar">
+          <span class="b2"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>演示</span>
+          <span class="b2 pri"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>编辑</span>
+          <span class="b2 ok"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>结案</span>
+          <span class="sepv"></span>
+          <span class="b2"><svg viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>订阅</span>
+          <span class="b2 icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>
+          <span class="b2 icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <b>我的建议：订阅用「图标 + 文字」可切换控件（未订阅「订阅」/ 已订阅「已订阅」），图标沿用书签。</b>
+    一来文字彻底消除歧义，二来订阅是低频且重要的动作、值得占一点文字宽度；分享 / 评论这类高频次操作维持图标即可。
+    若你坚持要纯图标，则<b>① 眼睛「关注」</b>语义最清、<b>② 加号圈→对勾圈</b>动作最直白。<br>
+    告诉我选哪个（推荐「书签+文字」），我就把 Case 详情 / 列表 / 「我的订阅」入口统一替换。
+  </div>
+</div>
+</body>
+</html>
