@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>任务详情 · Case + 任务融合（含分派人）· 20 版方案</title>
+<style>
+  :root{--blue:#0052D9;--blue2:#00A4FF;--red:#FF3B30;--amber:#d97706;--ink:#0f172a;--ink2:#1e293b;--sub:#64748b;--mute:#94a3b8;--line:#e2e8f0;--line2:#f1f5f9;--bg:#eef1f5;--mono:'SF Mono',ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;background:var(--bg);color:var(--ink);padding:34px 40px 90px;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .head{max-width:1040px;margin:0 auto}
+  .head h1{font-size:21px;font-weight:750;letter-spacing:-.4px}
+  .head p{color:var(--sub);font-size:12.5px;margin-top:8px;line-height:1.7;max-width:920px}
+  .head p b{color:var(--ink)}
+  .list{max-width:1040px;margin:24px auto 0;display:flex;flex-direction:column;gap:20px}
+  .stage{background:linear-gradient(135deg,#f3f6fa,#fff);border:1px solid #e7edf3;border-radius:14px;padding:22px}
+  .cap{margin-top:9px;display:flex;align-items:baseline;gap:10px}
+  .cap .n{font-size:11px;font-weight:750;color:#fff;background:#1c2430;border-radius:6px;padding:1px 8px;align-self:center}
+  .cap .nm{font-size:13px;font-weight:700}
+  .cap .ds{font-size:11.5px;color:var(--sub);margin-left:auto;text-align:right;max-width:600px}
+  .cap.rec .nm{color:var(--blue)}
+
+  .fcard{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;width:100%}
+  .pad{padding:16px 20px}
+  /* Case 件 */
+  .lvl{font-size:11px;font-weight:600;color:#b54708;background:#fffaeb;border:1px solid #fedf89;border-radius:5px;padding:2px 8px;white-space:nowrap}
+  .ccode{font-family:var(--mono);font-size:11.5px;color:var(--mute);white-space:nowrap}
+  .cname{font-size:16px;font-weight:700;color:var(--ink)}
+  .cname.sm{font-size:13px;font-weight:600}
+  .tpill{font-size:11.5px;color:var(--blue);background:#eef3fe;border:1px solid #dbe8ff;border-radius:20px;padding:3px 10px;font-weight:600;white-space:nowrap}
+  .viewall{font-size:12px;color:var(--blue);cursor:pointer;white-space:nowrap}
+  .crumb{font-size:12px;color:var(--mute)}
+  .crumb b{color:#475569;font-weight:600}
+  /* 任务件 */
+  .c-st{font-size:11px;color:#475569;background:#f1f5f9;border-radius:5px;padding:2px 8px}
+  .c-urg{font-size:11px;color:#fff;background:var(--red);border-radius:5px;padding:2px 8px;font-weight:600}
+  .c-mine{font-size:11px;color:var(--blue);background:#eef3fe;border-radius:5px;padding:2px 8px}
+  .due{font-size:12px;color:#d4362a;font-weight:600;white-space:nowrap}
+  .trow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .chips{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .ttl{font-size:18px;font-weight:700;color:var(--ink2)}
+  /* 分派人 */
+  .assign{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;flex-wrap:wrap}
+  .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:650;flex-shrink:0}
+  .av.lg{width:38px;height:38px;font-size:13px}
+  .av.mgr{background:linear-gradient(135deg,#fbbf24,#d97706)}
+  .av.owner{background:linear-gradient(135deg,#00A4FF,#0052D9)}
+  .ring-mgr{box-shadow:0 0 0 2px #fff,0 0 0 4px #f59e0b}
+  .alab{color:var(--mute)}
+  .aname{font-weight:600;color:var(--ink2)}
+  .arel{font-size:10px;font-weight:600;color:#b45309;background:#fffaeb;border:1px solid #fde68a;border-radius:5px;padding:1px 6px}
+  .atime{font-size:11px;color:var(--mute)}
+  .expect{margin-top:11px;background:#f8fafc;border:1px solid #eef2f7;border-radius:9px;padding:10px 13px;font-size:12.5px;color:#475569;display:flex;gap:8px}
+  .elab{color:var(--mute);flex-shrink:0}
+  .disp{margin-top:11px;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--sub)}
+  .disp b{color:var(--ink2)}
+  .atts{margin-top:11px;display:flex;gap:8px;flex-wrap:wrap}
+  .att{font-size:11.5px;color:#475569;border:1px solid var(--line);border-radius:7px;padding:5px 9px;display:inline-flex;align-items:center;gap:6px}
+  .att i{font-style:normal;font-size:9px;color:var(--mute);background:#f1f5f9;border-radius:3px;padding:1px 4px}
+  .btns{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .accept{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer}
+  .reject{background:#fff;color:var(--sub);border:1px solid var(--line);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer}
+  .hint{font-size:11.5px;color:var(--mute)}
+  svg{display:block}
+  .tip{max-width:1040px;margin:32px auto 0;background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 22px;font-size:12.5px;color:var(--sub);line-height:1.75}
+  .tip b{color:var(--ink)}
+</style>
+</head>
+<body>
+<svg style="display:none"><symbol id="folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></symbol></svg>
+<div class="head">
+  <h1>任务详情 · 「Case + 任务」融合（含分派人）· 20 版方案</h1>
+  <p>在上版融合基础上调整：<b>删除"我要做什么"标题前缀</b>；<b>新增"分派人"信息</b>（谁把任务派给我、与我的关系、何时派的），方便"看人定优先级"。其余信息保留：Case 名/等级/编号/任务数/全貌 + 任务 状态/紧急/截止/标题/预期/分派部门·执行人·站点·类型/附件/接受拒绝。</p>
+</div>
+<div class="list" id="list"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+const FOLD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#folder"/></svg>';
+const CN='DDR5 X-die CP1 yield drop @Site A', CODE='EA-260511000001';
+const CHIPS='<span class="c-st">待接受</span><span class="c-urg">非常紧急</span><span class="c-mine">我的任务</span>';
+const DUE='<span class="due">截止 2026-04-23 · 剩 1 天</span>';
+const TITLE='<div class="ttl">输出 Pattern P_ICC2_07 调整方案评审稿</div>';
+// 分派人
+const ASSIGN='<div class="assign"><span class="alab">分派人</span><span class="av mgr">周</span><span class="aname">周主管</span><span class="arel">你的主管</span><span class="atime">· PE 部门 · 2 小时前派发</span></div>';
+const EXPECT='<div class="expect"><span class="elab">预期</span><span>预期通过本动作确认「输出 Pattern P_ICC2_07 调整方案评审稿」是否成立，并定位相关失效特征。</span></div>';
+const DISP='<div class="disp"><span>分派部门：<b>PTE</b></span><span>执行人：<b>张伟</b></span><span>站点：<b>CP</b></span><span>类型：测试程式分析</span></div>';
+const ATT='<div class="atts"><span class="att"><i>PDF</i> Pattern对比.pdf</span><span class="att"><i>FILE</i> shmoo.png</span><span class="att"><i>FILE</i> 测试log.txt</span></div>';
+const BTN='<div class="btns"><button class="accept">接受并开始 →</button><button class="reject">拒绝</button><span class="hint">下一步：接受任务后开始执行，或拒绝并说明理由</span></div>';
+const TROW=`<div class="trow"><div class="chips">${CHIPS}</div>${DUE}</div>`;
+const BODY=`${TROW}<div style="margin-top:12px">${TITLE}</div>${ASSIGN}${EXPECT}${DISP}${ATT}${BTN}`;
+const BODY_NC=`${TITLE}${ASSIGN}${EXPECT}${DISP}${ATT}${BTN}`;
+const CHEAD_ROW=`<span class="lvl">L2 级</span><span class="ccode">${CODE}</span><span class="tpill">我在此 Case 下有 3 个任务</span><span class="viewall" style="margin-left:auto">查看 Case 全貌 →</span>`;
+
+const V=[
+{nm:'顶部 Case 上下文条', ds:'卡顶浅灰 Case 行 + 分隔线，下接任务（含分派人）。最直接的一卡两层。',
+ html:`<div class="fcard"><div class="pad" style="background:#f8fafc;border-bottom:1px solid #eef2f7;padding-top:13px;padding-bottom:13px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="cname">${CN}</span></div><div style="margin-top:7px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">${CHEAD_ROW}</div></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'面包屑标题融合', ds:'Case 用面包屑交代层级，任务名作主标题，分派人紧随其下。',
+ html:`<div class="fcard"><div class="pad"><div class="crumb">Case 中心 / <b>${CN}</b> <span style="color:#cbd5e1">·</span> <span class="lvl" style="vertical-align:1px">L2</span> <span class="ccode">${CODE}</span> <span class="viewall">查看全貌 →</span></div><div style="margin-top:11px">${BODY}</div></div></div>`},
+
+{nm:'左等级色条贯穿', ds:'整卡左等级色条把 Case 头与任务体串成一体。',
+ html:`<div class="fcard" style="border-left:4px solid #f59e0b"><div class="pad" style="border-bottom:1px solid #f1f5f9;padding-bottom:12px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="cname">${CN}</span><span class="lvl">L2</span><span class="ccode">${CODE}</span><span class="tpill" style="margin-left:auto">3 个任务</span><span class="viewall">全貌 →</span></div></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'渐变品牌头条', ds:'Case 头蓝色渐变（白字），任务体白底；分派人在任务区。',
+ html:`<div class="fcard"><div style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px"><span style="font-size:11px;font-weight:700;background:rgba(255,255,255,.22);border-radius:5px;padding:2px 8px">L2</span><div style="flex:1;min-width:0"><div style="font-size:11px;opacity:.85;font-family:var(--mono)">${CODE}</div><div style="font-size:16px;font-weight:700">${CN}</div></div><span style="background:rgba(255,255,255,.22);border-radius:20px;padding:3px 11px;font-size:11.5px;font-weight:600">3 个任务</span><span style="font-size:12px;opacity:.9;cursor:pointer">全貌 →</span></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'Case 大标题 + 任务分节', ds:'Case 名大标题，任务以"当前任务"小节呈现，分派人在节内。',
+ html:`<div class="fcard"><div class="pad"><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><h2 style="font-size:18px;font-weight:700">${CN}</h2><span class="lvl">L2</span><span class="ccode">${CODE}</span><span class="tpill">3 个任务</span><span class="viewall" style="margin-left:auto">查看全貌 →</span></div><div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e2e8f0"><div style="font-size:11.5px;color:var(--mute);margin-bottom:9px">当前任务</div>${BODY}</div></div></div>`},
+
+{nm:'双层 · 上 Case 下任务', ds:'上半 Case（浅蓝底），下半任务（白底），分派人在任务层。',
+ html:`<div class="fcard"><div style="background:#f5f8ff;padding:13px 20px;border-bottom:1px solid #e3ecff;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="cname sm">${CN}</span><span class="lvl">L2</span><span class="ccode">${CODE}</span><span class="tpill" style="margin-left:auto">3 个任务</span><span class="viewall">全貌 →</span></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'头部 meta 合并', ds:'Case 等级/编号 与 任务 状态/紧急/截止 合到同一头部行；分派人单独成行。',
+ html:`<div class="fcard"><div class="pad"><div class="trow"><div class="chips"><span class="lvl">L2</span><span class="ccode">${CODE}</span><span style="color:#cbd5e1">|</span>${CHIPS}</div>${DUE}</div><div style="margin-top:11px"><div class="cname sm" style="color:var(--mute)">${CN} · <span class="viewall">查看全貌 →</span></div>${TITLE}</div>${ASSIGN}${EXPECT}${DISP}${ATT}${BTN}</div></div>`},
+
+{nm:'卡顶左名右链接', ds:'卡顶左 Case 名小字+编号、右"查看全貌"，下面任务大标题 + 分派人。',
+ html:`<div class="fcard"><div class="pad" style="padding-bottom:0"><div style="display:flex;align-items:center"><div style="flex:1;min-width:0"><span class="cname sm">${CN}</span> <span class="lvl">L2</span> <span class="ccode">${CODE}</span></div><span class="viewall">查看 Case 全貌 →</span></div></div><div class="pad" style="padding-top:13px">${BODY}</div></div>`},
+
+{nm:'信封头 · Case 图标', ds:'Case 用文件夹图标 + 名 + 任务数作信封头，下接任务与分派人。',
+ html:`<div class="fcard"><div class="pad" style="display:flex;align-items:center;gap:12px;border-bottom:1px solid #f1f5f9;padding-bottom:13px"><span style="width:38px;height:38px;border-radius:10px;background:#eef3fe;color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:18px;height:18px;display:block">${FOLD}</span></span><div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--mute)">所属 Case · L2 · ${CODE}</div><div class="cname">${CN}</div></div><span class="tpill">3 个任务</span><span class="viewall">全貌 →</span></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'顶部等级色带包裹', ds:'卡顶等级色带包住整卡，再放 Case 行 + 任务 + 分派人。',
+ html:`<div class="fcard"><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div><div class="pad" style="border-bottom:1px solid #f1f5f9;padding-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="cname sm">${CN}</span><span class="lvl">L2</span><span class="ccode">${CODE}</span><span class="tpill" style="margin-left:auto">3 个任务</span><span class="viewall">全貌 →</span></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'两级标题（Case 弱/任务强）', ds:'Case 名小灰字置顶，任务名大粗字主导，分派人随任务名。',
+ html:`<div class="fcard"><div class="pad"><div style="font-size:12px;color:var(--mute);display:flex;align-items:center;gap:8px"><span class="lvl">L2</span>${CN} <span class="ccode">${CODE}</span> <span class="viewall" style="margin-left:auto">全貌 →</span></div><div style="margin-top:10px">${BODY}</div></div></div>`},
+
+{nm:'路径式标题 Case › 任务', ds:'"DDR5… › 输出 Pattern…" 路径标题，下面接分派人与详情。',
+ html:`<div class="fcard"><div class="pad"><div class="trow"><div class="chips">${CHIPS}</div>${DUE}</div><div style="margin-top:11px;font-size:18px;font-weight:700;color:var(--ink2)"><span style="color:var(--mute);font-weight:600;font-size:14px">${CN} ›</span> 输出 Pattern P_ICC2_07 调整方案评审稿</div><div style="margin-top:4px;font-size:11.5px;color:var(--mute)"><span class="lvl" style="vertical-align:1px">L2</span> ${CODE} · <span class="viewall">查看全貌 →</span></div>${ASSIGN}${EXPECT}${DISP}${ATT}${BTN}</div></div>`},
+
+{nm:'侧栏式 · 左 Case 右任务', ds:'左窄列竖排 Case，右主区放任务（含分派人）。',
+ html:`<div class="fcard" style="display:flex"><div style="width:210px;flex-shrink:0;background:#f8fafc;border-right:1px solid #eef2f7;padding:16px 16px"><div class="cname sm" style="line-height:1.4">${CN}</div><div style="margin-top:9px;display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:var(--sub)"><span class="lvl" style="width:fit-content">L2 级</span><span class="ccode">${CODE}</span><span class="tpill" style="width:fit-content">3 个任务</span><span class="viewall">查看全貌 →</span></div></div><div class="pad" style="flex:1;min-width:0">${BODY}</div></div>`},
+
+{nm:'"所属 Case" 强标注头', ds:'头部明确"所属 Case"，任务区突出分派人。',
+ html:`<div class="fcard"><div class="pad" style="background:#eef3fe;border-bottom:1px solid #dbe8ff;padding-top:12px;padding-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:11px;color:var(--blue);background:#fff;border:1px solid #dbe8ff;border-radius:6px;padding:3px 8px;font-weight:600">所属 Case</span><span class="cname sm">${CN}</span><span class="lvl">L2</span><span class="tpill" style="margin-left:auto">3 个任务</span><span class="viewall">全貌 →</span></div><div class="pad">${BODY}</div></div>`},
+
+{nm:'极致融合 · 单头多 chip', ds:'Case 与任务标签挤进一个头部 chip 群；分派人 + 标题 + 正文在下。',
+ html:`<div class="fcard"><div class="pad"><div class="trow"><div class="chips"><span class="lvl">L2</span><span class="c-st">待接受</span><span class="c-urg">非常紧急</span><span class="c-mine">我的任务</span></div>${DUE}</div><div style="margin-top:6px;font-size:11.5px;color:var(--mute)">${CN} · ${CODE} · <span class="viewall">查看全貌 →</span></div><div style="margin-top:9px">${BODY_NC}</div></div></div>`},
+
+{nm:'Hero · 大 Case + 我的任务分区', ds:'Case 名 Hero 大标题 + meta，再以"我的任务"分区承载行动卡与分派人。',
+ html:`<div class="fcard"><div class="pad" style="padding-bottom:0"><h2 style="font-size:19px;font-weight:700">${CN}</h2><div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="lvl">L2 级</span><span class="ccode">${CODE}</span><span class="tpill">我在此 Case 下有 3 个任务</span><span class="viewall" style="margin-left:auto">查看 Case 全貌 →</span></div></div><div class="pad" style="margin-top:13px;border-top:1px solid #f1f5f9">${BODY}</div></div>`},
+
+{nm:'分派人头部条 ★', ds:'把"分派人"提到卡片头部一条醒目行（头像+名+关系+时间），Case 与任务紧随，最贴"看人下菜"。',
+ html:`<div class="fcard"><div class="pad" style="background:#fffaeb;border-bottom:1px solid #fde68a;padding-top:12px;padding-bottom:12px;display:flex;align-items:center;gap:10px"><span class="av lg mgr ring-mgr">周</span><div style="flex:1"><div style="font-size:12.5px"><b>周主管</b> 把任务派给了你 <span class="arel">你的主管</span></div><div style="font-size:11px;color:#a87a2a">PE 部门 · 2 小时前 · 所属 Case：${CN}（L2）</div></div><span class="viewall">查看全貌 →</span></div><div class="pad"><div class="trow"><div class="chips">${CHIPS}</div>${DUE}</div><div style="margin-top:11px">${TITLE}</div>${EXPECT}${DISP}${ATT}${BTN}</div></div>`},
+
+{nm:'极简 · Case 灰小字置顶', ds:'Case 一行灰小字置顶，任务占主体，分派人紧贴标题。',
+ html:`<div class="fcard"><div class="pad"><div style="font-size:11.5px;color:var(--mute)">${CN} · L2 · ${CODE} · <span class="viewall">查看全貌 →</span></div><div style="margin-top:10px">${BODY}</div></div></div>`},
+
+{nm:'行内"来自 Case" + 分派人', ds:'任务头加"来自 Case…"与"分派人…"两行内联信息，无额外色块。',
+ html:`<div class="fcard"><div class="pad"><div class="trow"><div class="chips">${CHIPS}</div>${DUE}</div><div style="margin-top:9px;font-size:11.5px;color:var(--sub)">来自 Case：<b style="color:var(--ink2)">${CN}</b> <span class="lvl" style="vertical-align:1px">L2</span> <span class="ccode">${CODE}</span> · <span class="viewall">查看全貌 →</span></div><div style="margin-top:9px">${TITLE}</div>${ASSIGN}${EXPECT}${DISP}${ATT}${BTN}</div></div>`},
+
+{nm:'综合推荐 ★', rec:true, ds:'左等级色条 + 顶部 Case 上下文条 + 分隔 + 任务主体（标题 + 分派人头像行 + 预期 + 分派/执行/站点/类型 + 附件 + 接受拒绝）。信息全、层级清、最整体。',
+ html:`<div class="fcard" style="border-left:4px solid #f59e0b"><div class="pad" style="background:#fbfcfe;border-bottom:1px solid #eef2f7;padding-top:13px;padding-bottom:13px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="cname">${CN}</span><span class="lvl">L2 级</span><span class="ccode">${CODE}</span><span class="tpill" style="margin-left:auto">我在此 Case 下有 3 个任务</span><span class="viewall">查看 Case 全貌 →</span></div></div><div class="pad">${BODY}</div></div>`},
+];
+
+document.getElementById('list').innerHTML = V.map((v,i)=>(
+  `<div><div class="stage">${v.html}</div><div class="cap${v.rec?' rec':''}"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="nm">${v.nm}</span><span class="ds">${v.ds}</span></div></div>`
+)).join('');
+
+document.getElementById('tip').innerHTML=`<b>怎么选：</b>想"谁派我的"最醒目 → <b>17 分派人头部条</b>；想"一卡两层最清楚" → <b>01 顶部上下文条</b> / <b>20 综合推荐</b>；突出 Case → <b>04 渐变头条</b> / <b>06 双层</b>；最像页面标题 → <b>02 面包屑</b> / <b>16 Hero</b>；最紧凑 → <b>15 单头多 chip</b> / <b>18 极简</b> / <b>19 来自 Case</b>。<br>分派人统一用<b>头像 + 姓名 + 关系标签（你的主管…）+ 时间</b>呈现，方便看人定优先级。<br>我的建议：<b>20 综合推荐</b>（信息最全）或 <b>17 分派人头部条</b>（最突出"谁派给我"）。告诉我编号，我落地到 V1.0.2 任务详情页。`;
+</script>
+</body>
+</html>
