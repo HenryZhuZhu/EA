@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>导航交互 · 方案 2（我的 / Case 中心 大改版）· V1.0.2</title>
+<style>
+  :root{
+    --red:#FF3B30;--orange:#FF9500;--sky:#38BDF8;--gray:#94A3B8;
+    --blue:#0052D9;--blue2:#00A4FF;--green:#34C759;--violet:#8b5cf6;--teal:#0ea5e9;
+    --ink:#0f172a;--ink2:#1e293b;--sub:#64748b;--mute:#94a3b8;
+    --line:#e2e8f0;--line2:#eef2f7;--mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;color:var(--ink);line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased;height:100vh;display:flex;background:linear-gradient(135deg,#f8fafc,#fff 40%,#f8fafc)}
+  svg{display:block}
+
+  /* ───────── 侧边栏 ───────── */
+  .side{width:236px;flex-shrink:0;height:100%;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .brand{height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line2)}
+  .brand .logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#00A4FF,#0052D9);color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+  .brand .t1{font-size:14px;color:#0f172a;letter-spacing:.3px}
+  .brand .t2{font-size:11px;color:var(--mute)}
+  .nav{flex:1;padding:12px 8px;overflow-y:auto}
+  .nav .grp{font-size:11px;text-transform:uppercase;color:var(--mute);padding:8px 12px 6px;letter-spacing:1px}
+  /* 一级项 */
+  .navp{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;font-size:14px;color:var(--sub);cursor:pointer;margin-bottom:2px;user-select:none}
+  .navp svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+  .navp:hover{background:#f8fafc;color:#0f172a}
+  .navp.on{background:rgba(0,82,217,.08);color:var(--blue);box-shadow:inset 2px 0 0 0 var(--blue);font-weight:600}
+  .navp .lab{flex:1}
+  .navp .badge{font-size:10px;padding:1px 7px;border-radius:20px;background:#f1f5f9;color:#64748b}
+  .navp.on .badge{background:var(--blue);color:#fff}
+  .navp .caret{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;transition:transform .18s;opacity:.6}
+  .navp.exp .caret{transform:rotate(90deg)}
+  /* 二级项 */
+  .subs{overflow:hidden;max-height:0;transition:max-height .22s ease}
+  .subs.open{max-height:340px}
+  .navc{display:flex;align-items:center;gap:9px;padding:6.5px 12px 6.5px 22px;margin:1px 0 1px 14px;border-left:1.5px solid var(--line);border-radius:0 7px 7px 0;font-size:13px;color:var(--sub);cursor:pointer}
+  .navc:hover{background:#f8fafc;color:#0f172a;border-left-color:#cbd5e1}
+  .navc.on{color:var(--blue);border-left-color:var(--blue);background:rgba(0,82,217,.05);font-weight:600}
+  .navc .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:currentColor;opacity:.55}
+  .navc.on .dot{opacity:1}
+  .navc .lab{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .navc .n{font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .navc.on .n{color:var(--blue)}
+  .sfoot{padding:12px;border-top:1px solid var(--line2)}
+  .ucard{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f8fafc}
+  .ucard .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00A4FF,#0052D9);color:#fff;display:grid;place-items:center;font-size:12px}
+  .ucard .un{font-size:13.5px;color:#0f172a}
+  .ucard .ur{font-size:11px;color:var(--sub)}
+  .ucard .lo{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--mute);cursor:pointer}
+  .ucard .lo svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* ───────── 右侧主体 ───────── */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0}
+  .crumb{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--sub)}
+  .crumb svg{width:14px;height:14px;stroke:#cbd5e1;fill:none;stroke-width:2}
+  .crumb .cur{color:#0f172a}
+  .crumb a{color:var(--sub);cursor:pointer}.crumb a:hover{color:var(--blue)}
+  .sp{flex:1}
+  .ver{height:24px;display:inline-flex;align-items:center;padding:0 8px;border-radius:6px;background:#f8fafc;border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--sub);letter-spacing:.5px}
+  .tb-new{height:32px;padding:0 12px;border-radius:7px;background:linear-gradient(90deg,#0052D9,#003FA8);color:#fff;font-size:14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none}
+  .tb-new svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2}
+  .tb-sug{height:32px;padding:0 12px;border-radius:7px;background:#fff;color:var(--blue);border:1px solid rgba(0,82,217,.3);font-size:14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .tb-sug svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .tb-bell{position:relative;width:32px;height:32px;border-radius:7px;display:grid;place-items:center;color:var(--sub);cursor:pointer}
+  .tb-bell:hover{background:#f1f5f9}
+  .tb-bell svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+  .tb-bell .dot{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:20px;background:#ef4444;color:#fff;font-size:10px;display:grid;place-items:center}
+
+  .scroll{flex:1;overflow-y:auto;position:relative;scroll-behavior:smooth}
+  .scroll::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 0% 0%,rgba(0,82,217,.05),transparent 60%)}
+  .page{position:relative;max-width:1560px;margin:0 auto;padding:28px 40px 40px}
+  .ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .ph h1{font-size:25px;font-weight:700;letter-spacing:-.5px;color:#0f172a}
+  .ph p{font-size:14px;color:var(--sub);margin-top:5px}
+  .hidden{display:none!important}
+
+  .sech{display:flex;align-items:center;gap:9px;margin:26px 0 12px;scroll-margin-top:14px}
+  .sech .six{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;flex-shrink:0}
+  .sech .six svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .sech b{font-size:15.5px;font-weight:750;color:#1e293b}
+  .sech .cnt{font-size:12px;color:var(--mute)}
+  .sech .more{margin-left:auto;font-size:12.5px;color:var(--blue);cursor:pointer}
+  .sech .more:hover{text-decoration:underline}
+
+  /* 统计 tiles */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px 18px;cursor:pointer;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s}
+  .tile:hover{box-shadow:0 10px 24px -14px rgba(15,23,42,.28);transform:translateY(-1px)}
+  .tile .tic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:12px}
+  .tile .tic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+  .tile .tn{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-1px;color:#0f172a}
+  .tile .tl{font-size:13px;color:var(--sub);margin-top:7px}
+  .tile .tsub{position:absolute;top:16px;right:16px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+
+  /* 任务卡（动词优先） */
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px;cursor:pointer;position:relative;transition:box-shadow .15s}
+  .tcard:hover{box-shadow:0 8px 20px -12px rgba(15,23,42,.22)}
+  .tcard .ub{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:2px}
+  .tcard .row1{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-left:8px}
+  .tcard .verb{font-size:15px;font-weight:700;color:#0f172a}
+  .tcard .due{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .tcard .meta{padding-left:8px;font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .tcard .ccode{font-family:var(--mono);font-size:11px;color:var(--mute)}
+  .tcard .from{display:inline-flex;align-items:center;gap:5px;margin-top:9px;margin-left:8px;font-size:12px;color:var(--sub)}
+  .tcard .fav{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;color:#fff}
+  .tcard .more{margin-left:6px;font-size:11px;font-weight:600;color:var(--blue);background:rgba(0,82,217,.08);padding:1px 7px;border-radius:20px}
+
+  /* 列表表格 */
+  .lcard{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-size:11.5px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;border-bottom:1px solid var(--line);background:#fbfcfe;white-space:nowrap}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:#f8fafc}
+  tbody tr:last-child td{border-bottom:0}
+  .cn{font-weight:600;color:#1e293b;display:flex;align-items:center;gap:8px}
+  .cn .ub{width:3px;height:15px;border-radius:2px;flex-shrink:0}
+  .cc{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:2px}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .av2{width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;color:#fff;margin-right:6px;vertical-align:middle}
+  .owncell{display:flex;align-items:center}
+  .ring{--p:45;--sz:30px;--t:var(--blue);width:var(--sz);height:var(--sz);border-radius:50%;flex-shrink:0;background:conic-gradient(var(--t) calc(var(--p)*1%),#e7ecf3 0);position:relative;display:inline-grid;place-items:center}
+  .ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
+  .ring i{position:relative;font-size:10px;font-weight:700;font-style:normal;color:#475569;font-variant-numeric:tabular-nums}
+
+  /* 预设视图模块 */
+  .presets{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:8px}
+  .pst{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;position:relative;transition:box-shadow .15s,border-color .15s}
+  .pst:hover{box-shadow:0 8px 20px -13px rgba(15,23,42,.25)}
+  .pst.on{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,82,217,.12)}
+  .pst .pic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
+  .pst .pic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+  .pst .pt{font-size:14px;font-weight:700;color:#1e293b}
+  .pst .ps{font-size:11.5px;color:var(--mute);margin-top:1px}
+  .pst .pn{margin-left:auto;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+
+  /* 筛选条 */
+  .fbar{display:flex;align-items:center;gap:10px;margin:18px 0 14px;flex-wrap:wrap}
+  .fsearch{flex:1;min-width:240px;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 13px;color:var(--mute);font-size:13.5px}
+  .fsearch svg{width:16px;height:16px;stroke:#9aa7b8;fill:none;stroke-width:2}
+  .fsel{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;color:var(--sub);display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+  .fsel svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .vcount{font-size:12.5px;color:var(--mute);margin-left:auto}
+  .vcount b{color:#1e293b}
+
+  /* 说明 banner */
+  .note{display:flex;gap:11px;align-items:flex-start;background:linear-gradient(120deg,rgba(0,82,217,.05),rgba(0,164,255,.04));border:1px solid rgba(0,82,217,.16);border-radius:12px;padding:13px 16px;margin-bottom:4px}
+  .note .ni{width:30px;height:30px;border-radius:9px;background:rgba(0,82,217,.1);color:var(--blue);display:grid;place-items:center;flex-shrink:0}
+  .note .ni svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+  .note .nt{font-size:13px;color:#334155;line-height:1.6}
+  .note .nt b{color:var(--blue)}
+
+  .recentmini{display:flex;align-items:center;gap:9px;padding:11px 16px;border-bottom:1px solid var(--line2);cursor:pointer}
+  .recentmini:hover{background:#f8fafc}
+  .recentmini:last-child{border-bottom:0}
+  .recentmini .ub{width:3px;height:16px;border-radius:2px;flex-shrink:0}
+  .recentmini .rn{flex:1;font-size:13px;color:#28323f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recentmini .rt{font-size:11px;color:var(--mute)}
+
+  /* ───── 「我的」· 左侧 Tab + 右内容 ───── */
+  .mine-wrap{display:flex;gap:22px;align-items:flex-start}
+  .mtabs{width:192px;flex-shrink:0;display:flex;flex-direction:column;gap:3px}
+  .mtab{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;color:var(--sub);cursor:pointer;font-size:14px;border:1px solid transparent;background:transparent;text-align:left;width:100%}
+  .mtab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+  .mtab .lab{flex:1;white-space:nowrap}
+  .mtab .n{font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .mtab:hover{background:#f8fafc;color:#0f172a}
+  .mtab.on{background:#fff;border-color:var(--line);color:var(--blue);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+  .mtab.on .n{color:var(--blue)}
+  .mpanel{flex:1;min-width:0}
+  .mp.hidden{display:none}
+  .mhead{display:flex;align-items:center;gap:9px;margin:2px 0 14px}
+  .mhead b{font-size:16px;font-weight:750;color:#1e293b}
+  .mhead .cnt{font-size:12px;color:var(--mute)}
+  .mhead .more{margin-left:auto;font-size:12.5px;color:var(--blue);cursor:pointer}
+  .mstat{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .mstat .sc{background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 15px}
+  .mstat .sc .v{font-size:24px;font-weight:800;color:#0f172a;line-height:1;font-variant-numeric:tabular-nums}
+  .mstat .sc .v.red{color:#dc2626}
+  .mstat .sc .l{font-size:11.5px;color:var(--sub);margin-top:7px}
+
+  /* ───── Case 中心 · V1.0.2 全部列表还原 ───── */
+  .flt{background:#fff;border:1px solid rgba(226,232,240,.8);border-radius:12px;padding:11px 14px;box-shadow:0 1px 2px 0 rgba(15,23,42,.04);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .flt-search{position:relative;flex:1;min-width:240px;max-width:440px}
+  .flt-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:#94a3b8;fill:none;stroke-width:2}
+  .flt-search input{width:100%;height:36px;padding:0 12px 0 32px;border-radius:8px;background:rgba(248,250,252,.6);border:1px solid var(--line);font-size:13.5px;color:var(--ink);outline:none}
+  .flt-search input::placeholder{color:#94a3b8}
+  .flt-search input:focus{background:#fff;border-color:var(--blue)}
+  .flt-btn{height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--sub);font-size:13.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .flt-btn:hover{border-color:#cbd5e1}
+  .flt-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+  .flt-btn .cv{width:13px;height:13px}
+  .flt-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .flt-cnt{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .flt-cnt b{color:#1e293b}
+
+  .clist{display:flex;flex-direction:column;gap:12px}
+  .ccard{background:#fff;border:1px solid rgba(226,232,240,.8);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px 0 rgba(15,23,42,.04);display:flex;transition:box-shadow .15s}
+  .ccard:hover{box-shadow:0 8px 22px -12px rgba(15,23,42,.22)}
+  .ccard .ubar{width:4px;flex-shrink:0}
+  .ccard .cbody{flex:1;min-width:0}
+  .ccard .chead{padding:13px 18px 9px;display:flex;align-items:center;gap:9px}
+  .ccard .cexp{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:#64748b;flex-shrink:0;cursor:pointer}
+  .ccard .cexp:hover{background:rgba(0,82,217,.05);color:var(--blue)}
+  .ccard .cexp svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;transform:rotate(-90deg)}
+  .ccard .cfolder{width:15px;height:15px;stroke:var(--blue);fill:none;stroke-width:2;flex-shrink:0}
+  .ccard .clvl{padding:1px 6px;border-radius:5px;font-size:10px;border:1px solid;flex-shrink:0}
+  .ccard .ccode{font-size:11px;color:#94a3b8;font-family:var(--mono);letter-spacing:.3px;flex-shrink:0}
+  .ccard .cname{font-size:14px;color:#1e293b;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .ccard .cname:hover{color:var(--blue)}
+  .ccard .csub{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);display:grid;place-items:center;color:#94a3b8;flex-shrink:0;cursor:pointer}
+  .ccard .csub:hover{border-color:#cbd5e1;color:#64748b}
+  .ccard .csub.on{background:rgba(0,82,217,.08);border-color:rgba(0,82,217,.3);color:var(--blue)}
+  .ccard .csub svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+  .ccard .cmeta{padding:0 18px 13px 52px;display:flex;align-items:center;gap:6px 20px;flex-wrap:wrap;font-size:11px;color:var(--sub)}
+  .ccard .cmeta .it{display:inline-flex;align-items:center;gap:4px}
+  .ccard .cmeta svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+  .ccard .cmeta .ic{color:#94a3b8}
+  .ccard .cmeta b{color:#334155;font-variant-numeric:tabular-nums}
+  .ccard .cmeta .blue{color:#2563eb}
+  .ccard .cright{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .ccard .cprog{display:flex;align-items:center;gap:6px}
+  .ccard .cprog .pr{--p:45;--t:var(--blue);width:16px;height:16px;border-radius:50%;background:conic-gradient(var(--t) calc(var(--p)*1%),#e7ecf3 0);position:relative}
+  .ccard .cprog .pr::before{content:'';position:absolute;inset:2px;border-radius:50%;background:#fff}
+  .ccard .cprog span{color:#475569;font-variant-numeric:tabular-nums;width:34px;text-align:right}
+  .ccard .cdue{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid;font-size:11px;white-space:nowrap}
+  .ccard .cdue svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="user" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a8.5 8.5 0 0 1 13 0"/></symbol>
+  <symbol id="folderk" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></symbol>
+  <symbol id="users" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="logout" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="help" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="bookmark" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="bldg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="alarm" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6m20 0-3-3"/></symbol>
+  <symbol id="flame" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></symbol>
+  <symbol id="inbox" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="filter" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+  <symbol id="layers" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="eye" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="folderopen" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6A2 2 0 0 1 18.46 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="crown" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></symbol>
+  <symbol id="listchecks" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4M3 7l2 2 4-4M13 6h8M13 12h8M13 18h8"/></symbol>
+  <symbol id="history" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></symbol>
+  <symbol id="calclock" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4M16 2v4M8 2v4M3 10h5"/><circle cx="17.5" cy="17.5" r="4.5"/><path d="M17.5 15.5v2l1.5 1"/></symbol>
+  <symbol id="circledot" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2" fill="currentColor"/></symbol>
+  <symbol id="sort" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"/></symbol>
+</svg>
+
+<!-- ════════ 侧边栏（方案 2 · 两级导航） ════════ -->
+<aside class="side">
+  <div class="brand"><div class="logo">E</div><div><div class="t1">EA Platform</div><div class="t2">Engineering Portal</div></div></div>
+  <nav class="nav">
+    <div class="grp">工作台</div>
+
+    <!-- 单级导航：不再提供二级展开入口 -->
+    <div class="navp on" data-view="mine" onclick="go('mine',this)">
+      <svg class="i"><use href="#user"/></svg><span class="lab">我的</span><span class="badge">6</span>
+    </div>
+    <div class="navp" data-view="cases" onclick="go('cases',this)">
+      <svg class="i"><use href="#folderk"/></svg><span class="lab">Case 中心</span>
+    </div>
+    <div class="navp"><svg class="i"><use href="#users"/></svg><span class="lab">管理者视图</span></div>
+  </nav>
+  <div class="sfoot">
+    <div class="ucard"><div class="av">Z</div><div style="flex:1;min-width:0"><div class="un">张伟</div><div class="ur">PTE Engineer · PTE</div></div><div class="lo"><svg><use href="#logout"/></svg></div></div>
+  </div>
+</aside>
+
+<!-- ════════ 主体 ════════ -->
+<div class="main">
+  <header class="topbar">
+    <div class="crumb"><a>EA 平台</a><svg><use href="#chev"/></svg><span class="cur" id="crumb">我的</span></div>
+    <div class="sp"></div>
+    <span class="ver">V1.0.2</span>
+    <button class="tb-new"><svg><use href="#plus"/></svg>新建 Case</button>
+    <button class="tb-sug"><svg><use href="#help"/></svg>系统建议</button>
+    <div class="tb-bell"><svg><use href="#bell"/></svg><span class="dot">3</span></div>
+  </header>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ░░░░░░░░░░ 视图 A：我的 ░░░░░░░░░░ -->
+    <div class="page" id="view-mine">
+      <div class="ph">
+        <div>
+          <h1>我的</h1>
+          <p>与你相关的任务、Case、订阅与部门动态，按模块切换查看</p>
+        </div>
+      </div>
+
+      <div class="mine-wrap">
+        <!-- 左侧模块 Tab（取代左侧导航栏的二级入口） -->
+        <div class="mtabs">
+          <button class="mtab on" data-tab="task"   onclick="mineTab('task',this)"><svg><use href="#inbox"/></svg><span class="lab">我的任务</span><span class="n">6</span></button>
+          <button class="mtab"    data-tab="own"    onclick="mineTab('own',this)"><svg><use href="#folderk"/></svg><span class="lab">我负责的 Case</span><span class="n">4</span></button>
+          <button class="mtab"    data-tab="sub"    onclick="mineTab('sub',this)"><svg><use href="#bookmark"/></svg><span class="lab">我的订阅</span><span class="n">6</span></button>
+          <button class="mtab"    data-tab="dept"   onclick="mineTab('dept',this)"><svg><use href="#bldg"/></svg><span class="lab">我部门的 Case</span><span class="n">12</span></button>
+          <button class="mtab"    data-tab="recent" onclick="mineTab('recent',this)"><svg><use href="#clock"/></svg><span class="lab">最近浏览</span><span class="n">6</span></button>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="mpanel">
+          <!-- 我的任务（还原 V1.0.2 待办样式：统计条 + 任务卡） -->
+          <div class="mp" data-panel="task">
+            <div class="mstat">
+              <div class="sc"><div class="v">6</div><div class="l">待我处理</div></div>
+              <div class="sc"><div class="v red">2</div><div class="l">非常紧急</div></div>
+              <div class="sc"><div class="v">3</div><div class="l">进行中</div></div>
+              <div class="sc"><div class="v">1</div><div class="l">今日到期</div></div>
+            </div>
+            <div class="mhead"><b>我的任务</b><span class="cnt">6 项 · 待我处理</span><span class="more">全部待办 →</span></div>
+            <div class="tgrid" id="taskGrid"></div>
+          </div>
+
+          <!-- 我负责的 Case -->
+          <div class="mp hidden" data-panel="own">
+            <div class="mhead"><b>我负责的 Case</b><span class="cnt">4 个 · 我是 Owner</span></div>
+            <div class="lcard"><table><thead><tr>
+              <th style="width:34%">Case</th><th>等级</th><th>紧急度</th><th>状态</th><th>进度</th><th>更新</th>
+            </tr></thead><tbody id="ownBody"></tbody></table></div>
+          </div>
+
+          <!-- 我的订阅 -->
+          <div class="mp hidden" data-panel="sub">
+            <div class="mhead"><b>我的订阅</b><span class="cnt">6 个 · 我关注但非负责</span><span class="more">管理订阅 →</span></div>
+            <div class="lcard"><table><thead><tr>
+              <th style="width:34%">Case</th><th>等级</th><th>Owner</th><th>状态</th><th>进度</th><th>更新</th>
+            </tr></thead><tbody id="subBody"></tbody></table></div>
+          </div>
+
+          <!-- 我部门的 Case -->
+          <div class="mp hidden" data-panel="dept">
+            <div class="mhead"><b>我部门的 Case</b><span class="cnt">PTE 部门 · 12 个</span></div>
+            <div class="lcard"><table><thead><tr>
+              <th style="width:34%">Case</th><th>等级</th><th>Owner</th><th>紧急度</th><th>状态</th><th>更新</th>
+            </tr></thead><tbody id="deptBody"></tbody></table></div>
+          </div>
+
+          <!-- 最近浏览 -->
+          <div class="mp hidden" data-panel="recent">
+            <div class="mhead"><b>最近浏览</b><span class="cnt">你最近打开过的 6 个</span></div>
+            <div class="lcard" id="recentBox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ░░░░░░░░░░ 视图 B：Case 中心 ░░░░░░░░░░ -->
+    <div class="page hidden" id="view-cases">
+      <div class="ph">
+        <div>
+          <h1>Case 中心</h1>
+          <p id="casesSub">全部 Case · 可多维筛选与排序</p>
+        </div>
+      </div>
+
+      <!-- 筛选栏（V1.0.2 还原：搜索主导 + 筛选弹层 + 排序） -->
+      <div class="flt">
+        <div class="flt-search"><svg><use href="#search"/></svg><input placeholder="搜索 Case 名称 / 编码 / 人员" /></div>
+        <button class="flt-btn"><svg><use href="#filter"/></svg>筛选<svg class="cv"><use href="#chev"/></svg></button>
+        <div class="flt-right">
+          <button class="flt-btn"><svg><use href="#sort"/></svg>排序：综合优先级<svg class="cv"><use href="#chev"/></svg></button>
+          <span class="flt-cnt">共 <b id="presetCnt">16</b>/16</span>
+        </div>
+      </div>
+
+      <!-- Case 卡片列表 -->
+      <div class="clist" id="caseBody"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ───── 颜色 token（与 data.ts 对齐）───── */
+const levelColor={L1:'#FF3B30',L2:'#FF9500',L3:'#0ea5e9',L4:'#94A3B8',L5:'#94A3B8'};
+const levelBg   ={L1:'#fdeeec',L2:'#fdf3e8',L3:'#e6f5fc',L4:'#f1f5f9',L5:'#f1f5f9'};
+const urg={'非常紧急':['#fdeeec','#d4362a'],'紧急':['#fdf3e8','#a86413'],'一般':['#e6f5fc','#0c7faf'],'不紧急':['#f1f5f9','#5b6678']};
+const urgBar={'非常紧急':'#FF3B30','紧急':'#FF9500','一般':'#38BDF8','不紧急':'#94A3B8'};
+const stat={'进行中':['#eaf1fe','#0052D9'],'待接受':['#fdf3e8','#a86413'],'待开始':['#f1f5f9','#5b6678'],'已完成':['#e9f8ee','#1c7d3e'],'已结案':['#e9f8ee','#1c7d3e'],'已中止':['#f1f5f9','#5b6678'],'已拒绝':['#fdeeec','#d4362a'],'Pending':['#f1ecfd','#7c3aed']};
+const avatarColor=n=>{const p=[['#00A4FF','#0052D9'],['#34C759','#16a34a'],['#FF9500','#ea580c'],['#8b5cf6','#7c3aed'],['#0ea5e9','#0369a1'],['#f43f5e','#be123c']];let s=0;for(const c of n)s+=c.charCodeAt(0);const g=p[s%p.length];return`linear-gradient(135deg,${g[0]},${g[1]})`;};
+const av2=n=>`<span class="av2" style="background:${avatarColor(n)}">${n.slice(-2)}</span>`;
+const chip=(t,pair)=>`<span class="chip" style="background:${pair[0]};color:${pair[1]}">${t}</span>`;
+const ring=(p,done)=>`<span class="ring" style="--p:${p};--t:${done?'#34C759':'#0052D9'}"><i>${p}%</i></span>`;
+const dueTag=t=>{const map={warn:['#fdecea','#d4362a'],soon:['#fbf1e3','#a86413'],ok:['#eef2f7','#5b6678']};const k=t.k;const c=map[k];return`<span class="due" style="background:${c[0]};color:${c[1]}">${t.t}</span>`;};
+
+/* ───── 我的 · 任务卡 ───── */
+const myTasks=[
+  {verb:'去复现',title:'CP 测试接触不良复现验证',case:'DDR5 X-die CP1 yield drop',code:'EA-260511000001.002',u:'非常紧急',from:'李娜',role:'DA 工程师',due:{k:'warn',t:'剩 2 天'},more:0},
+  {verb:'去分析',title:'FT Retest Rate 数据回归分析',case:'LPDDR5 FT Retest Rate 偏高',code:'EA-260511000002.003',u:'紧急',from:'刘洋',role:'你的主管',due:{k:'warn',t:'今天'},more:1},
+  {verb:'去校准',title:'探针台校准规范执行确认',case:'站点 A 探针台校准规范更新',code:'EA-260511000004.002',u:'不紧急',from:'周杰',role:'PTE 工程师',due:{k:'ok',t:'剩 9 天'},more:0},
+  {verb:'去定位',title:'DDR4 退货批次失效定位',case:'DDR4 Lot 退货影响分析',code:'EA-260511000005.002',u:'非常紧急',from:'孙楠',role:'FT 工程师',due:{k:'soon',t:'剩 5 天'},more:1},
+  {verb:'去评估',title:'WAT Vth 漂移 SPC 触发评估',case:'SPC 自动触发：WAT Vth 漂移',code:'EA-260511000003.001',u:'一般',from:'系统自动',role:'规则触发',due:{k:'ok',t:'剩 6 天'},more:0},
+  {verb:'去确认',title:'RDBI 站点复测条件确认',case:'DDR5 X-die CP1 yield drop',code:'EA-260511000001.006',u:'一般',from:'王芳',role:'CP 工程师',due:{k:'ok',t:'剩 7 天'},more:0},
+];
+document.getElementById('taskGrid').innerHTML=myTasks.map(t=>`
+  <div class="tcard">
+    <div class="ub" style="background:${urgBar[t.u]}"></div>
+    <div class="row1"><span class="verb">${t.verb}</span>${dueTag(t.due)}</div>
+    <div class="meta"><span style="color:#334155;font-weight:600">${t.title}</span></div>
+    <div class="meta" style="margin-top:5px"><span>${t.case}</span><span class="ccode">${t.code}</span>${t.more?`<span class="more">+${t.more} 项</span>`:''}</div>
+    <div class="from">${av2(t.from)}<span>${t.from} · ${t.role} 派给我</span></div>
+  </div>`).join('');
+
+/* ───── 我负责的 Case ───── */
+const ownCases=[
+  {name:'DDR5 X-die CP1 yield drop @Site A',code:'EA-260511000001',level:'L2',u:'非常紧急',status:'进行中',p:45,upd:'10:24'},
+  {name:'站点 A 探针台校准规范更新',code:'EA-260511000004',level:'L5',u:'不紧急',status:'进行中',p:62,upd:'04-21'},
+  {name:'WLCSP 焊球桥连失效排查',code:'EA-260511000011',level:'L3',u:'紧急',status:'进行中',p:30,upd:'昨天'},
+  {name:'eMMC 写入寿命衰减分析',code:'EA-260511000014',level:'L4',u:'一般',status:'已完成',p:100,upd:'04-19'},
+];
+document.getElementById('ownBody').innerHTML=ownCases.map(c=>`
+  <tr><td><div class="cn"><span class="ub" style="background:${levelColor[c.level]}"></span>${c.name}</div><div class="cc">${c.code}</div></td>
+  <td>${chip(c.level,[levelBg[c.level],levelColor[c.level]])}</td>
+  <td>${chip(c.u,urg[c.u])}</td>
+  <td>${chip(c.status,stat[c.status])}</td>
+  <td>${ring(c.p,c.status==='已完成')}</td>
+  <td style="color:#94a3b8;font-size:12px">${c.upd}</td></tr>`).join('');
+
+/* ───── 我的订阅 ───── */
+const subCases=[
+  {name:'LPDDR5 FT Retest Rate 偏高',code:'EA-260511000002',level:'L3',owner:'刘洋',status:'进行中',p:55,upd:'08:40',hot:1},
+  {name:'封装空洞率超标分析',code:'EA-260511000008',level:'L2',owner:'李娜',status:'进行中',p:70,upd:'昨天'},
+  {name:'回流焊空洞新案',code:'EA-260511000016',level:'L4',owner:'李娜',status:'待开始',p:5,upd:'04-20',hot:1},
+  {name:'划片崩裂异常追溯',code:'EA-260511000012',level:'L3',owner:'孙浩',status:'进行中',p:48,upd:'04-21'},
+  {name:'Bump 高度 CPK 不足',code:'EA-260511000019',level:'L3',owner:'赵敏',status:'进行中',p:35,upd:'04-18'},
+  {name:'CP 测试接触不良复现',code:'EA-260511000007',level:'L2',owner:'王强',status:'已完成',p:100,upd:'04-17'},
+];
+document.getElementById('subBody').innerHTML=subCases.map(c=>`
+  <tr><td><div class="cn"><span class="ub" style="background:${levelColor[c.level]}"></span>${c.name}${c.hot?'<span class="chip" style="background:#eaf1fe;color:#0052D9;margin-left:2px">有更新</span>':''}</div><div class="cc">${c.code}</div></td>
+  <td>${chip(c.level,[levelBg[c.level],levelColor[c.level]])}</td>
+  <td><div class="owncell">${av2(c.owner)}<span style="color:#475569">${c.owner}</span></div></td>
+  <td>${chip(c.status,stat[c.status])}</td>
+  <td>${ring(c.p,c.status==='已完成')}</td>
+  <td style="color:#94a3b8;font-size:12px">${c.upd}</td></tr>`).join('');
+
+/* ───── 我部门的 Case ───── */
+const deptCases=[
+  {name:'DDR5 X-die CP1 yield drop @Site A',code:'EA-260511000001',level:'L2',owner:'张伟',u:'非常紧急',status:'进行中',upd:'10:24'},
+  {name:'LPDDR5 FT Retest Rate 偏高',code:'EA-260511000002',level:'L3',owner:'刘洋',u:'紧急',status:'进行中',upd:'08:40'},
+  {name:'站点 A 探针台校准规范更新',code:'EA-260511000004',level:'L5',owner:'周杰',u:'不紧急',status:'进行中',upd:'04-21'},
+  {name:'WLCSP 焊球桥连失效排查',code:'EA-260511000011',level:'L3',owner:'张伟',u:'紧急',status:'进行中',upd:'昨天'},
+  {name:'FT 工位温漂复测异常',code:'EA-260511000017',level:'L4',owner:'周宇',u:'一般',status:'待接受',upd:'04-20'},
+  {name:'eMMC 写入寿命衰减分析',code:'EA-260511000014',level:'L4',owner:'张伟',u:'一般',status:'已完成',upd:'04-19'},
+];
+document.getElementById('deptBody').innerHTML=deptCases.map(c=>`
+  <tr><td><div class="cn"><span class="ub" style="background:${levelColor[c.level]}"></span>${c.name}</div><div class="cc">${c.code}</div></td>
+  <td>${chip(c.level,[levelBg[c.level],levelColor[c.level]])}</td>
+  <td><div class="owncell">${av2(c.owner)}<span style="color:#475569">${c.owner}</span></div></td>
+  <td>${chip(c.u,urg[c.u])}</td>
+  <td>${chip(c.status,stat[c.status])}</td>
+  <td style="color:#94a3b8;font-size:12px">${c.upd}</td></tr>`).join('');
+
+/* ───── 最近浏览 ───── */
+const recent=[
+  {name:'晶圆批次良率异常下降排查',level:'L1',who:'张伟',t:'5 分钟前'},
+  {name:'封装空洞率超标分析',level:'L2',who:'李娜',t:'1 小时前'},
+  {name:'CP 测试接触不良复现',level:'L2',who:'王强',t:'今天 09:12'},
+  {name:'DDR4 Lot 退货影响分析',level:'L1',who:'孙楠',t:'昨天 18:40'},
+  {name:'划片崩裂异常追溯',level:'L3',who:'孙浩',t:'昨天 15:02'},
+  {name:'回流焊空洞新案',level:'L4',who:'李娜',t:'04-20'},
+];
+document.getElementById('recentBox').innerHTML=recent.map(r=>`
+  <div class="recentmini"><span class="ub" style="background:${levelColor[r.level]}"></span>
+  <span class="rn">${r.name}</span><span class="rt">${r.who}</span><span class="rt">${r.t}</span></div>`).join('');
+
+/* ───── Case 中心 · 全量列表 ───── */
+const allCases=[
+  {name:'DDR5 X-die CP1 yield drop @Site A',code:'EA-260511000001',level:'L2',u:'非常紧急',status:'进行中',owner:'张伟',site:'CP',p:45,upd:'04-22 10:24',tag:['doing','prio']},
+  {name:'DDR4 Lot 退货影响分析',code:'EA-260511000005',level:'L1',u:'非常紧急',status:'进行中',owner:'孙楠',site:'FT',p:38,upd:'04-22 11:00',tag:['doing','prio','due']},
+  {name:'LPDDR5 FT Retest Rate 偏高',code:'EA-260511000002',level:'L3',u:'紧急',status:'进行中',owner:'刘洋',site:'FT',p:55,upd:'04-22 08:40',tag:['doing']},
+  {name:'SPC 自动触发：WAT Vth 漂移',code:'EA-260511000003',level:'L4',u:'一般',status:'待接受',owner:'系统自动',site:'WAT',p:0,upd:'04-22 07:00',tag:['accept','new','watch']},
+  {name:'站点 A 探针台校准规范更新',code:'EA-260511000004',level:'L5',u:'不紧急',status:'进行中',owner:'周杰',site:'CP',p:62,upd:'04-21',tag:['doing']},
+  {name:'封装空洞率超标分析',code:'EA-260511000008',level:'L2',u:'紧急',status:'进行中',owner:'李娜',site:'PKG',p:70,upd:'04-21',tag:['doing','prio']},
+  {name:'WLCSP 焊球桥连失效排查',code:'EA-260511000011',level:'L3',u:'紧急',status:'进行中',owner:'张伟',site:'PKG',p:30,upd:'04-21',tag:['doing']},
+  {name:'划片崩裂异常追溯',code:'EA-260511000012',level:'L3',u:'紧急',status:'进行中',owner:'孙浩',site:'CP',p:48,upd:'04-21',tag:['doing','due']},
+  {name:'Bump 高度 CPK 不足',code:'EA-260511000019',level:'L3',u:'一般',status:'进行中',owner:'赵敏',site:'PKG',p:35,upd:'04-18',tag:['doing']},
+  {name:'FT 工位温漂复测异常',code:'EA-260511000017',level:'L4',u:'一般',status:'待接受',owner:'周宇',site:'FT',p:0,upd:'04-20',tag:['accept']},
+  {name:'SLT 老化箱温控偏差告警',code:'EA-260511000021',level:'L4',u:'一般',status:'待接受',owner:'系统自动',site:'SLT',p:0,upd:'04-22 06:30',tag:['accept','new','watch']},
+  {name:'回流焊空洞新案',code:'EA-260511000016',level:'L4',u:'一般',status:'待开始',owner:'李娜',site:'PKG',p:5,upd:'04-20',tag:['accept']},
+  {name:'CP 测试接触不良复现',code:'EA-260511000007',level:'L2',u:'紧急',status:'已结案',owner:'王强',site:'CP',p:100,upd:'04-17',tag:['closed','prio']},
+  {name:'eMMC 写入寿命衰减分析',code:'EA-260511000014',level:'L4',u:'一般',status:'已结案',owner:'张伟',site:'FT',p:100,upd:'04-19',tag:['closed']},
+  {name:'晶圆边缘良率衰退结案',code:'EA-260511000009',level:'L3',u:'一般',status:'已结案',owner:'陈磊',site:'CP',p:100,upd:'04-16',tag:['closed']},
+  {name:'探针卡磨损导致误判结案',code:'EA-260511000010',level:'L4',u:'不紧急',status:'已结案',owner:'王芳',site:'CP',p:100,upd:'04-15',tag:['closed']},
+];
+const presetMeta={
+  all:{n:'全部 Case',f:()=>true},
+  doing:{n:'进行中',f:c=>c.tag.includes('doing')},
+  accept:{n:'待接受',f:c=>c.tag.includes('accept')},
+  prio:{n:'高优先级 L1/L2',f:c=>c.tag.includes('prio')},
+  due:{n:'临期与逾期',f:c=>c.tag.includes('due')},
+  new:{n:'今日新增',f:c=>c.tag.includes('new')},
+  closed:{n:'已结案',f:c=>c.tag.includes('closed')},
+  watch:{n:'系统自动建案',f:c=>c.tag.includes('watch')},
+};
+// 真实 levelColors（Tailwind 还原）：L1 红 / L2 橙 / L3 琥珀 / L4 蓝 / L5 灰
+const lvlChip={
+  L1:'background:#fef2f2;color:#dc2626;border-color:#fecaca',
+  L2:'background:#fff7ed;color:#ea580c;border-color:#fed7aa',
+  L3:'background:#fffbeb;color:#d97706;border-color:#fde68a',
+  L4:'background:#eff6ff;color:#2563eb;border-color:#bfdbfe',
+  L5:'background:#f8fafc;color:#475569;border-color:#e2e8f0',
+};
+// duePill（还原）：结案灰 / ≤1 红 / ≤3 琥珀 / 其余灰
+function dueInfo(c){
+  if(c.status==='已结案')return{txt:'已结案',style:'background:#f8fafc;color:#94a3b8;border-color:#e2e8f0',risk:false};
+  const d=c.tag.includes('due')?1:(c.p>=70?9:(c.p<20?2:5));
+  const txt=d<=0?'今日到期':d+' 天到期';
+  const style=d<=1?'background:#fef2f2;color:#dc2626;border-color:#fecaca'
+    :d<=3?'background:#fffbeb;color:#d97706;border-color:#fde68a'
+    :'background:#f8fafc;color:#475569;border-color:#e2e8f0';
+  return{txt,style,risk:d<=3};
+}
+const subscribedSet=new Set(['LPDDR5 FT Retest Rate 偏高','封装空洞率超标分析','回流焊空洞新案','划片崩裂异常追溯','Bump 高度 CPK 不足','CP 测试接触不良复现']);
+function caseMetrics(c){
+  const closed=c.status==='已结案';
+  const n=parseInt(c.code.slice(-2),10)||3;
+  const tn=3+(n%5);                                  // 任务总数
+  const ip=closed?0:(c.status==='进行中'?1+(n%3):0); // 进行中
+  const pd=c.tag.includes('accept')?1+(n%2):0;       // 待接受
+  const dn=2+(c.name.length%3);                      // 协作部门数
+  return{closed,tn,ip,pd,dn};
+}
+function caseCard(c){
+  const m=caseMetrics(c);
+  const d=dueInfo(c);
+  const sub=subscribedSet.has(c.name);
+  return `<div class="ccard">
+    <div class="ubar" style="background:${urgBar[c.u]}" title="紧急度：${c.u}"></div>
+    <div class="cbody">
+      <div class="chead">
+        <span class="cexp" title="展开任务"><svg><use href="#chev"/></svg></span>
+        <svg class="cfolder"><use href="#folderopen"/></svg>
+        <span class="clvl" style="${lvlChip[c.level]}">${c.level}</span>
+        <span class="ccode">${c.code}</span>
+        <span class="cname">${c.name}</span>
+        <span class="csub ${sub?'on':''}" title="${sub?'已订阅 · 点击取消':'订阅此 Case'}"><svg><use href="#bookmark"/></svg></span>
+      </div>
+      <div class="cmeta">
+        <span class="it"><svg class="ic"><use href="#crown"/></svg>${c.owner}</span>
+        <span class="it"><svg class="ic"><use href="#bldg"/></svg>${m.dn} 部门协作</span>
+        <span class="it"><svg class="ic"><use href="#listchecks"/></svg><b>${m.tn}</b> 任务${m.ip>0?`<span class="it blue" style="margin-left:4px"><svg><use href="#circledot"/></svg>${m.ip}</span>`:''}${m.pd>0?`<span style="margin-left:4px;color:#64748b">待接受${m.pd}</span>`:''}</span>
+        <span class="it ic"><svg><use href="#history"/></svg>更新 ${c.upd}</span>
+        <div class="cright">
+          <div class="cprog"><span class="pr" style="--p:${c.p};--t:${m.closed?'#34C759':'#0052D9'}"></span><span>${c.p}%</span></div>
+          <span class="cdue" style="${d.style}">${d.risk&&!m.closed?'<svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2"><use href="#alarm"/></svg>':''}<svg><use href="#calclock"/></svg>${d.txt}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function renderCases(key){
+  const m=presetMeta[key]||presetMeta.all;
+  const rows=allCases.filter(m.f);
+  document.getElementById('caseBody').innerHTML=rows.map(caseCard).join('')
+    || `<div style="text-align:center;color:#94a3b8;padding:48px;background:#fff;border:1px solid var(--line);border-radius:12px">该筛选下暂无 Case</div>`;
+  document.getElementById('presetCnt').textContent=rows.length;
+  const sub=document.getElementById('casesSub');
+  if(sub)sub.textContent=(key==='all'?'全部 Case':m.n)+' · 可多维筛选与排序';
+}
+renderCases('all');
+
+/* ───── 视图 / 导航交互（单级导航） ───── */
+function go(view,el){
+  document.querySelectorAll('.navp').forEach(p=>p.classList.remove('on'));
+  if(el)el.classList.add('on');
+  document.getElementById('view-mine').classList.toggle('hidden',view!=='mine');
+  document.getElementById('view-cases').classList.toggle('hidden',view!=='cases');
+  document.getElementById('crumb').textContent=view==='mine'?'我的':'Case 中心';
+  document.getElementById('scroll').scrollTop=0;
+}
+/* 「我的」页内左侧 Tab 切换 */
+function mineTab(tab,el){
+  document.querySelectorAll('#view-mine .mtab').forEach(t=>t.classList.remove('on'));
+  if(el)el.classList.add('on');
+  document.querySelectorAll('#view-mine .mp').forEach(p=>p.classList.toggle('hidden',p.dataset.panel!==tab));
+}
+</script>
+</body>
+</html>
