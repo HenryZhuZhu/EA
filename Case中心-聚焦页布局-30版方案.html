@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>Case 中心 · 聚焦页布局 30 版（模块独立）</title>
+<style>
+  :root{
+    --blue:#0052D9;--red:#FF3B30;--orange:#FF9500;--amber:#d97706;--green:#16a34a;
+    --ink:#0f172a;--ink2:#1e293b;--sub:#64748b;--mute:#94a3b8;--faint:#cbd5e1;
+    --line:#e6e9ef;--line2:#f1f3f7;--bg:#f4f5f8;--mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased;padding:30px 30px 70px}
+  svg{display:block}
+  .head{max-width:1600px;margin:0 auto 22px}
+  .head h1{font-size:23px;font-weight:780;letter-spacing:-.4px}
+  .head p{font-size:13.5px;color:var(--sub);margin-top:7px;max-width:98ch}
+  .head b{color:var(--ink2)}
+
+  .gallery{max-width:1600px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:20px}
+  .scheme{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .sh{display:flex;align-items:flex-start;gap:12px;padding:14px 17px 12px}
+  .sh .num{width:25px;height:25px;border-radius:7px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .sh .nm{font-size:14.5px;font-weight:750;color:var(--ink2)}
+  .sh .ds{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.55}
+  .stage{height:360px;margin:0 15px 16px;border:1px solid var(--line);border-radius:11px;background:#eef1f5;overflow:hidden;padding:12px}
+  .stage *{font-size:12px}
+  .sroot{height:100%;display:flex;flex-direction:column;gap:11px}
+
+  /* 布局工具 */
+  .row{display:flex;gap:11px}.col{display:flex;flex-direction:column;gap:11px}
+  .row.fill,.col.fill{flex:1;min-height:0}
+  .row>*,.col>*{min-height:0;min-width:0}
+  .gd{display:grid;gap:11px}
+  .gd.fill{flex:1;min-height:0}
+  .gd>*{min-height:0;min-width:0}
+
+  /* 模块通用卡 */
+  .mod{background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;flex:1 1 0;min-height:0}
+  .mh{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line2);flex-shrink:0}
+  .mh .mi{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+  .mh .mi svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+  .mh b{font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+  .mh .mc{margin-left:auto;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .mbody{flex:1;min-height:0;display:flex;flex-direction:column}
+  .pr{flex:1;display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--line2);min-height:0}
+  .mbody .pr:first-child{border-top:0}
+  .ub{width:3px;height:13px;border-radius:2px;flex-shrink:0}
+  .lvl{font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid;flex-shrink:0}
+  .pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#334155}
+  .pm{font-size:10px;color:var(--mute);flex-shrink:0}
+  .rk{width:19px;height:19px;border-radius:5px;display:grid;place-items:center;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0;background:#f1f5f9;color:#94a3b8}
+  .rk.top{background:rgba(0,82,217,.08);color:var(--blue)}
+  .ring{width:15px;height:15px;border-radius:50%;flex-shrink:0;position:relative;background:conic-gradient(var(--blue) calc(var(--p)*1%),#e7ecf3 0)}
+  .ring::before{content:'';position:absolute;inset:2px;border-radius:50%;background:#fff}
+  .due{font-size:10px;font-weight:600;width:42px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .seg{margin-left:auto;display:inline-flex;background:#f1f3f7;border-radius:7px;padding:2px}
+  .seg .s{padding:3px 8px;border-radius:5px;font-size:10px;color:var(--sub);white-space:nowrap}
+  .seg .s.on{background:#fff;color:var(--blue);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+
+  /* 模块 A：全部 Case 列表（浅蓝，独立卡，含搜索） */
+  .modA{flex:0 0 auto;background:linear-gradient(135deg,#EAF1FE,#F4F8FF);border:1px solid rgba(0,82,217,.16);border-radius:10px;display:flex;flex-direction:column}
+  .modA.grow{flex:1 1 0;justify-content:center}
+  .modA .ah{display:flex;align-items:center;gap:10px;padding:11px 13px}
+  .aic{width:34px;height:34px;border-radius:9px;background:rgba(0,82,217,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0}
+  .aic svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+  .at{font-size:13.5px;font-weight:750;color:var(--ink)}
+  .as{font-size:10px;color:var(--sub);margin-top:1px}
+  .anum{display:flex;align-items:baseline;gap:3px;color:var(--blue);font-weight:850;font-size:23px;line-height:1;letter-spacing:-1px;margin-left:auto}
+  .anum i{font-size:10px;color:var(--mute);font-style:normal;font-weight:600}
+  .asearch{padding:0 13px 11px}
+  .srch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:8px;height:34px;padding:0 11px;color:var(--mute);font-size:11px}
+  .srch svg{width:14px;height:14px;stroke:#9aa7b8;fill:none;stroke-width:2;flex-shrink:0}
+  .srch span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abar{flex-direction:row;align-items:center;gap:11px;padding:10px 13px}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="list" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="flame" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="trophy" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 5h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22m10 0c0-1.76-.85-3.25-2.03-3.79C14.47 17.98 14 17.55 14 17v-2.34M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+</svg>
+
+<div class="head">
+  <h1>Case 中心 · 聚焦页布局 30 版（模块各自独立）</h1>
+  <p>四个模块——<b>全部 Case 列表</b>（蓝）/ <b>高优先级</b> / <b>近期新增</b> / <b>Case 排行</b>——<b>各自独立成卡、互不融合</b>，每个都有自己的标题与边框。30 版只变「<b>排列方式与占比</b>」，所有模块拉伸铺满、不留白。挑中即落地，不满意继续出。</p>
+</div>
+
+<div class="gallery" id="gallery"></div>
+
+<script>
+const CASES=[
+  {name:'DDR5 X-die CP1 yield drop',level:'L2',u:'非常紧急',owner:'张伟',prog:45,due:'剩2天',dk:'warn'},
+  {name:'DDR4 Lot 退货影响分析',level:'L1',u:'非常紧急',owner:'孙楠',prog:38,due:'剩1天',dk:'warn'},
+  {name:'封装空洞率超标分析',level:'L2',u:'紧急',owner:'李娜',prog:70,due:'剩3天',dk:'soon'},
+  {name:'LPDDR5 FT Retest Rate 偏高',level:'L3',u:'紧急',owner:'刘洋',prog:55,due:'剩5天',dk:'soon'},
+  {name:'WLCSP 焊球桥连失效排查',level:'L3',u:'紧急',owner:'张伟',prog:30,due:'今天',dk:'warn'},
+  {name:'站点 A 探针台校准规范更新',level:'L5',u:'不紧急',owner:'周杰',prog:62,due:'剩9天',dk:'ok'},
+];
+const PRIO=[CASES[1],CASES[0],CASES[2]];           // L1/L2
+const NEW=[CASES[4],CASES[5]];                       // 近期新增
+const UB={'非常紧急':'#FF3B30','紧急':'#FF9500','一般':'#38BDF8','不紧急':'#94A3B8'};
+const LV={L1:'background:#fef2f2;color:#dc2626;border-color:#fecaca',L2:'background:#fff7ed;color:#ea580c;border-color:#fed7aa',L3:'background:#fffbeb;color:#d97706;border-color:#fde68a',L4:'background:#eff6ff;color:#2563eb;border-color:#bfdbfe',L5:'background:#f8fafc;color:#475569;border-color:#e2e8f0'};
+const DK={warn:'#dc2626',soon:'#d97706',ok:'#94a3b8'};
+const ic=(id,c,s=13)=>`<svg style="width:${s}px;height:${s}px;stroke:${c};fill:none;stroke-width:2"><use href="#${id}"/></svg>`;
+const srch=()=>`<div class="srch">${ic('search','#9aa7b8',14)}<span>搜索 Case 名称 / 编号 / 负责人…</span></div>`;
+
+/* 模块 A —— 全部 Case 列表（独立卡） */
+function A(opt={}){
+  if(opt.bar) return `<div class="modA abar"><span class="aic">${ic('list','currentColor',17)}</span><div style="flex:0 0 auto"><div class="at">全部 Case 列表</div><div class="as">浏览 / 多维筛选 / 排序</div></div><div class="anum" style="margin-left:0">36<i>个</i></div><div style="flex:1;min-width:0">${srch()}</div></div>`;
+  return `<div class="modA ${opt.grow?'grow':''}"><div class="ah"><span class="aic">${ic('list','currentColor',17)}</span><div style="flex:1;min-width:0"><div class="at">全部 Case 列表</div><div class="as">浏览 / 多维筛选 / 排序</div></div><div class="anum">36<i>个</i></div></div><div class="asearch">${srch()}</div></div>`;
+}
+/* 模块 高优先级 / 近期新增 —— 各自独立卡（标题 + 预览行） */
+function modMini(title,sub,n,color,icon,rows){
+  const body=rows.map(c=>`<div class="pr"><span class="ub" style="background:${UB[c.u]}"></span><span class="lvl" style="${LV[c.level]}">${c.level}</span><span class="pn">${c.name}</span><span class="pm">${c.owner}</span></div>`).join('');
+  return `<div class="mod"><div class="mh"><span class="mi" style="background:${color}1a;color:${color}">${ic(icon,'currentColor',13)}</span><b>${title}</b><span class="mc" style="color:${color}">${n}</span></div><div class="mbody">${body}</div></div>`;
+}
+const B=()=>modMini('高优先级 · L1/L2','影响大',5,'#FF9500','flame',PRIO);
+const C=()=>modMini('近期新增','最新创建',2,'#16a34a','spark',NEW);
+/* 模块 Case 排行 —— 独立卡（Tab + 排名行） */
+function D(n=6){
+  const body=CASES.slice(0,n).map((c,i)=>`<div class="pr"><span class="rk ${i<3?'top':''}">${i+1}</span><span class="ub" style="background:${UB[c.u]}"></span><span class="pn">${c.name}</span><span class="pm">${c.owner}</span><span class="ring" style="--p:${c.prog}"></span><span class="due" style="color:${DK[c.dk]}">${c.due}</span></div>`).join('');
+  return `<div class="mod"><div class="mh"><span class="mi" style="background:rgba(0,82,217,.1);color:#0052D9">${ic('trophy','currentColor',13)}</span><b>Case 排行</b><div class="seg"><span class="s on">热门排行</span><span class="s">关注度排行</span></div></div><div class="mbody">${body}</div></div>`;
+}
+
+/* ===== 30 版排列 ===== */
+const S=[];
+const push=(nm,ds,html)=>S.push({nm,ds,html});
+
+push('A顶条 · 下方 高优|近期|排行','全部列表压成顶部一条；下面三模块横向并排，排行占更宽。',
+  `${A({bar:1})}<div class="gd fill" style="grid-template-columns:1fr 1fr 1.7fr">${B()}${C()}${D(6)}</div>`);
+push('A顶条 · 左(高优/近期) 右排行','顶条 + 左窄列堆叠 高优/近期，右侧排行铺满。',
+  `${A({bar:1})}<div class="row fill"><div class="col" style="width:236px">${B()}${C()}</div>${D(6)}</div>`);
+push('A顶条 · 左排行 右(高优/近期)','排行放左侧主区，高优/近期堆右窄列。',
+  `${A({bar:1})}<div class="row fill">${D(6)}<div class="col" style="width:236px">${B()}${C()}</div></div>`);
+push('A顶条 · 三等分','顶条 + 高优 / 近期 / 排行 三等宽，整齐铺满。',
+  `${A({bar:1})}<div class="gd fill" style="grid-template-columns:1fr 1fr 1fr">${B()}${C()}${D(6)}</div>`);
+push('A顶条 · (高优|近期)行 + 排行整宽','顶条 + 高优/近期并排一行 + 排行整宽在下，排行最大化。',
+  `${A({bar:1})}<div class="gd" style="grid-template-columns:1fr 1fr;height:96px">${B()}${C()}</div><div class="row fill">${D(6)}</div>`);
+push('A顶条 · 排行整宽 + (高优|近期)行','顶条 + 排行整宽在上 + 高优/近期并排在下。',
+  `${A({bar:1})}<div class="row fill">${D(5)}</div><div class="gd" style="grid-template-columns:1fr 1fr;height:96px">${B()}${C()}</div>`);
+push('A顶条 · 高优|排行|近期（排行居中）','排行居中放大，高优、近期分列两侧。',
+  `${A({bar:1})}<div class="gd fill" style="grid-template-columns:1fr 1.7fr 1fr">${B()}${D(6)}${C()}</div>`);
+push('A顶条 · 排行大左 + 高优/近期小右','排行占左 2/3，高优/近期压成右侧小卡。',
+  `${A({bar:1})}<div class="gd fill" style="grid-template-columns:2fr 1fr">${D(6)}<div class="col">${B()}${C()}</div></div>`);
+
+push('左列(A/高优/近期) · 右排行','左 250 竖列：全部列表卡 + 高优 + 近期；右侧排行铺满到底。',
+  `<div class="row fill"><div class="col" style="width:252px">${A()}${B()}${C()}</div>${D(6)}</div>`);
+push('右列(A/高优/近期) · 左排行','排行在左主区，右列堆 全部列表 / 高优 / 近期。',
+  `<div class="row fill">${D(6)}<div class="col" style="width:252px">${A()}${B()}${C()}</div></div>`);
+push('两列：col(A,高优) | col(近期,排行)','左列 全部列表+高优，右列 近期+排行，错落分布。',
+  `<div class="row fill"><div class="col">${A({grow:1})}${B()}</div><div class="col">${C()}${D(5)}</div></div>`);
+push('两列：col(A,近期) | col(高优,排行)','左列 全部列表+近期，右列 高优+排行。',
+  `<div class="row fill"><div class="col">${A({grow:1})}${C()}</div><div class="col">${B()}${D(5)}</div></div>`);
+
+push('四象限：A B / C 排行','2×2 网格：左上全部列表、右上高优、左下近期、右下排行。',
+  `<div class="gd fill" style="grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr">${A({grow:1})}${B()}${C()}${D(4)}</div>`);
+push('四象限：A 排行 / 高优 近期','右上即放排行（拉高），左上全部列表，下排高优/近期。',
+  `<div class="gd fill" style="grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr">${A({grow:1})}${D(4)}${B()}${C()}</div>`);
+push('四象限：高优 近期 / A 排行','上排高优/近期，下排全部列表/排行。',
+  `<div class="gd fill" style="grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr">${B()}${C()}${A({grow:1})}${D(4)}</div>`);
+push('排行跨两行右侧 · 左叠 A/高优/近期','右侧排行占满整列高度，左侧依次叠 全部列表 / 高优 / 近期。',
+  `<div class="gd fill" style="grid-template-columns:1fr 1.2fr;grid-template-rows:auto 1fr 1fr"><div style="grid-column:1;grid-row:1">${A()}</div><div style="grid-column:2;grid-row:1 / span 3;display:flex;min-height:0">${D(6)}</div><div style="grid-column:1;grid-row:2;display:flex;min-height:0">${B()}</div><div style="grid-column:1;grid-row:3;display:flex;min-height:0">${C()}</div></div>`);
+
+push('排行顶部整宽 · 下 A|高优|近期','排行放最上方整宽，下面 全部列表/高优/近期 三列。',
+  `<div class="row fill">${D(5)}</div><div class="gd" style="grid-template-columns:1.2fr 1fr 1fr;height:118px">${A({grow:1})}${B()}${C()}</div>`);
+push('A|高优|近期 顶排 · 排行整宽底','上面三块等高小卡，下面排行整宽铺满。',
+  `<div class="gd" style="grid-template-columns:1.2fr 1fr 1fr;height:118px">${A({grow:1})}${B()}${C()}</div><div class="row fill">${D(6)}</div>`);
+
+push('三竖列：A+高优 | 近期 | 排行','三列：列1 全部列表+高优，列2 近期，列3 排行。',
+  `<div class="row fill"><div class="col" style="flex:1">${A({grow:1})}${B()}</div>${C()}${D(6)}</div>`);
+push('三竖列：A | 高优+近期 | 排行','列1 全部列表，列2 高优+近期，列3 排行。',
+  `<div class="row fill"><div class="col" style="flex:1">${A({grow:1})}</div><div class="col" style="flex:1">${B()}${C()}</div>${D(6)}</div>`);
+push('三竖列：高优 | 近期 | A+排行','列3 全部列表在上、排行在下；高优、近期各占一列。',
+  `<div class="row fill">${B()}${C()}<div class="col" style="flex:1.4">${A()}${D(5)}</div></div>`);
+
+push('A顶条 · 左排行 右(高优上/近期下不等高)','顶条 + 排行左 2/3 + 右列高优偏高、近期偏矮。',
+  `${A({bar:1})}<div class="row fill">${D(6)}<div class="col" style="width:228px"><div style="flex:1.4;display:flex">${B()}</div><div style="flex:1;display:flex">${C()}</div></div></div>`);
+push('A左卡(拉伸) · 右(高优|近期)上 排行下','左列全部列表拉伸；右区上为高优/近期并排，下为排行。',
+  `<div class="row fill"><div class="col" style="width:230px">${A({grow:1})}</div><div class="col fill"><div class="gd" style="grid-template-columns:1fr 1fr;height:104px">${B()}${C()}</div><div class="row fill">${D(5)}</div></div></div>`);
+push('排行左 + 右(A上 高优近期并排下)','左排行；右列上为全部列表，下为高优/近期并排。',
+  `<div class="row fill">${D(6)}<div class="col" style="width:262px">${A()}<div class="gd fill" style="grid-template-columns:1fr 1fr">${B()}${C()}</div></div></div>`);
+
+push('A顶条 · 高优近期窄条 + 排行主体','顶条 + 高优/近期收成两条窄行 + 排行占绝大空间。',
+  `${A({bar:1})}<div class="gd" style="grid-template-columns:1fr 1fr;height:62px">${B()}${C()}</div><div class="row fill">${D(6)}</div>`);
+push('排行主体 + 顶部 A/高优/近期 窄条','顶部三块极窄并排（仅标题+数字），排行吃满剩余。',
+  `<div class="gd" style="grid-template-columns:1.3fr 1fr 1fr;height:58px">${A({bar:1})}<div class="mod"><div class="mh"><span class="mi" style="background:#FF95001a;color:#FF9500">${ic('flame','currentColor',13)}</span><b>高优先级</b><span class="mc" style="color:#FF9500">5</span></div></div><div class="mod"><div class="mh"><span class="mi" style="background:#16a34a1a;color:#16a34a">${ic('spark','currentColor',13)}</span><b>近期新增</b><span class="mc" style="color:#16a34a">2</span></div></div></div><div class="row fill">${D(6)}</div>`);
+
+push('黄金比：左大排行 + 右小三叠','左侧排行约 62%，右侧 全部列表/高优/近期 三块依次叠。',
+  `<div class="row fill" style="gap:11px"><div style="flex:1.62;display:flex">${D(6)}</div><div class="col" style="flex:1">${A()}${B()}${C()}</div></div>`);
+push('黄金比：右大排行 + 左小三叠','镜像版，三块在左、排行在右占主。',
+  `<div class="row fill" style="gap:11px"><div class="col" style="flex:1">${A()}${B()}${C()}</div><div style="flex:1.62;display:flex">${D(6)}</div></div>`);
+
+push('A顶条 · 高优/近期等高 + 排行更高','顶条 + 高优/近期并排（较矮）+ 排行（较高）三段，层级清晰。',
+  `${A({bar:1})}<div class="gd" style="grid-template-columns:1fr 1fr;height:88px">${B()}${C()}</div><div class="row fill" style="flex:1.6">${D(6)}</div>`);
+push('排行居中主轴 · 上A 下(高优|近期)','全部列表顶条 → 排行主体 → 高优/近期并排收底。',
+  `${A({bar:1})}<div class="row" style="flex:1.7;min-height:0">${D(6)}</div><div class="gd" style="grid-template-columns:1fr 1fr;height:92px">${B()}${C()}</div>`);
+
+/* 渲染 */
+document.getElementById('gallery').innerHTML=S.map((s,i)=>`
+  <div class="scheme">
+    <div class="sh"><span class="num">${String(i+1).padStart(2,'0')}</span><div><div class="nm">${s.nm}</div><div class="ds">${s.ds}</div></div></div>
+    <div class="stage"><div class="sroot">${s.html}</div></div>
+  </div>`).join('');
+</script>
+</body>
+</html>
