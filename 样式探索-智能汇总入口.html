@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280" />
+<title>智能汇总 · 入口交互方案（10 版）</title>
+<style>
+  :root{
+    --blue:#0052D9; --blue-2:#003FA8; --cyan:#00A4FF; --violet:#7A3DFF;
+    --ink:#0f172a; --t7:#334155; --t6:#475569; --t5:#64748b; --t4:#94a3b8;
+    --line:#e2e8f0; --line2:#eef2f7; --bg:#f1f5f9; --bg2:#f8fafc; --white:#fff;
+    --amber:#d97706; --amber-bg:#fffbeb; --emerald:#16a34a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:34px 28px 80px}
+  /* —— Page header —— */
+  .page-h{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .page-h h1{font-size:25px;font-weight:800;letter-spacing:-.01em;margin:0}
+  .page-h .sub{font-size:13.5px;color:var(--t5);margin:0 0 2px}
+  .pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:11.5px;font-weight:600;background:linear-gradient(90deg,var(--blue),var(--violet));color:#fff}
+  .intro{margin:14px 0 26px;padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;font-size:13px;color:var(--t6);line-height:1.7}
+  .intro b{color:var(--t7)}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);color:var(--t5)}
+  .tag .dot{width:7px;height:7px;border-radius:99px}
+  .t-light .dot{background:#16a34a}.t-ondemand .dot{background:var(--blue)}.t-nav .dot{background:var(--violet)}
+  /* —— Gallery —— */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .card-h{display:flex;align-items:center;gap:10px;padding:14px 16px 12px}
+  .num{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#fff;font-size:13px;font-weight:800;display:grid;place-items:center;flex:0 0 auto}
+  .card-h .nm{font-size:15px;font-weight:700;flex:1;min-width:0}
+  .card-h .tag{flex:0 0 auto}
+  .desc{padding:0 16px 12px;font-size:12.5px;color:var(--t5);line-height:1.6}
+  .desc .k{color:var(--t6);font-weight:600}
+  /* stage = miniature app chrome */
+  .stage{position:relative;margin:0 16px 16px;height:248px;border:1px solid var(--line2);border-radius:12px;background:
+     linear-gradient(0deg,#fbfdff,#f7faff);overflow:hidden}
+  .hint{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);font-size:10.5px;color:var(--t4);background:rgba(255,255,255,.7);padding:2px 8px;border-radius:99px;pointer-events:none}
+  /* mini chrome pieces */
+  .m-top{position:absolute;left:0;right:0;top:0;height:34px;background:#fff;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:7px;padding:0 10px;z-index:5}
+  .m-side{position:absolute;left:0;top:0;bottom:0;width:46px;background:#fff;border-right:1px solid var(--line2);padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:7px;z-index:5}
+  .m-logo{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center}
+  .m-i{width:26px;height:26px;border-radius:7px;background:var(--bg2);display:grid;place-items:center;color:var(--t4);font-size:13px}
+  .m-i.on{background:rgba(0,82,217,.1);color:var(--blue)}
+  .m-dot{width:54px;height:7px;border-radius:99px;background:#eef2f7}
+  .m-canvas{position:absolute;inset:34px 0 0 0;padding:14px;color:var(--t4)}
+  .m-canvas .ln{height:8px;border-radius:99px;background:#eef2f7;margin-bottom:9px}
+  .m-search{flex:1;height:20px;border-radius:6px;background:var(--bg2);border:1px solid var(--line2)}
+  /* generic buttons */
+  .btn{cursor:pointer;border:none;font-family:inherit;font-weight:600;border-radius:8px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .btn-primary{background:linear-gradient(90deg,var(--blue),var(--blue-2));color:#fff;height:30px;padding:0 12px;font-size:12px}
+  .btn-primary:hover{box-shadow:0 6px 16px -8px var(--blue)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--t6);height:28px;padding:0 10px;font-size:11.5px}
+  .btn-ghost:hover{border-color:#cbd5e1}
+  .ai-chip{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:8px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid rgba(0,82,217,.25);color:var(--blue);background:rgba(0,82,217,.05)}
+  .ai-chip:hover{background:rgba(0,82,217,.1)}
+  .grad-chip{background:linear-gradient(90deg,var(--blue),var(--violet));color:#fff;border:none}
+  /* —— reusable summary card —— */
+  .sum{width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -16px rgba(15,23,42,.32);overflow:hidden;text-align:left}
+  .sum.wide{width:340px}
+  .sum-band{height:4px;background:linear-gradient(90deg,var(--blue),var(--violet))}
+  .sum-bd{padding:13px 14px}
+  .sum-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .sum-title{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .badge-ai{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:600;color:var(--blue);background:rgba(0,82,217,.08);border:1px solid rgba(0,82,217,.2);border-radius:5px;padding:1px 5px}
+  .sum-meta{font-size:10.5px;color:var(--t4);margin:5px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--line2)}
+  .sum-p{font-size:12px;color:var(--t6);line-height:1.65;margin:0 0 10px}
+  .sum-sec{font-size:11.5px;font-weight:700;color:var(--t7);border-left:3px solid var(--blue);padding-left:7px;margin:0 0 6px;display:flex;align-items:center;gap:6px}
+  .sum-sec .hl{color:var(--amber)}
+  .sum-ul{margin:0 0 11px;padding:0;list-style:none}
+  .sum-ul li{font-size:11.5px;color:var(--t6);line-height:1.5;display:flex;gap:7px;margin-bottom:4px}
+  .sum-ul li::before{content:"";width:4px;height:4px;border-radius:99px;background:#cbd5e1;margin-top:6px;flex:0 0 auto}
+  .sum-foot{display:flex;align-items:center;gap:7px}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:2px;gap:1px}
+  .seg span{font-size:10px;padding:3px 7px;border-radius:5px;color:var(--t5)}
+  .seg span.on{background:#fff;color:var(--t7);font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+  /* —— overlays inside stage —— */
+  .pop{position:absolute;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s;z-index:30}
+  .pop.show{opacity:1;visibility:visible;transform:none}
+  .drawer{position:absolute;top:0;right:0;bottom:0;width:312px;background:#fff;border-left:1px solid var(--line);box-shadow:-16px 0 40px -20px rgba(15,23,42,.3);transform:translateX(105%);transition:.26s cubic-bezier(.4,0,.2,1);z-index:30;display:flex;flex-direction:column}
+  .drawer.show{transform:none}
+  .drawer .dh{height:38px;display:flex;align-items:center;gap:7px;padding:0 12px;border-bottom:1px solid var(--line2);font-size:12.5px;font-weight:700;color:var(--t7)}
+  .drawer .dh .x{margin-left:auto;cursor:pointer;color:var(--t4);width:22px;height:22px;display:grid;place-items:center;border-radius:6px}
+  .drawer .dh .x:hover{background:var(--bg)}
+  .drawer .db{padding:12px;overflow:auto}
+  .scrim{position:absolute;inset:0;background:rgba(15,23,42,.18);opacity:0;visibility:hidden;transition:.2s;z-index:25}
+  .scrim.show{opacity:1;visibility:visible}
+  .fab{position:absolute;right:14px;bottom:14px;width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 26px -8px rgba(82,40,217,.6);z-index:20;font-size:19px;transition:.15s}
+  .fab:hover{transform:translateY(-2px)}
+  .fab .pulse{position:absolute;inset:0;border-radius:15px;border:2px solid var(--violet);animation:pulse 2.4s infinite;opacity:.5}
+  @keyframes pulse{0%{transform:scale(1);opacity:.5}70%{transform:scale(1.35);opacity:0}100%{opacity:0}}
+  .nudge{position:absolute;right:12px;bottom:70px;width:210px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 30px -14px rgba(15,23,42,.3);padding:10px 12px;z-index:21;font-size:11px;color:var(--t6);opacity:0;visibility:hidden;transform:translateY(6px);transition:.2s}
+  .nudge.show{opacity:1;visibility:visible;transform:none}
+  /* inline banner */
+  .banner{position:absolute;left:58px;right:14px;top:46px;background:linear-gradient(120deg,#f3f0ff,#eef4ff);border:1px solid #e4e0fb;border-radius:12px;padding:11px 13px;z-index:6}
+  .banner .bt{display:flex;align-items:center;gap:8px}
+  .banner .bt .ic{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:grid;place-items:center;font-size:12px}
+  .banner .ttl{font-size:12.5px;font-weight:700;color:var(--t7)}
+  .banner .one{font-size:11px;color:var(--t5);margin-top:2px}
+  .banner .exp{margin-left:auto;font-size:11px;color:var(--blue);cursor:pointer;font-weight:600;white-space:nowrap}
+  .banner-body{max-height:0;overflow:hidden;transition:.25s}
+  .banner-body.show{max-height:200px;margin-top:9px}
+  /* greeting inline */
+  .greet{position:absolute;left:58px;top:44px;right:14px;z-index:6}
+  .greet .hi{font-size:16px;font-weight:800;color:var(--ink)}
+  .greet .row{display:flex;align-items:center;gap:8px;margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+  .greet .row .ic{color:var(--violet);font-size:13px}
+  .greet .row .one{font-size:11.5px;color:var(--t6);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* command palette */
+  .cmd{position:absolute;left:50%;top:26px;transform:translateX(-50%) translateY(-8px);width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 50px -18px rgba(15,23,42,.4);z-index:30;opacity:0;visibility:hidden;transition:.18s;overflow:hidden}
+  .cmd.show{opacity:1;visibility:visible;transform:translateX(-50%)}
+  .cmd .ci{height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line2)}
+  .cmd .ci input{border:none;outline:none;font-family:inherit;font-size:12.5px;flex:1;color:var(--t7);background:transparent}
+  .cmd .opt{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:12px;color:var(--t6);cursor:pointer}
+  .cmd .opt .kbd{margin-left:auto;font-size:9px;color:var(--t4);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  .cmd .opt.sel,.cmd .opt:hover{background:rgba(0,82,217,.06);color:var(--blue)}
+  .cmd .opt .gi{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;font-size:11px}
+  /* notification list */
+  .notif{position:absolute;right:10px;top:30px;width:248px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 44px -16px rgba(15,23,42,.34);z-index:30;overflow:hidden;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s}
+  .notif.show{opacity:1;visibility:visible;transform:none}
+  .notif .nh{padding:8px 12px;font-size:11.5px;font-weight:700;color:var(--t7);border-bottom:1px solid var(--line2)}
+  .notif .pinned{padding:10px 12px;background:linear-gradient(120deg,#f3f0ff,#eef4ff);border-bottom:1px solid var(--line2);cursor:pointer}
+  .notif .pinned .pt{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--blue)}
+  .notif .pinned .pp{font-size:10.5px;color:var(--t5);margin-top:4px;line-height:1.5}
+  .notif .ni{padding:8px 12px;font-size:11px;color:var(--t5);border-bottom:1px solid var(--line2);display:flex;gap:7px}
+  .notif .ni::before{content:"";width:6px;height:6px;border-radius:99px;background:#cbd5e1;margin-top:4px;flex:0 0 auto}
+  /* sidebar secondary (more) */
+  .more-list{position:absolute;left:8px;top:96px;width:150px;z-index:8}
+  .more-row{display:flex;align-items:center;gap:8px;height:30px;padding:0 9px;border-radius:8px;font-size:12px;color:var(--t6);cursor:pointer}
+  .more-row:hover{background:var(--bg2)}
+  .more-row.head{color:var(--t5);font-weight:600}
+  .more-row.head .chev{margin-left:auto;transition:.2s;color:var(--t4)}
+  .more-row.head.open .chev{transform:rotate(90deg)}
+  .more-sub{margin-left:10px;border-left:1px solid var(--line);padding-left:8px;max-height:0;overflow:hidden;transition:.22s}
+  .more-sub.show{max-height:140px;margin-top:2px;margin-bottom:2px}
+  .more-sub .more-row.on{background:rgba(0,82,217,.08);color:var(--blue);font-weight:600}
+  /* hover mini chip card */
+  .mini{position:absolute;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s;z-index:30}
+  .mini.show{opacity:1;visibility:visible;transform:none}
+  /* modal (center) */
+  .modal-scrim{position:absolute;inset:0;background:rgba(15,23,42,.4);display:grid;place-items:center;opacity:0;visibility:hidden;transition:.2s;z-index:40}
+  .modal-scrim.show{opacity:1;visibility:visible}
+  .modal{transform:scale(.96);transition:.2s}
+  .modal-scrim.show .modal{transform:none}
+  .tabbar{position:absolute;left:58px;right:14px;top:42px;display:flex;gap:4px;z-index:6;border-bottom:1px solid var(--line2);padding-bottom:0}
+  .tabbar .tb{font-size:11.5px;padding:6px 11px;color:var(--t5);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tabbar .tb.on{color:var(--blue);font-weight:700;border-bottom-color:var(--blue)}
+  .foot-note{margin-top:34px;text-align:center;font-size:12px;color:var(--t4)}
+  .choose{margin-top:10px;display:flex;justify-content:flex-end;padding:0 16px 16px}
+  .choose .btn-ghost{font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page-h">
+    <div>
+      <h1>智能汇总 · 入口交互方案</h1>
+      <p class="sub">不再占用一个完整二级页面 —— 10 种更轻、更随手的入口方式，供你挑选。每个方块都可点击体验。</p>
+    </div>
+    <span class="pill">✦ 10 版方案</span>
+  </div>
+
+  <div class="intro">
+    背景：<b>智能汇总</b> 是按需查看的内容，并非高频功能，作为独立大页面成本偏高。下面按「<b>露出强度</b>」给出三类入口：
+    <div class="legend">
+      <span class="tag t-light"><span class="dot"></span>常驻轻量 · 一眼可见</span>
+      <span class="tag t-ondemand"><span class="dot"></span>按需唤起 · 点了才出现</span>
+      <span class="tag t-nav"><span class="dot"></span>导航收纳 · 藏进次级菜单</span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="foot-note">EA Platform · 智能汇总入口探索 · 静态原型，仅用于选型（颜色对齐 data.ts 令牌）</div>
+</div>
+
+<script>
+/* ============ 共享：迷你「智能汇总」内容 ============ */
+function SUM(wide){
+  return `
+  <div class="sum ${wide?'wide':''}">
+    <div class="sum-band"></div>
+    <div class="sum-bd">
+      <div class="sum-head">
+        <span class="sum-title">张伟 的工作日报</span>
+        <span class="badge-ai">✨ EA智能生成</span>
+      </div>
+      <div class="sum-meta">2026-06-22 · 周一 · 测试工程</div>
+      <p class="sum-p">今日聚焦「DDR4 Lot 退货影响分析」，完成 8D D4 根因复盘，推进 2 项验证任务。</p>
+      <div class="sum-sec"><span class="hl">★</span> 高光时刻</div>
+      <ul class="sum-ul">
+        <li>攻克 DDR4 退货 8D D4 根因，锁定 PKG 内引线偏移</li>
+        <li>OM/SEM 形貌确认一次通过，省去一轮复测</li>
+      </ul>
+      <div class="sum-foot">
+        <div class="seg"><span class="on">日</span><span>周</span><span>月</span><span>年</span></div>
+        <span style="flex:1"></span>
+        <button class="btn btn-primary" style="height:26px">查看完整</button>
+      </div>
+    </div>
+  </div>`;
+}
+/* mini chrome helpers */
+function side(active){let h='<div class="m-side"><div class="m-logo">E</div>';
+  ['📋','🗂️','👥'].forEach((c,i)=>h+=`<div class="m-i ${active===i?'on':''}">${c}</div>`);
+  h+='</div>';return h;}
+function topbar(extra){return `<div class="m-top"><div class="m-logo" style="width:16px;height:16px;font-size:9px">E</div><div class="m-search"></div>${extra||''}</div>`;}
+function canvasLines(n){let h='<div class="m-canvas">';for(let i=0;i<(n||4);i++)h+=`<div class="ln" style="width:${[88,72,94,60,80][i%5]}%"></div>`;h+='</div>';return h;}
+
+/* ============ 10 方案定义 ============ */
+const CARDS = [
+  {n:1,name:'顶栏图标 + 浮层',tag:'t-ondemand',tagL:'按需',
+   desc:'在<span class="k">顶栏右侧</span>放一个「汇总」图标按钮，点击在原地展开浮层预览，看完即走，<span class="k">零跳转</span>。',
+   build:(id)=>`
+     ${side()}
+     ${topbar(`<div class="ai-chip" data-pop="${id}">✦ 汇总</div>`)}
+     ${canvasLines(4)}
+     <div class="pop" id="${id}" style="top:38px;right:10px">${SUM()}</div>
+     <div class="hint">点击顶栏「✦ 汇总」</div>`,
+   wire:(el,id)=>{ const chip=el.querySelector(`[data-pop="${id}"]`); const pop=el.querySelector('#'+id);
+     chip.onclick=(e)=>{e.stopPropagation();pop.classList.toggle('show');};
+     el.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==chip)pop.classList.remove('show');}); }
+  },
+  {n:2,name:'右侧抽屉 Drawer',tag:'t-ondemand',tagL:'按需',
+   desc:'入口是一颗按钮，点击从<span class="k">右侧滑出抽屉</span>，承载完整日/周/月/年报，不离开当前页面。',
+   build:(id)=>`
+     ${side(0)}
+     ${topbar(`<div class="ai-chip" data-open="${id}">✦ 智能汇总</div>`)}
+     ${canvasLines(4)}
+     <div class="scrim" data-scrim="${id}"></div>
+     <div class="drawer" id="${id}">
+       <div class="dh">✦ 智能汇总 <div class="x" data-close="${id}">✕</div></div>
+       <div class="db">${SUM(true)}</div>
+     </div>
+     <div class="hint">点击「✦ 智能汇总」滑出</div>`,
+   wire:(el,id)=>{const d=el.querySelector('#'+id),s=el.querySelector(`[data-scrim="${id}"]`);
+     const open=()=>{d.classList.add('show');s.classList.add('show');};
+     const close=()=>{d.classList.remove('show');s.classList.remove('show');};
+     el.querySelector(`[data-open="${id}"]`).onclick=open;
+     el.querySelector(`[data-close="${id}"]`).onclick=close; s.onclick=close;}
+  },
+  {n:3,name:'右下角悬浮球 FAB',tag:'t-light',tagL:'常驻',
+   desc:'<span class="k">恒定悬浮</span>在右下角的渐变球，带轻微呼吸动效；随时一点即弹出汇总，存在感强但不挡内容。',
+   build:(id)=>`
+     ${side(0)}${topbar()}${canvasLines(5)}
+     <div class="fab" data-open="${id}">✦<span class="pulse"></span></div>
+     <div class="pop" id="${id}" style="right:14px;bottom:68px">${SUM()}</div>
+     <div class="hint">点击右下角悬浮球</div>`,
+   wire:(el,id)=>{const f=el.querySelector(`[data-open="${id}"]`),p=el.querySelector('#'+id);
+     f.onclick=(e)=>{e.stopPropagation();p.classList.toggle('show');};
+     el.addEventListener('click',e=>{if(!p.contains(e.target)&&!f.contains(e.target))p.classList.remove('show');});}
+  },
+  {n:4,name:'我的任务顶部横幅',tag:'t-light',tagL:'常驻',
+   desc:'在「我的任务」页顶部嵌一条<span class="k">可折叠横幅</span>，默认收起只显示一句话摘要，点「展开」看全文。顺手、不强迫。',
+   build:(id)=>`
+     ${side(0)}${topbar()}
+     <div class="banner">
+       <div class="bt">
+         <div class="ic">✦</div>
+         <div style="min-width:0">
+           <div class="ttl">今日智能汇总已生成</div>
+           <div class="one">完成 8D D4 根因复盘，推进 2 项验证任务…</div>
+         </div>
+         <div class="exp" data-exp="${id}">展开 ▾</div>
+       </div>
+       <div class="banner-body" id="${id}">${SUM(true)}</div>
+     </div>
+     ${'<div class="m-canvas" style="top:128px"><div class="ln" style="width:70%"></div><div class="ln" style="width:88%"></div></div>'}
+     <div class="hint">点击横幅「展开」</div>`,
+   wire:(el,id)=>{const b=el.querySelector('#'+id),x=el.querySelector(`[data-exp="${id}"]`);
+     x.onclick=()=>{const o=b.classList.toggle('show');x.textContent=o?'收起 ▴':'展开 ▾';};}
+  },
+  {n:5,name:'个人主页内模块',tag:'t-nav',tagL:'导航',
+   desc:'把汇总作为<span class="k">个人主页的一个区块</span>，与高光时刻、近期动态并列。想看汇总顺着「我的主页」进，不单设入口。',
+   build:(id)=>`
+     ${side(2)}${topbar()}
+     <div class="m-canvas" style="padding:12px">
+       <div style="display:flex;gap:8px;margin-bottom:10px"><div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--cyan),var(--blue))"></div><div style="flex:1"><div class="ln" style="width:40%;height:10px"></div><div class="ln" style="width:62%"></div></div></div>
+       <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--t7);margin:4px 0 8px"><span style="color:var(--violet)">✦</span> 我的智能汇总 <span class="exp" style="margin-left:auto;color:var(--blue);font-weight:600;cursor:pointer" data-exp="${id}">展开</span></div>
+       <div class="banner-body show" id="${id}" style="max-height:none">${SUM(true)}</div>
+     </div>
+     <div class="hint">作为「个人主页」的内嵌区块</div>`,
+   wire:(el,id)=>{const b=el.querySelector('#'+id),x=el.querySelector(`[data-exp="${id}"]`);
+     x.onclick=()=>{const o=b.classList.toggle('show');x.textContent=o?'收起':'展开';};}
+  },
+  {n:6,name:'命令面板 ⌘K',tag:'t-ondemand',tagL:'按需',
+   desc:'通过<span class="k">全局命令面板</span>（⌘K / 顶栏搜索）输入「汇总」直达。给高频用户的快捷通道，界面零占用。',
+   build:(id)=>`
+     ${side()}${topbar(`<div class="ai-chip" data-open="${id}">⌘K</div>`)}${canvasLines(4)}
+     <div class="cmd" id="${id}">
+       <div class="ci">🔍 <input value="汇总" readonly></div>
+       <div class="opt sel" data-go="${id}"><div class="gi">✦</div> 打开我的智能汇总 <span class="kbd">↵</span></div>
+       <div class="opt"><div class="gi" style="background:#eef2f7;color:var(--t5)">📄</div> 生成本周周报</div>
+       <div class="opt"><div class="gi" style="background:#eef2f7;color:var(--t5)">⬇</div> 导出汇总为 PDF</div>
+     </div>
+     <div class="pop" id="${id}-r" style="top:30px;left:50%;transform:translateX(-50%)">${SUM()}</div>
+     <div class="hint">点「⌘K」唤起命令面板</div>`,
+   wire:(el,id)=>{const c=el.querySelector('#'+id),r=el.querySelector('#'+id+'-r');
+     el.querySelector(`[data-open="${id}"]`).onclick=(e)=>{e.stopPropagation();c.classList.add('show');r.classList.remove('show');};
+     el.querySelector(`[data-go="${id}"]`).onclick=()=>{c.classList.remove('show');r.classList.add('show');};
+     el.addEventListener('click',e=>{if(!c.contains(e.target)&&!e.target.dataset.open){c.classList.remove('show');}});}
+  },
+  {n:7,name:'通知中心日报条目',tag:'t-light',tagL:'常驻',
+   desc:'每天定时生成后，作为一条<span class="k">置顶日报</span>出现在通知铃铛里，像收到推送一样自然，点开即看。',
+   build:(id)=>`
+     ${side(0)}${topbar(`<div class="m-i on" data-open="${id}" style="margin-left:auto;cursor:pointer">🔔</div>`)}${canvasLines(4)}
+     <div class="notif" id="${id}">
+       <div class="nh">通知</div>
+       <div class="pinned" data-go="${id}">
+         <div class="pt">✦ 今日智能汇总 · 已生成</div>
+         <div class="pp">完成 8D D4 根因复盘，推进 2 项验证任务，含 2 条高光…</div>
+       </div>
+       <div class="ni">李娜 @你 · 请处理验证任务</div>
+       <div class="ni">SPC 自动建案：FT 工位温漂复测异常</div>
+     </div>
+     <div class="pop" id="${id}-r" style="top:30px;right:10px">${SUM()}</div>
+     <div class="hint">点铃铛 → 置顶「今日智能汇总」</div>`,
+   wire:(el,id)=>{const n=el.querySelector('#'+id),r=el.querySelector('#'+id+'-r'),b=el.querySelector(`[data-open="${id}"]`);
+     b.onclick=(e)=>{e.stopPropagation();n.classList.toggle('show');r.classList.remove('show');};
+     el.querySelector(`[data-go="${id}"]`).onclick=()=>{n.classList.remove('show');r.classList.add('show');};
+     el.addEventListener('click',e=>{if(!n.contains(e.target)&&!b.contains(e.target)&&!r.contains(e.target)){n.classList.remove('show');r.classList.remove('show');}});}
+  },
+  {n:8,name:'问候语下内联一行',tag:'t-light',tagL:'常驻',
+   desc:'紧贴「早上好，张伟」下方，用<span class="k">一行 AI 摘要</span>+「查看」轻轻带出。最克制的露出，融进工作台日常。',
+   build:(id)=>`
+     ${side(0)}${topbar()}
+     <div class="greet">
+       <div class="hi">早上好，张伟 👋</div>
+       <div class="row"><span class="ic">✦</span><span class="one">今日已完成 8D D4 根因复盘，2 条高光时刻</span><button class="btn btn-ghost" data-open="${id}" style="height:24px">查看</button></div>
+     </div>
+     <div class="pop" id="${id}" style="left:58px;top:108px">${SUM()}</div>
+     <div class="hint">点问候语下一行的「查看」</div>`,
+   wire:(el,id)=>{const p=el.querySelector('#'+id),b=el.querySelector(`[data-open="${id}"]`);
+     b.onclick=(e)=>{e.stopPropagation();p.classList.toggle('show');};
+     el.addEventListener('click',e=>{if(!p.contains(e.target)&&e.target!==b)p.classList.remove('show');});}
+  },
+  {n:9,name:'侧栏「更多」折叠项',tag:'t-nav',tagL:'导航',
+   desc:'从一级导航撤下，收进侧栏底部<span class="k">「更多」折叠组</span>。需要的人能找到，不需要的人眼不见为净。',
+   build:(id)=>`
+     ${'<div class="m-side" style="width:160px;align-items:stretch;padding:8px 8px"><div style="display:flex;align-items:center;gap:7px;padding:0 4px 8px"><div class="m-logo">E</div><div class="m-dot" style="width:70px"></div></div></div>'}
+     <div class="more-list" style="left:8px;top:46px;width:150px">
+       <div class="more-row on" style="background:rgba(0,82,217,.08);color:var(--blue);font-weight:600">📋 我的</div>
+       <div class="more-row">🗂️ Case 中心</div>
+       <div class="more-row">👥 团队看板</div>
+       <div class="more-row head" data-exp="${id}" style="margin-top:6px">⋯ 更多 <span class="chev">›</span></div>
+       <div class="more-sub" id="${id}">
+         <div class="more-row on" data-go="${id}">✦ 智能汇总</div>
+         <div class="more-row">⚙️ 偏好设置</div>
+       </div>
+     </div>
+     <div class="pop" id="${id}-r" style="left:166px;top:120px">${SUM()}</div>
+     <div class="hint">点侧栏「⋯ 更多」展开</div>`,
+   wire:(el,id)=>{const s=el.querySelector('#'+id),h=el.querySelector(`[data-exp="${id}"]`),r=el.querySelector('#'+id+'-r');
+     h.onclick=()=>{s.classList.toggle('show');h.classList.toggle('open');};
+     el.querySelector(`[data-go="${id}"]`).onclick=(e)=>{e.stopPropagation();r.classList.toggle('show');};
+     el.addEventListener('click',e=>{if(!r.contains(e.target)&&!e.target.dataset.go)r.classList.remove('show');});}
+  },
+  {n:10,name:'悬停芯片 → 迷你卡',tag:'t-ondemand',tagL:'按需',
+   desc:'顶栏放一枚渐变小芯片，<span class="k">悬停即预览</span>迷你卡（无需点击），点击再进完整页。信息密度高、手感顺。',
+   build:(id)=>`
+     ${side()}${topbar(`<div class="ai-chip grad-chip" data-hover="${id}">✦ 今日汇总</div>`)}${canvasLines(4)}
+     <div class="mini" id="${id}" style="top:38px;right:10px">${SUM()}</div>
+     <div class="hint">把鼠标移到「✦ 今日汇总」上</div>`,
+   wire:(el,id)=>{const c=el.querySelector(`[data-hover="${id}"]`),m=el.querySelector('#'+id);
+     let t; c.onmouseenter=()=>{clearTimeout(t);m.classList.add('show');};
+     const leave=()=>{t=setTimeout(()=>m.classList.remove('show'),160);};
+     c.onmouseleave=leave; m.onmouseenter=()=>clearTimeout(t); m.onmouseleave=leave;}
+  },
+];
+
+/* ============ 渲染 ============ */
+const TAGMAP={'t-light':'常驻轻量','t-ondemand':'按需唤起','t-nav':'导航收纳'};
+const grid=document.getElementById('grid');
+CARDS.forEach((c)=>{
+  const id='d'+c.n;
+  const card=document.createElement('div');card.className='card';
+  card.innerHTML=`
+    <div class="card-h">
+      <div class="num">${c.n}</div>
+      <div class="nm">${c.name}</div>
+      <span class="tag ${c.tag}"><span class="dot"></span>${TAGMAP[c.tag]}</span>
+    </div>
+    <div class="desc">${c.desc}</div>
+    <div class="stage">${c.build(id)}</div>`;
+  grid.appendChild(card);
+  const stage=card.querySelector('.stage');
+  try{ c.wire(stage,id); }catch(e){ console.warn('wire',c.n,e); }
+});
+</script>
+</body>
+</html>
