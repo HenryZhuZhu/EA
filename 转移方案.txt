@@ -1,0 +1,25 @@
+具体设计
+C · 归属与负责人解耦
+
+数据：CaseItem 新增 owningDept?: string，建案时默认 = ownerToDepartment[owner]，之后独立维护、不随人漂移。
+派生改造：「我部门的 Case」「团队看板部门统计」改读 owningDept ?? ownerToDepartment[owner]（兼容旧数据）。
+任务层：执行任务本就有独立 department，task owner 调动只改派 owner、部门不动 —— 已天然解耦，无需改模型。
+权限：owningDept 仅 Case Owner 或该部门主管（departmentSupervisors）可改，入口放 [CaseDetail.tsx](EA V0.2/EA系统/src/app/components/CaseDetail.tsx) 头部加一个可编辑「归属部门」。
+D · 移交工作流 Handover
+
+发起：「我的」加「发起移交」（选 Case/任务 + 接任人）；离职场景由主管发起。
+流转：接任人确认接收（或按 Case 级别走主管审批，复用 closures 的 APPROVER_BY_LEVEL）→ 批量改 owner/task owner。
+留痕：写入 Case 流转日志（CaseDetail 已有 activityLog，type:"owner"）。
+兜底：离职 → 自动转其部门主管并置「待认领」，主管/接任人认领。
+入口：「我的」二级加「待移交 / 待认领」；移交记录用 module-singleton store（仿 [subscriptions.ts](EA V0.2/EA系统/src/app/components/subscriptions.ts)/[closures.ts](EA V0.2/EA系统/src/app/components/closures.ts) 模式持久化）。
+E · 双口径
+
+看板/统计默认建案冻结口径（即 C 的 owningDept 不随调动改，本身就满足历史可比）；再给团队看板加「历史口径 / 现状口径」切换。
+⚠️ 注意：现「团队看板」是 Chart.js 原型 iframe（[managerProtoSrc.ts](EA V0.2/EA系统/src/app/components/ManagerView.tsx)），在里面做口径切换成本高、可塑性差。E 的真正价值依赖看板是否迁成 React 自绘（你之前在挑 20 版看板设计）。建议 E 等看板重做后再上，先把 C+D 在 React 应用里做扎实。
+建议实施顺序（各自可交付）
+C 最小片：owningDept 字段 + CaseDetail 可编辑「归属部门」+ 部门统计/筛选改读它。（治本、风险低）
+D 移交片：移交/认领动作 + 「待移交/待认领」入口 + 流转日志 + store。
+E 双口径：随团队看板 React 化一起做。
+决策点（落地 D 前需你拍板）：移交确认用「接任人确认」还是「主管审批」？还是按 Case 级别——L1/L2 走主管审批、L3+ 接任人确认即可？
+
+要我先从第 1 片（C 最小）开始实现吗？还是你先定 D 的确认方式，我把 C+D 一起做？
