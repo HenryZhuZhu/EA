@@ -48,6 +48,27 @@
   .progress{height:6px;border-radius:99px;background:#e9eef5;overflow:hidden;margin-top:9px;max-width:280px}
   .progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--blue))}
   .sig{font-size:12px;color:var(--t4);letter-spacing:.04em}
+  /* —— 游戏台词彩蛋 —— */
+  .egg-sec{margin-top:30px;background:linear-gradient(135deg,#0b1220,#141b2e);border:1px solid #1e293b;border-radius:18px;padding:22px;color:#e2e8f0}
+  .egg-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .egg-h h2{font-size:18px;margin:0;color:#fff;font-weight:800}
+  .egg-h .tag{font-size:11px;color:#93c5fd;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);padding:3px 10px;border-radius:999px}
+  .egg-intro{font-size:12px;color:#94a3b8;line-height:1.7;margin:10px 0 16px}
+  .egg-intro b{color:#cbd5e1}
+  .egg-feature{background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:20px;display:flex;align-items:center;gap:18px;margin-bottom:16px;min-height:96px}
+  .egg-feature .pad{flex:1;min-width:0}
+  .egg-feature .src{font-size:11px;color:#64748b;margin-bottom:6px}
+  .egg-feature .line{font-size:21px;font-weight:800;color:#fff;line-height:1.3}
+  .egg-feature .ls{font-size:13px;color:#94a3b8;margin-top:6px}
+  .roll{cursor:pointer;border:none;font-family:inherit;font-weight:700;font-size:13px;color:#0b1220;background:linear-gradient(90deg,#22d3ee,#3b82f6);border-radius:10px;height:40px;padding:0 16px;white-space:nowrap}
+  .roll:hover{filter:brightness(1.08)}
+  .egg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .egg-card{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:13px 14px}
+  .egg-card .src{font-size:10.5px;color:#64748b;margin-bottom:5px}
+  .egg-card .src b{color:#93c5fd;font-weight:700}
+  .egg-card .line{font-size:14.5px;font-weight:700;color:#e2e8f0;line-height:1.4}
+  .egg-card .ls{font-size:11.5px;color:#94a3b8;margin-top:4px;line-height:1.5}
+  .egg-card .note{font-size:10.5px;color:#64748b;margin-top:7px;border-top:1px solid #1e293b;padding-top:7px}
 </style>
 </head>
 <body>
@@ -61,6 +82,21 @@
     实际会随<b>时间</b>（早/中/下午/晚）与<b>真实任务数</b>动态变化；带 emoji 的版本如不想要可去掉。
   </div>
   <div class="grid" id="grid"></div>
+
+  <!-- 游戏台词彩蛋 -->
+  <div class="egg-sec">
+    <div class="egg-h"><h2>✨ 鼓励台词彩蛋（隐藏款）</h2><span class="tag">Easter Egg</span></div>
+    <div class="egg-intro">
+      偏<b>鼓励 / 激励</b>的隐藏问候，涵盖 <b>🎮 游戏</b> · <b>🎬 影视</b> · <b>🎌 动漫</b> · <b>💬 名人名言</b>。
+      不当默认问候，作为<b>低概率彩蛋</b>随机触发 —— 建议 <b>~5% 概率</b>，或限定<b>周五 / 特定纪念日</b>，或<b>头像连点 7 下</b> / <b>Konami 秘籍</b>（↑↑↓↓←→←→BA）召唤。
+      尤其失效分析里"每一次失败都是更强一次"，和"为何跌倒/真相只有一个/杀不死我的使我更强"这类台词天生契合。点按钮试试手感 👇
+    </div>
+    <div class="egg-feature">
+      <div class="pad"><div class="src" id="efSrc"></div><div class="line" id="efLine"></div><div class="ls" id="efSub"></div></div>
+      <button class="roll" onclick="rollEgg()">🎲 随机抽一句</button>
+    </div>
+    <div class="egg-grid" id="eggGrid"></div>
+  </div>
 </div>
 
 <script>
@@ -231,6 +267,50 @@ G.forEach((g,i)=>{
     <div class="note">${g.note}</div>`;
   grid.appendChild(el);
 });
+
+/* ===== 游戏台词彩蛋池 ===== */
+const EGGS=[
+ {src:'《绝地求生》PUBG', line:'大吉大利，今天吃鸡 🐔', sub:'张伟，先拿下今天这 7 个目标', note:'国民级梗，几乎人人秒懂。'},
+ {src:'《Undertale》传说之下', line:'Stay determined. 保持决心 ✊', sub:'7 件待办，一件一件来，你可以的', note:'温暖治愈系，鼓励味十足。'},
+ {src:'《黑暗之魂》Dark Souls', line:'赞美太阳！\\[T]/', sub:'每一次"死亡"复盘，都让你更强，张伟', note:'失效分析＝一次次 death 后变强，魂系梗绝配。'},
+ {src:'《只狼》Sekiro', line:'犹豫，就会败北。', sub:'别犹豫，先开第一件最急的', note:'一心名台词，催动执行力。'},
+ {src:'《街头霸王》', line:'Round 1 — Fight! 🥊', sub:'今日 7 个对手已就位，张伟', note:'开场即燃，仪式感拉满。'},
+ {src:'《真人快打》Mortal Kombat', line:'Flawless Victory 完美胜利', sub:'把这 4 个临期，完美解决掉', note:'追求"零失误闭环"时很燃。'},
+ {src:'《超级马力欧》', line:'Here we go! 🍄', sub:'又是闯关的一天，来吧张伟', note:'轻快无厘头，老少咸宜。'},
+ {src:'Dota / 英雄联盟', line:'First Blood! 拿下今天第一杀', sub:'先点掉最急的一件，开个好头', note:'MOBA 玩家专属电流。'},
+ {src:'电竞通用', line:'GL & HF — 祝你好运，玩得开心 🎮', sub:'7 件待办，节奏你自己定', note:'赛前问候，松弛又友好。'},
+ {src:'Xbox 成就系统', line:'🏆 Achievement Unlocked', sub:'成就解锁：又是元气满满的一天', note:'每天登录都像解锁成就。'},
+ {src:'RPG 通用', line:'⬆ LEVEL UP! 你升级了', sub:'清掉这 7 件，经验值到手', note:'把待办变成"刷经验"。'},
+ {src:'《塞尔达传说》', line:"It's dangerous to go alone! Take this. 🗡️", sub:'这儿有 7 个任务和一套排序，带上', note:'初代名场面，"带上装备"很贴。'},
+ {src:'《暗黑破坏神》凯恩', line:'Stay a while and listen… 坐下，听我说', sub:'今天的任务我都给你理好了，张伟', note:'老爷子招牌口吻，娓娓道来。'},
+ {src:'《艾尔登法环》', line:'去成为艾尔登之王吧，褪色者 👑', sub:'今日 7 个"碎片"待收集', note:'史诗感拉满的褪色者梗。'},
+
+ {ic:'🦇',src:'《蝙蝠侠：黑暗骑士》', line:'我们为何跌倒？为了学会站起来。', sub:'每一个失效，都是一次站起来的机会，张伟', note:'失效分析的精神图腾，强烈推荐。'},
+ {ic:'🔍',src:'《名侦探柯南》', line:'真相，只有一个！', sub:'今天有 8 个根因等你锁定', note:'Root cause = 真相，破案感拉满。'},
+ {ic:'💪',src:'尼采', line:'那些杀不死我的，终将使我更强大。', sub:'今天这 7 件，攻下就是经验', note:'抗挫名言，和"复盘变强"完美呼应。'},
+ {ic:'🏀',src:'《灌篮高手》安西教练', line:'现在放弃的话，比赛就结束了。', sub:'再坚持一下，张伟，还有 7 件', note:'国民级励志台词，几乎无人不晓。'},
+ {ic:'🍥',src:'《火影忍者》漩涡鸣人', line:'说到做到，绝不食言——这就是我的忍道！', sub:'答应过的任务，今天兑现它', note:'热血少年漫，承诺与坚持。'},
+ {ic:'☠️',src:'《海贼王》蒙奇·D·路飞', line:'我可是要成为海贼王的男人！', sub:'你的"伟大航路"，从今天这 7 件开始', note:'梦想宣言，气势满分。'},
+ {ic:'⚔️',src:'《进击的巨人》', line:'献出心脏！', sub:'今天也全力以赴，张伟', note:'战吼式激励，短促有力。'},
+ {ic:'🎬',src:'《肖申克的救赎》', line:'Hope is a good thing — 希望是好东西。', sub:'也许是最好的东西，别放弃今天的目标', note:'影史励志金句，温暖坚定。'},
+ {ic:'🎬',src:'《当幸福来敲门》', line:'有梦想，就要去守护它。', sub:'今天的每一件小事，都在靠近它', note:'平凡奋斗的力量。'},
+ {ic:'🎬',src:'《死亡诗社》', line:'Carpe Diem. 把握今天 🌅', sub:'别等明天，张伟，从第一件开始', note:'及时行动的经典号召。'},
+ {ic:'🌌',src:'《星球大战》', line:'May the Force be with you. 愿原力与你同在 ✨', sub:'今天的 7 个挑战，原力护体', note:'跨世代影迷暗号。'},
+ {ic:'🧙',src:'《指环王》甘道夫', line:'我们要做的，只是决定如何利用拥有的时间。', sub:'把今天的时间，用在最要紧的 3 件上', note:'关于时间与选择的智慧。'},
+ {ic:'🐼',src:'《功夫熊猫》龟仙人', line:'昨天是历史，明天是谜，而今天是礼物。', sub:'拆开今天这份礼物吧，张伟 🎁', note:'温柔治愈，活在当下。'},
+ {ic:'🎖️',src:'《士兵突击》许三多', line:'不抛弃，不放弃！', sub:'再难的 Case，也一件件啃下来', note:'国产剧国民励志，质朴有力。'},
+ {ic:'🐟',src:'周星驰《少林足球》', line:'做人如果没有梦想，跟咸鱼有什么分别？', sub:'今天，做条有梦想的咸鱼也行 😄', note:'无厘头又戳心，轻松一笑。'},
+ {ic:'💬',src:'乔布斯', line:'Stay hungry, stay foolish. 求知若饥，虚心若愚。', sub:'对每个失效，保持好奇与谦逊', note:'极客信仰，工程师共鸣。'},
+ {ic:'🏀',src:'科比·布莱恩特', line:'你见过凌晨四点的洛杉矶吗？', sub:'曼巴精神，今天也稳稳推进', note:'体育励志顶流，致敬热爱。'},
+ {ic:'🐱',src:'哆啦A梦', line:'只要努力，没有什么是做不到的。', sub:'今天的 7 件，都在能力范围内', note:'童年回忆杀，简单坚定。'},
+];
+const efSrc=document.getElementById('efSrc'),efLine=document.getElementById('efLine'),efSub=document.getElementById('efSub');
+function showEgg(e){efSrc.textContent='来源：'+e.src;efLine.innerHTML=e.line;efSub.textContent=e.sub;}
+let _last=-1;
+function rollEgg(){let i;do{i=Math.floor(Math.random()*EGGS.length);}while(i===_last&&EGGS.length>1);_last=i;showEgg(EGGS[i]);}
+const eggGrid=document.getElementById('eggGrid');
+EGGS.forEach(e=>{const el=document.createElement('div');el.className='egg-card';el.innerHTML=`<div class="src">${e.ic||'🎮'} <b>${e.src}</b></div><div class="line">${e.line}</div><div class="ls">${e.sub}</div><div class="note">${e.note}</div>`;eggGrid.appendChild(el);});
+showEgg(EGGS[0]);
 </script>
 </body>
 </html>
