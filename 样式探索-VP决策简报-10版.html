@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440" />
+<title>VP 决策简报（全公司）· 10 版样式探索 · V1.0.3</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#003FA8;--cyan:#00A4FF;--violet:#7A3DFF;--gold:#b8860b;
+    --ink:#0f172a;--t7:#334155;--t6:#475569;--t5:#64748b;--t4:#94a3b8;--t3:#cbd5e1;
+    --line:#e2e8f0;--line2:#eef2f7;--bg:#eef2f7;--bg2:#f8fafc;
+    --emerald:#16a34a;--amber:#d97706;--rose:#e11d48;--red:#ef4444;--orange:#f97316;--teal:#0d9488;--lime:#84cc16;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .picker{position:sticky;top:0;z-index:50;background:rgba(248,250,252,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:11px 24px}
+  .picker .row{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .picker h2{font-size:14px;font-weight:800;margin:0}
+  .picker .sub{font-size:11.5px;color:var(--t5)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .pill{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:999px;height:30px;padding:0 13px;font-size:12px;font-weight:600;color:var(--t6);transition:.12s;display:inline-flex;align-items:center;gap:6px}
+  .pill:hover{border-color:var(--t3);color:var(--t7)}
+  .pill.on{background:linear-gradient(90deg,#1e293b,#0052D9);border-color:transparent;color:#fff;box-shadow:0 6px 16px -8px rgba(15,23,42,.5)}
+  .pill .no{font-weight:800;opacity:.6}.pill.on .no{opacity:.9}
+  .vmeta{max-width:1400px;margin:12px auto 0;padding:0 24px;display:flex;align-items:baseline;gap:12px}
+  .vmeta .vn{font-size:18px;font-weight:800}.vmeta .vd{font-size:12.5px;color:var(--t5)}
+  .wrap{max-width:1400px;margin:0 auto;padding:14px 24px 80px}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .ph{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .ph .ic{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:#fff;font-size:12px;background:linear-gradient(135deg,#1e293b,var(--blue))}
+  .ph .t{font-size:13px;font-weight:700;color:var(--t7)}
+  .ph .x{margin-left:auto;font-size:11px;color:var(--t4)}
+  .mut{color:var(--t4);font-size:11px}
+  .hd{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .hd h1{font-size:19px;font-weight:800;margin:0}
+  .hd .scope{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--t6)}
+  .hd .scope b{color:var(--blue)}
+  .hd .role{font-size:11px;font-weight:700;color:#fff;background:linear-gradient(90deg,#1e293b,var(--blue));padding:3px 10px;border-radius:999px}
+  .hd .date{margin-left:auto;font-size:12px;color:var(--t5)}
+  .hd .exp{border:1px solid var(--line);background:#fff;border-radius:8px;height:28px;padding:0 12px;font-size:12px;font-weight:600;color:var(--t6);cursor:pointer}
+  .hd .exp:hover{border-color:var(--blue);color:var(--blue)}
+
+  .kstrip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+  .kpi{position:relative;background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 13px;cursor:pointer;transition:.15s;overflow:hidden}
+  .kpi:hover{border-color:var(--t3);box-shadow:0 6px 18px -12px rgba(15,23,42,.3)}
+  .kpi.on{border-color:var(--blue);box-shadow:0 8px 22px -12px var(--blue)}
+  .kpi .bar0{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi .lab{font-size:11px;color:var(--t5)}
+  .kpi .val{font-size:24px;font-weight:800;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi .dl{font-size:10px;margin-top:3px;color:var(--t4)}
+
+  /* line compare bars */
+  .dbars .db{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+  .dbars .dn{font-size:12px;font-weight:700;color:var(--t6);width:58px;flex:0 0 auto}
+  .dbars .dt{flex:1;height:18px;border-radius:6px;background:var(--line2);overflow:hidden;position:relative}
+  .dbars .df{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;color:#fff;font-weight:700}
+  .dbars .dv{font-size:11px;color:var(--t5);width:60px;text-align:right;flex:0 0 auto}
+
+  .heat{width:100%;border-collapse:separate;border-spacing:4px;font-size:12px}
+  .heat th{font-size:10.5px;color:var(--t5);font-weight:600;padding:4px;text-align:center}
+  .heat th.l{text-align:left}
+  .heat td{text-align:center;padding:0}
+  .heat td.dn{text-align:left;font-weight:700;color:var(--t7);font-size:12px;padding-left:2px;white-space:nowrap}
+  .heat .cell{border-radius:7px;padding:7px 4px;font-weight:700;font-size:12px;color:#fff}
+  .heat .sup{font-size:10px;color:var(--t4);font-weight:400}
+
+  svg{display:block;overflow:visible}
+
+  .sl{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line2)}
+  .sl .tms{font-size:10px;font-weight:800;color:#fff;background:var(--rose);border-radius:6px;padding:2px 7px;flex:0 0 auto}
+  .sl .nm{font-size:12px;color:var(--t7);flex:1;min-width:0}
+  .sl .dps{display:flex;gap:3px;flex:0 0 auto}
+  .dchip{font-size:9.5px;font-weight:700;color:var(--t6);background:var(--line2);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+
+  .dec .drow{display:flex;align-items:flex-start;gap:11px;padding:11px;border:1px solid var(--line2);border-radius:11px;margin-bottom:8px;transition:.12s}
+  .dec .drow:hover{border-color:var(--t3);background:var(--bg2)}
+  .dec .dnum{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#1e293b,var(--blue));color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex:0 0 auto;margin-top:1px}
+  .dec .dc{flex:1;min-width:0}
+  .dec .dt{font-size:13px;font-weight:700;color:var(--t7)}
+  .dec .dw{font-size:11.5px;color:var(--t5);margin-top:3px}
+  .dec .dopt{font-size:11px;font-weight:700;color:var(--blue);background:rgba(0,82,217,.08);border-radius:6px;padding:3px 9px;flex:0 0 auto;align-self:center}
+  .lvl{font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;color:#fff;flex:0 0 auto}
+
+  .alist .arow{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line2);border-radius:10px;margin-bottom:7px;transition:.12s}
+  .alist .arow:hover{border-color:var(--t3);background:var(--bg2)}
+  .arow .nm{font-size:12.5px;color:var(--t7);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .arow .meta{font-size:11px;color:var(--t5);flex:0 0 auto}
+  .arow .rsn{font-size:11px;font-weight:600;flex:0 0 auto;width:160px;text-align:right;color:var(--rose)}
+  .btns{display:flex;gap:5px;flex:0 0 auto}
+  .btn{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:7px;height:27px;padding:0 9px;font-size:11px;font-weight:600;color:var(--t6);transition:.12s}
+  .btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(0,82,217,.05)}
+  .typ{font-size:9.5px;font-weight:800;padding:1px 7px;border-radius:999px;flex:0 0 auto}
+  .typ.esc{background:rgba(225,29,72,.1);color:#e11d48}
+  .typ.dec{background:rgba(0,82,217,.1);color:#0052D9}
+  .typ.sys{background:rgba(217,119,6,.1);color:#d97706}
+
+  .rank .rrow{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px solid var(--line2)}
+  .rank .rno{width:20px;font-size:14px;font-weight:800;color:var(--t4);text-align:center}
+  .rank .rn{font-size:13px;font-weight:700;color:var(--t7);width:96px}
+  .rank .rn span{font-size:10.5px;color:var(--t4);font-weight:400}
+  .rank .rbar{flex:1;height:10px;border-radius:5px;background:var(--line2);overflow:hidden}
+  .rank .rf{height:100%;border-radius:5px}
+  .rank .rv{font-size:12px;font-weight:700;width:48px;text-align:right}
+  .rank .rdot{width:8px;height:8px;border-radius:50%}
+
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#0b1220;color:#fff;padding:10px 16px;border-radius:10px;font-size:12.5px;box-shadow:0 14px 30px -8px rgba(15,23,42,.5);opacity:0;transition:.2s;z-index:99;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  .g2{display:grid;grid-template-columns:1fr 1.25fr;gap:14px;margin-bottom:14px}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="row">
+    <h2>决策简报 · VP 视角</h2>
+    <span class="sub">10 版样式 · 全公司 3 条线 · 月度 · 结论先行（平台查看 + 邮件推送）</span>
+    <div class="pills" id="pills"></div>
+  </div>
+</div>
+<div class="vmeta"><span class="vn" id="vn"></span><span class="vd" id="vd"></span></div>
+<div class="wrap"><div id="stage"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ============ 共享数据（VP·全公司） ============ */
+const LVLC={L1:'#ef4444',L2:'#f97316',L3:'#f59e0b',L4:'#0052D9',L5:'#94a3b8'};
+const LINEC={'测试线':'#0052D9','工艺线':'#0d9488','设计线':'#7A3DFF'};
+const D={
+  period:'2026-05',
+  kpis:[
+    {k:'all',   lab:'全公司在办 Case', val:114, dl:'3 条线 / 9 部门', c:'var(--blue)', tone:'ink'},
+    {k:'sla',   lab:'SLA 按时率（公司）', val:'85%', dl:'目标 ≥90%', c:'var(--emerald)', tone:'emerald'},
+    {k:'over',  lab:'逾期 Case', val:18, dl:'跨线', c:'var(--rose)', tone:'rose'},
+    {k:'rework',lab:'返工率（公司）', val:'15%', dl:'较上月 ↑1%', c:'var(--amber)', tone:'amber'},
+    {k:'risk',  lab:'高风险 / 客户升级', val:13, dl:'含 3 个交付风险', c:'var(--red)', tone:'red'},
+    {k:'decide',lab:'待我决策 / 对外', val:3, dl:'战略级', c:'var(--ink)', tone:'ink'},
+  ],
+  // n, 总监, depts, 在办, SLA%, 逾期, 返工%, 人数, 闭环%, 高风险, 停滞
+  lines:[
+    {n:'测试线', dir:'高总监', depts:'PTE·CP·FT·DA', cases:52, sla:84, over:9, rework:15, ppl:22, close:89, risk:6, stuck:7},
+    {n:'工艺线', dir:'马总监', depts:'PE·QA·EFA',     cases:38, sla:88, over:5, rework:12, ppl:17, close:91, risk:3, stuck:3},
+    {n:'设计线', dir:'赵总监', depts:'RD·PM',         cases:24, sla:82, over:4, rework:18, ppl:12, close:86, risk:4, stuck:2},
+  ],
+  trendSla:[87,86,85,84,86,85],
+  trendCases:[95,102,108,110,112,114],
+  trendRework:[13,14,14,15,15,15],
+  months:['12月','1月','2月','3月','4月','5月'],
+  systemic:[
+    {nm:'DDR4 PKG 内引线偏移', lines:['测试线','工艺线'], times:8, note:'跨 2 线·影响 3 客户'},
+    {nm:'先进封装良率爬坡慢', lines:['工艺线','设计线'], times:5, note:'新产品导入共性'},
+    {nm:'车规客户A交付风险', lines:['测试线','设计线'], times:4, note:'季度交付节点'},
+  ],
+  items:[
+    {type:'esc', nm:'车规客户A · DDR4 退货交付风险', dept:'测试线·设计线', lvl:'L1', rsn:'交付节点·客户升级', tags:['risk','over']},
+    {type:'esc', nm:'CP1 大面积 yield drop（跨线）', dept:'测试线·工艺线', lvl:'L1', rsn:'影响月度产出', tags:['risk']},
+    {type:'dec', nm:'是否成立 DDR4 PKG 跨线攻关组', dept:'测试·工艺', lvl:'', rsn:'累计返工 8 次·单线难解', tags:['decide','rework'], opt:'建议成立'},
+    {type:'dec', nm:'Q3 测试产能是否扩编 5 人', dept:'测试线', lvl:'', rsn:'在办 52·人均最高·逾期最多', tags:['decide'], opt:'建议扩编'},
+    {type:'sys', nm:'设计线返工率 18% 引入 DFM 评审', dept:'设计线', lvl:'', rsn:'连续 2 月高于公司均值', tags:['rework'], opt:'建议引入'},
+  ],
+  highlights:['工艺线闭环率 91% 全公司第一','公司月度在办量趋稳（+2%）','EFA 失效定位周期缩短 18%'],
+};
+
+/* ============ 渲染片段 ============ */
+let activeKpi='all';
+function header(extra){return `<div class="hd"><h1>决策简报</h1><span class="role">VP · 林副总</span><span class="scope">全公司：<b>测试 · 工艺 · 设计</b> 3 线 / 9 部门</span>${extra||''}<button class="exp" onclick="act('推送','2026-05 月度经营简报')">✉ 推送/转发</button><button class="exp" onclick="act('导出','2026-05 月度经营简报')">⤓ 导出 PDF</button><span class="date">${D.period} 月报 · 截至 2026-05-31</span></div>`;}
+function kpiCard(k,style){
+  const on=activeKpi===k.k?' on':'';
+  const col=k.tone==='emerald'?'var(--emerald)':k.tone==='rose'||k.tone==='red'?'var(--rose)':k.tone==='amber'?'var(--amber)':'var(--ink)';
+  if(style==='mini')return `<div class="kpi${on}" data-kpi="${k.k}" style="padding:9px 11px"><div style="display:flex;align-items:baseline;gap:7px"><span class="val" style="font-size:19px;color:${col}">${k.val}</span><span class="lab">${k.lab}</span></div></div>`;
+  return `<div class="kpi${on}" data-kpi="${k.k}"><span class="bar0" style="background:${k.c}"></span><div class="lab">${k.lab}</div><div class="val" style="color:${col}">${k.val}</div><div class="dl">${k.dl}</div></div>`;
+}
+function kpiStrip(style){return `<div class="kstrip">${D.kpis.map(k=>kpiCard(k,style)).join('')}</div>`;}
+
+function lineBars(metric,opt){
+  opt=opt||{};
+  const fmt=opt.pct?(v=>v+'%'):(v=>v+(opt.unit||''));
+  const vals=D.lines.map(d=>d[metric]);
+  const max=Math.max(...vals,opt.target||0);
+  const color=d=>{
+    if(metric==='sla')return d.sla>=90?'#16a34a':d.sla>=85?'#84cc16':d.sla>=82?'#f59e0b':'#e11d48';
+    if(metric==='rework')return d.rework<=12?'#16a34a':d.rework<=16?'#f59e0b':'#e11d48';
+    if(metric==='over')return d.over>=8?'#e11d48':d.over>=5?'#f59e0b':'#84cc16';
+    return LINEC[d.n];
+  };
+  return `<div class="dbars">${D.lines.map(d=>`<div class="db"><span class="dn">${d.n}</span><span class="dt">${opt.target?`<span style="position:absolute;left:${opt.target/max*100}%;top:0;bottom:0;width:2px;background:rgba(15,23,42,.25)"></span>`:''}<span class="df" style="width:${Math.max(d[metric]/max*100,8)}%;background:${color(d)}">${fmt(d[metric])}</span></span><span class="dv">${d.dir}</span></div>`).join('')}</div>${opt.target?`<div class="mut" style="margin-top:2px">竖线＝目标 ${fmt(opt.target)}</div>`:''}`;
+}
+
+function heatTable(){
+  const cols=[['cases','在办',null],['sla','SLA%',v=>v>=90?'#16a34a':v>=85?'#22c55e':v>=82?'#f59e0b':'#e11d48',true],
+    ['over','逾期',v=>v>=8?'#e11d48':v>=5?'#f59e0b':'#84cc16'],
+    ['rework','返工%',v=>v<=12?'#16a34a':v<=16?'#f59e0b':'#e11d48',true],
+    ['close','闭环%',v=>v>=90?'#16a34a':v>=87?'#22c55e':'#f59e0b',true],
+    ['risk','高风险',v=>v>=6?'#e11d48':v>=4?'#f59e0b':'#84cc16']];
+  let h='<table class="heat"><tr><th class="l">线 / 总监</th>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr>';
+  D.lines.forEach(d=>{h+=`<tr><td class="dn">${d.n} <span class="sup">${d.dir}·${d.depts}</span></td>`+cols.map(c=>{const v=d[c[0]];if(!c[2])return `<td><div class="cell" style="background:#475569">${v}</div></td>`;return `<td><div class="cell" style="background:${c[2](v)}">${v}${c[3]?'%':''}</div></td>`;}).join('')+'</tr>';});
+  return h+'</table>';
+}
+
+function spark(data,color,w,h,opt){
+  w=w||240;h=h||64;opt=opt||{};
+  const max=opt.max!=null?opt.max:Math.max(...data),min=opt.min!=null?opt.min:Math.min(...data);
+  const rng=(max-min)||1;
+  const X=i=>i/(data.length-1)*w, Y=v=>h-6-((v-min)/rng)*(h-14);
+  const pts=data.map((v,i)=>[X(i),Y(v)]);
+  const line=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  const area=`M0 ${h} L`+pts.map(p=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L')+` L${w} ${h} Z`;
+  const id='g'+Math.floor(min*97+max*13+data.length+color.length);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="none" style="height:${h}px"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${opt.band?`<line x1="0" y1="${Y(opt.band)}" x2="${w}" y2="${Y(opt.band)}" stroke="#16a34a" stroke-dasharray="3 3" stroke-width="1"/>`:''}<path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="3.4" fill="${color}"/></svg>`;
+}
+function trendCard(title,data,color,cur,opt){return `<div><div style="display:flex;align-items:baseline;justify-content:space-between"><span class="mut">${title}</span><span style="font-size:16px;font-weight:800;color:${color}">${cur}</span></div>${spark(data,color,240,54,opt)}<div class="mut" style="display:flex;justify-content:space-between"><span>${D.months[0]}</span><span>${D.months[D.months.length-1]}</span></div></div>`;}
+
+function systemicHTML(){return D.systemic.map(s=>`<div class="sl"><span class="tms">×${s.times}</span><span class="nm">${s.nm}</span><span class="dps">${s.lines.map(d=>`<span class="dchip" style="border-color:${LINEC[d]}55;color:${LINEC[d]}">${d}</span>`).join('')}</span></div>`).join('');}
+
+function lineScore(d){return Math.round(d.sla*.4 + d.close*.3 + (100-d.rework*2)*.2 + (100-d.over*4)*.1);}
+function rankHTML(){
+  const ranked=[...D.lines].map(d=>({...d,score:lineScore(d)})).sort((a,b)=>b.score-a.score);
+  return `<div class="rank">${ranked.map((d,i)=>{const c=d.score>=85?'#16a34a':d.score>=82?'#f59e0b':'#e11d48';return `<div class="rrow"><span class="rno">${i+1}</span><span class="rdot" style="background:${c}"></span><span class="rn">${d.n} <span>${d.dir}</span></span><span class="rbar"><span class="rf" style="width:${d.score}%;background:${c}"></span></span><span class="rv" style="color:${c}">${d.score} 分</span></div>`;}).join('')}</div>`;}
+
+function itemsFiltered(){return D.items.filter(t=>activeKpi==='all'||t.tags.includes(activeKpi));}
+function actionListHTML(){
+  const rows=itemsFiltered();
+  const TY={esc:'对外/介入',dec:'决策',sys:'专项'};
+  const body=rows.map(t=>`<div class="arow">
+    <span class="typ ${t.type}">${TY[t.type]}</span>
+    ${t.lvl?`<span class="lvl" style="background:${LVLC[t.lvl]}">${t.lvl}</span>`:''}
+    <span class="nm">${t.nm}</span>
+    <span class="meta">${t.dept}</span>
+    <span class="rsn">${t.rsn}</span>
+    <span class="btns"><button class="btn" onclick="act('下钻','${t.nm}')">下钻</button><button class="btn" onclick="act('指派总监','${t.nm}')">指派总监</button><button class="btn" onclick="act('导出','${t.nm}')">导出</button></span></div>`).join('');
+  const info=`${rows.length} 项 · 筛选：${(D.kpis.find(k=>k.k===activeKpi)||{}).lab||'全部'}`;
+  return {body,info};
+}
+function decisionHTML(){return `<div class="dec">${D.items.filter(t=>t.type==='dec'||t.type==='sys').map((t,i)=>`<div class="drow"><span class="dnum">${i+1}</span><div class="dc"><div class="dt">${t.nm}</div><div class="dw">${t.rsn} · ${t.dept}</div></div><span class="dopt">${t.opt||'待定'}</span></div>`).join('')}</div>`;}
+function escalateHTML(){return D.items.filter(t=>t.type==='esc').map(t=>`<div class="arow"><span class="lvl" style="background:${LVLC[t.lvl]}">${t.lvl}</span><span class="nm">${t.nm}</span><span class="meta">${t.dept}</span><span class="rsn">${t.rsn}</span><span class="btns"><button class="btn" onclick="act('下钻','${t.nm}')">下钻</button></span></div>`).join('');}
+
+let _tt;
+function act(kind,nm){const t=document.getElementById('toast');const m=kind==='下钻'?`下钻至「${nm}」对应总监决策台 / 关联 case`:kind==='导出'?`已导出「${nm}」（PDF）`:kind==='推送'?`已推送「${nm}」至邮箱 / 转发给相关总监`:kind==='指派总监'?`已将「${nm}」指派至对应总监跟进`:`已${kind}：「${nm}」`;t.textContent='✓ '+m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2300);}
+function bindKpi(){document.querySelectorAll('[data-kpi]').forEach(el=>{el.onclick=()=>{const k=el.dataset.kpi;if(k==='sla')return;activeKpi=k;render();};});}
+function refreshList(){const r=actionListHTML();const b=document.getElementById('alist');if(b)b.innerHTML=r.body;const i=document.getElementById('listInfo');if(i)i.textContent=r.info;}
+
+/* ============ 10 个版本 ============ */
+const VERSIONS=[
+/* 1 月度经营简报 经典 */
+{name:'01 · 月度经营简报（经典）',desc:'公司 KPI → 三线对比 + 月趋势 → 战略系统性问题 + 待我决策。最稳的 VP 首屏，一眼看全公司、对比三条线、再看要我拍板的战略事项。',
+ render(){return header()+
+   `<div style="font-size:11.5px;color:var(--t4);margin:-6px 0 12px">决策简报聚焦"全公司哪条线有问题、哪些事要 VP 拍板 / 对外 / 跨线拉通"。点 KPI 联动下方清单。</div>`+
+   kpiStrip()+
+   `<div class="g2" style="grid-template-columns:1.15fr 1fr">
+     <div class="panel"><div class="ph"><span class="ic">▤</span><span class="t">三条线健康对比</span><span class="x">越红越要管</span></div>${heatTable()}<div class="mut" style="margin-top:8px">点某条线可下钻该总监决策台</div></div>
+     <div class="panel"><div class="ph"><span class="ic">◷</span><span class="t">月度趋势 · 近 6 月</span><span class="x">公司</span></div>${trendCard('SLA 按时率',D.trendSla,'#0052D9','85%',{min:78,max:95,band:90})}<div style="height:10px"></div>${trendCard('返工率',D.trendRework,'#e11d48','15%',{min:8,max:22})}</div>
+   </div>
+   <div class="g2" style="grid-template-columns:1fr 1.3fr">
+     <div class="panel"><div class="ph"><span class="ic">◧</span><span class="t">战略级系统性问题 · 跨线</span><span class="x">候选公司级专项</span></div>${systemicHTML()}<div class="mut" style="margin-top:8px">跨线反复＝单条线难解，需 VP 拉通立项</div></div>
+     <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">待我决策 / 对外</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>
+   </div>`;
+ }},
+
+/* 2 邮件简报版 */
+{name:'02 · 邮件简报版（VP 月度推送）',desc:'直接落 D-2"VP 用月报、邮件推送"：把决策台渲染成一封排版精良的月度简报邮件，文末「在平台查看完整决策台」可下钻。最贴合 VP 的实际触达方式。',
+ render(){return `<div class="mail">
+   <div class="mail-hd">
+     <div class="mh-row"><span class="mh-k">发件人</span><span>EA Platform 月度简报 &lt;briefing@ea-platform&gt;</span></div>
+     <div class="mh-row"><span class="mh-k">收件人</span><span>林副总（VP）</span><span class="mh-cc">抄送：高总监 / 马总监 / 赵总监</span></div>
+     <div class="mh-row"><span class="mh-k">主题</span><span class="mh-sub">【月度经营简报】${D.period} · 全公司工程分析（测试 / 工艺 / 设计）</span></div>
+   </div>
+   <div class="mail-body">
+     <div class="ml-lead">林副总，您好：<br/>本月全公司在办 <b>114</b> 个 case，SLA 按时率 <b style="color:var(--amber)">85%</b>（低于目标 90%）。<b style="color:var(--rose)">DDR4 PKG 跨线返工 8 次</b>、<b style="color:var(--rose)">车规客户A 存在交付风险</b>，建议本月重点关注。摘要如下：</div>
+     <div class="ml-sec"><div class="ml-h">① 公司关键指标</div><div class="kstrip" style="grid-template-columns:repeat(3,1fr);margin:0">${D.kpis.map(k=>kpiCard(k)).join('')}</div></div>
+     <div class="ml-sec"><div class="ml-h">② 三条线健康对比</div>${heatTable()}</div>
+     <div class="ml-sec"><div class="ml-h">③ 月度趋势</div><div class="g3" style="margin:0">${['SLA 按时率',D.trendSla,'#0052D9','85%',{min:78,max:95,band:90}].length?`<div class="panel">${trendCard('SLA 按时率',D.trendSla,'#0052D9','85%',{min:78,max:95,band:90})}</div><div class="panel">${trendCard('在办总量',D.trendCases,'#0d9488','114',{min:88,max:120})}</div><div class="panel">${trendCard('返工率',D.trendRework,'#e11d48','15%',{min:8,max:22})}</div>`:''}</div></div>
+     <div class="ml-sec"><div class="ml-h">④ 需您决策 / 对外的事项</div>${decisionHTML()}</div>
+     <div class="ml-sec"><div class="ml-h">⑤ 战略级系统性问题</div>${systemicHTML()}</div>
+     <div class="mail-cta"><button class="cta" onclick="act('下钻','完整决策台')">▸ 在平台查看完整决策台</button><button class="cta ghost" onclick="act('导出','${D.period} 月度简报')">⤓ 下载 PDF</button><span class="mut" style="margin-left:auto">本邮件由 EA Platform 于每月 1 日自动生成并推送</span></div>
+   </div>
+ </div>`;
+ }},
+
+/* 3 三线对比 矩阵主导 */
+{name:'03 · 三线对比 · 矩阵主导',desc:'核心是"线 × 指标"健康大表 + 各指标对比条。给重对比、想快速定位"哪条线哪个指标拖公司后腿"的 VP。',
+ render(){return header()+kpiStrip('mini')+
+   `<div class="panel" style="margin-bottom:14px"><div class="ph"><span class="ic">▦</span><span class="t">三条线 × 指标 健康矩阵</span><span class="x">绿健康 · 黄关注 · 红介入</span></div><div style="font-size:13px">${heatTable()}</div></div>
+   <div class="g3">
+     <div class="panel"><div class="ph"><span class="t">SLA 按时率对比</span></div>${lineBars('sla',{pct:true,target:90})}</div>
+     <div class="panel"><div class="ph"><span class="t">返工率对比</span></div>${lineBars('rework',{pct:true})}</div>
+     <div class="panel"><div class="ph"><span class="t">逾期 Case 对比</span></div>${lineBars('over')}</div>
+   </div>
+   <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">待我决策 / 对外</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>`;
+ }},
+
+/* 4 月度趋势驱动 */
+{name:'04 · 月度趋势驱动',desc:'呼应 VP 月度节奏：6 个月趋势折线打头，强调"这个月比上月、比季度初是好是坏"。最适合月度复盘、判断长期走势。',
+ render(){return header()+
+   `<div class="g3" style="margin-bottom:14px">
+     <div class="panel">${trendCard('在办 Case 总量',D.trendCases,'#0d9488','114',{min:88,max:120})}</div>
+     <div class="panel">${trendCard('SLA 按时率（公司）',D.trendSla,'#0052D9','85%',{min:78,max:95,band:90})}</div>
+     <div class="panel">${trendCard('返工率（公司）',D.trendRework,'#e11d48','15%',{min:8,max:22})}</div>
+   </div>
+   <div class="g2" style="grid-template-columns:1.1fr 1fr">
+     <div class="panel"><div class="ph"><span class="ic">▤</span><span class="t">本月三线健康</span><span class="x">对上月</span></div>${heatTable()}</div>
+     <div class="panel"><div class="ph"><span class="ic">◧</span><span class="t">本月战略系统性问题</span></div>${systemicHTML()}<div style="margin-top:12px"><div class="mut" style="margin-bottom:6px">三线健康度排名</div>${rankHTML()}</div></div>
+   </div>
+   <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">本月待我决策 / 对外</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>`;
+ }},
+
+/* 5 战略决策清单优先 */
+{name:'05 · 战略决策清单优先',desc:'把"要 VP 拍板 / 对外 / 跨线拉通"的事做成结论先行编号清单占左侧大屏，右侧三线对比与趋势侧栏。VP 打开直接处理战略决策。',
+ render(){return header()+
+   `<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px">
+     <div style="display:flex;flex-direction:column;gap:14px">
+       <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">待我决策 · 结论先行</span><span class="x">点项下钻依据</span></div>${decisionHTML()}</div>
+       <div class="panel"><div class="ph"><span class="ic">▲</span><span class="t">需 VP 对外 / 介入的高风险</span></div>${escalateHTML()}</div>
+     </div>
+     <div style="display:flex;flex-direction:column;gap:14px">
+       <div class="kstrip" style="grid-template-columns:1fr 1fr;margin:0">${D.kpis.map(k=>kpiCard(k)).join('')}</div>
+       <div class="panel"><div class="ph"><span class="t">三线健康对比</span></div>${heatTable()}</div>
+       <div class="panel"><div class="ph"><span class="t">SLA 趋势（近 6 月）</span></div>${spark(D.trendSla,'#0052D9',240,54,{min:78,max:95,band:90})}</div>
+     </div>
+   </div>`;
+ }},
+
+/* 6 三线记分卡 红黑榜 */
+{name:'06 · 三线记分卡（红黑榜）',desc:'把 3 条线按综合健康度打分排名 + 三位总监记分卡，谁好谁差、资源向谁倾斜一目了然。最适合 VP 年中评估、资源分配决策。',
+ render(){return header()+kpiStrip('mini')+
+   `<div class="g2" style="grid-template-columns:1fr 1.2fr">
+     <div class="panel"><div class="ph"><span class="ic">🏅</span><span class="t">三线健康度排名</span><span class="x">综合 SLA/闭环/返工/逾期</span></div>${rankHTML()}<div class="mut" style="margin-top:10px">工艺线领先；设计线垫底（返工 18%、SLA 82%）需重点支持</div></div>
+     <div class="panel"><div class="ph"><span class="ic">▤</span><span class="t">分项明细</span></div>${heatTable()}</div>
+   </div>
+   <div class="g3">
+     ${D.lines.map(d=>{const sc=lineScore(d);const c=sc>=85?'#16a34a':sc>=82?'#f59e0b':'#e11d48';return `<div class="panel" style="border-top:3px solid ${LINEC[d.n]}"><div style="display:flex;align-items:baseline;justify-content:space-between"><b style="font-size:15px">${d.n}</b><span style="font-size:18px;font-weight:800;color:${c}">${sc}</span></div><div class="mut">${d.dir} · ${d.ppl} 人 · ${d.depts}</div><div style="margin-top:8px;font-size:11.5px;color:var(--t6);line-height:1.7">在办 ${d.cases} · SLA ${d.sla}% · 逾期 ${d.over} · 返工 ${d.rework}% · 闭环 ${d.close}%</div></div>`;}).join('')}
+   </div>
+   <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">待我决策 / 对外</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>`;
+ }},
+
+/* 7 公司全景 三线分区卡 */
+{name:'07 · 公司全景 · 三线分区卡',desc:'每条线一张大卡（mini 仪表盘 + 关键数 + 该线要我管的事），像"三个总监决策台缩略图"并排。VP 按线巡检、逐块下钻到总监。',
+ render(){return header()+kpiStrip('mini')+
+   `<div class="g3" style="margin-bottom:0">
+     ${D.lines.map(d=>{const c=d.sla>=88?'#16a34a':d.sla>=85?'#f59e0b':'#e11d48';const its=D.items.filter(t=>t.dept.includes(d.n.replace('线',''))||t.dept.includes(d.n));return `<div class="panel" style="margin-bottom:14px;border-top:3px solid ${LINEC[d.n]}"><div class="ph"><span class="ic" style="background:${LINEC[d.n]}">${d.n[0]}</span><span class="t">${d.n} · ${d.dir}</span><button class="exp" style="margin-left:auto;height:24px" onclick="act('下钻','${d.n}决策台')">进决策台 ›</button></div>
+       <div style="display:flex;gap:12px;align-items:center">
+         <svg viewBox="0 0 100 58" width="86"><path d="M6 50 A44 44 0 0 1 94 50" fill="none" stroke="#eef2f7" stroke-width="10" stroke-linecap="round"/><path d="M6 50 A44 44 0 0 1 94 50" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" pathLength="100" stroke-dasharray="${d.sla} 100"/><text x="50" y="44" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">${d.sla}%</text></svg>
+         <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px;text-align:center">
+           <div><div style="font-size:17px;font-weight:800">${d.cases}</div><div class="mut">在办</div></div>
+           <div><div style="font-size:17px;font-weight:800;color:${d.over>=8?'var(--rose)':'var(--ink)'}">${d.over}</div><div class="mut">逾期</div></div>
+           <div><div style="font-size:17px;font-weight:800;color:${d.rework>=16?'var(--rose)':d.rework>=13?'var(--amber)':'var(--emerald)'}">${d.rework}%</div><div class="mut">返工</div></div>
+           <div><div style="font-size:17px;font-weight:800;color:${d.risk>=6?'var(--rose)':'var(--ink)'}">${d.risk}</div><div class="mut">高风险</div></div>
+         </div>
+       </div>
+       ${its.length?`<div style="margin-top:10px;border-top:1px solid var(--line2);padding-top:8px">${its.map(t=>`<div style="font-size:11.5px;color:var(--t6);padding:3px 0;display:flex;gap:7px"><span class="typ ${t.type}">${t.type==='esc'?'对外':t.type==='dec'?'决策':'专项'}</span>${t.nm}</div>`).join('')}</div>`:'<div class="mut" style="margin-top:8px">无需我介入的事项 ✓</div>'}
+     </div>`;}).join('')}
+   </div>`;
+ }},
+
+/* 8 信号灯 需要VP出手 */
+{name:'08 · 信号灯（需要 VP 出手）',desc:'按"该不该 VP 出手"分三区：要我拍板/对外/跨线拉通的、要盯的线、运转良好的。最直觉的 VP triage。',
+ render(){return header()+
+   `<div class="sig">
+     <div class="sig-col red"><div class="sig-hd"><span class="sig-dot"></span>需我出手 · 拍板/对外<span class="sig-n">${D.items.length}</span></div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">高风险 / 客户升级（需 VP 对外）</div>${escalateHTML()}</div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">待决策（结论先行）</div>${decisionHTML()}</div></div>
+     <div class="sig-col amber"><div class="sig-hd"><span class="sig-dot"></span>需盯的线<span class="sig-n">设计线</span></div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">SLA 低于公司均</div>${lineBars('sla',{pct:true,target:90})}</div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">跨线系统性问题</div>${systemicHTML()}</div></div>
+     <div class="sig-col green"><div class="sig-hd"><span class="sig-dot"></span>运转良好<span class="sig-n">工艺线领先</span></div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">三线健康度排名</div>${rankHTML()}</div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">本月亮点</div>${D.highlights.map(h=>`<div style="font-size:12px;color:var(--emerald);padding:4px 0">✓ ${h}</div>`).join('')}</div></div>
+   </div>`;
+ }},
+
+/* 9 卡片瀑布 */
+{name:'09 · 模块卡片瀑布',desc:'每个关注面一张自含卡，三列瀑布，模块化可增删，像 VP 自己拼的"全公司指标墙"。',
+ render(){return header()+
+   `<div class="mason">
+     <div class="mc"><div class="mc-h">公司 KPI</div><div style="display:flex;flex-direction:column;gap:7px">${D.kpis.map(k=>`<div data-kpi="${k.k}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;${activeKpi===k.k?'background:rgba(0,82,217,.07)':''}"><span class="lab">${k.lab}</span><b style="font-size:17px;color:${k.tone==='emerald'?'var(--emerald)':k.tone==='rose'||k.tone==='red'?'var(--rose)':k.tone==='amber'?'var(--amber)':'var(--ink)'}">${k.val}</b></div>`).join('')}</div></div>
+     <div class="mc"><div class="mc-h">SLA 趋势（近 6 月）</div>${spark(D.trendSla,'#0052D9',240,56,{min:78,max:95,band:90})}</div>
+     <div class="mc"><div class="mc-h">三线健康矩阵</div>${heatTable()}</div>
+     <div class="mc"><div class="mc-h">返工率对比</div>${lineBars('rework',{pct:true})}</div>
+     <div class="mc"><div class="mc-h">逾期对比</div>${lineBars('over')}</div>
+     <div class="mc"><div class="mc-h">三线健康度排名</div>${rankHTML()}</div>
+     <div class="mc"><div class="mc-h">战略系统性问题</div>${systemicHTML()}</div>
+     <div class="mc"><div class="mc-h">待决策 · 结论先行</div>${decisionHTML()}</div>
+     <div class="mc"><div class="mc-h">本月亮点</div>${D.highlights.map(h=>`<div style="font-size:12px;color:var(--emerald);padding:5px 0;border-bottom:1px solid var(--line2)">✓ ${h}</div>`).join('')}</div>
+     <div class="mc mc-wide"><div class="mc-h">需我对外 / 介入的高风险</div>${escalateHTML()}</div>
+   </div>`;
+ }},
+
+/* 10 一页纸 结论先行 */
+{name:'10 · 一页纸（董事会式结论先行）',desc:'文字驱动、留白克制：每块先一句话结论再配极简数据。给只要判断、不看图的 VP，或直接作为董事会 / 月度经营会底稿。',
+ render(){return header()+
+   `<div class="exec">
+     <div class="exec-lead panel"><div class="el-tag">本月一句话</div><div class="el-text">公司整体<b style="color:var(--amber)">尚可（SLA 85%）</b>，但已<b style="color:var(--rose)">连续 3 月低于目标</b>；<b style="color:var(--blue)">DDR4 PKG 跨线返工 8 次，建议成立公司级攻关组</b>；<b style="color:var(--rose)">车规客户A 交付有风险，需 VP 对外协调</b>；设计线返工率 18% 偏高、测试线产能偏紧。</div></div>
+     ${[
+       {h:'公司现状',c:'结论：在办 114（3 线），SLA 公司均 85%（低于目标 90%），逾期 18、高风险 13（含 3 个交付风险）。',d:`<div class="ex-nums">${D.kpis.map(k=>`<span data-kpi="${k.k}" class="${activeKpi===k.k?'on':''}"><b style="color:${k.tone==='emerald'?'var(--emerald)':k.tone==='rose'||k.tone==='red'?'var(--rose)':k.tone==='amber'?'var(--amber)':'var(--ink)'}">${k.val}</b>${k.lab}</span>`).join('')}</div>`},
+       {h:'三线对比',c:'结论：工艺线最稳（86 分）；测试线在办最多、逾期 9 个、产能偏紧；设计线返工率 18% 公司最高，两者需重点支持。',d:heatTable()},
+       {h:'趋势',c:'结论：SLA 近 3 月持续低于目标线（84~86%），返工率缓升至 15%，在办量稳步上行至 114，需遏止质量下滑。',d:spark(D.trendSla,'#0052D9',420,52,{min:78,max:95,band:90})},
+       {h:'战略议题',c:'结论：DDR4 PKG 跨测试/工艺线返工 8 次、影响 3 客户，单线难解，建议成立公司级跨线攻关组并由 VP 牵头。',d:systemicHTML()},
+     ].map(s=>`<div class="exec-row panel"><div class="er-h">${s.h}</div><div class="er-c">${s.c}</div><div class="er-d">${s.d}</div></div>`).join('')}
+     <div class="panel"><div class="ph"><span class="ic">⚑</span><span class="t">待我决策 / 对外</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>
+   </div>`;
+ }},
+];
+
+/* ============ 版本专属样式 ============ */
+const VCSS=`
+.mail{max-width:880px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(15,23,42,.4)}
+.mail-hd{background:linear-gradient(180deg,#f8fafc,#fff);border-bottom:1px solid var(--line);padding:16px 22px}
+.mh-row{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--t6);padding:3px 0}
+.mh-k{width:48px;color:var(--t4);font-size:11px;flex:0 0 auto}
+.mh-cc{margin-left:auto;font-size:11px;color:var(--t4)}
+.mh-sub{font-size:15px;font-weight:800;color:var(--ink)}
+.mail-body{padding:22px}
+.ml-lead{font-size:13.5px;line-height:1.8;color:var(--t6);margin-bottom:18px;padding-bottom:16px;border-bottom:1px dashed var(--line)}
+.ml-sec{margin-bottom:20px}
+.ml-h{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:10px}
+.mail-cta{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.cta{cursor:pointer;border:none;background:linear-gradient(90deg,#1e293b,var(--blue));color:#fff;border-radius:9px;height:34px;padding:0 16px;font-size:12.5px;font-weight:700}
+.cta.ghost{background:#fff;border:1px solid var(--line);color:var(--t6)}
+.cta:hover{filter:brightness(1.05)}
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.bento-k,.bento-c{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;overflow:hidden}
+.bt{font-size:11.5px;font-weight:700;color:var(--t7);margin-bottom:8px}
+.sig{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px}
+.sig-col{border-radius:14px;padding:13px;border:1px solid}
+.sig-col.red{background:linear-gradient(180deg,rgba(225,29,72,.06),#fff);border-color:rgba(225,29,72,.26)}
+.sig-col.amber{background:linear-gradient(180deg,rgba(217,119,6,.06),#fff);border-color:rgba(217,119,6,.24)}
+.sig-col.green{background:linear-gradient(180deg,rgba(22,163,74,.06),#fff);border-color:rgba(22,163,74,.22)}
+.sig-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--t7);margin-bottom:12px}
+.sig-dot{width:10px;height:10px;border-radius:50%}
+.red .sig-dot{background:#e11d48}.amber .sig-dot{background:#d97706}.green .sig-dot{background:#16a34a}
+.sig-n{margin-left:auto;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.sig-card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:10px}
+.mason{column-count:3;column-gap:14px}
+.mc{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:14px;display:inline-block;width:100%}
+.mc-h{font-size:12.5px;font-weight:700;color:var(--t7);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--line2)}
+.exec{max-width:980px}
+.exec-lead{margin-bottom:14px;border-left:4px solid var(--ink)}
+.el-tag{font-size:11px;font-weight:800;color:var(--ink);margin-bottom:6px}
+.el-text{font-size:16px;line-height:1.65;color:var(--t7)}
+.exec-row{display:grid;grid-template-columns:90px 1fr;gap:14px;margin-bottom:12px;align-items:start}
+.er-h{font-size:14px;font-weight:800;color:var(--ink);padding-top:2px}
+.er-c{font-size:13px;color:var(--t6);line-height:1.6;grid-column:2}
+.er-d{grid-column:2;margin-top:10px}
+.ex-nums{display:flex;flex-wrap:wrap;gap:18px}
+.ex-nums span{font-size:12px;color:var(--t5);display:flex;flex-direction:column;cursor:pointer}
+.ex-nums span b{font-size:21px;font-weight:800;line-height:1.1}
+.ex-nums span.on b{text-decoration:underline}
+`;
+const st=document.createElement('style');st.textContent=VCSS;document.head.appendChild(st);
+
+/* ============ 切换 ============ */
+let cur=0;
+const pills=document.getElementById('pills');
+VERSIONS.forEach((v,i)=>{const b=document.createElement('button');b.className='pill'+(i===0?' on':'');b.innerHTML=`<span class="no">${String(i+1).padStart(2,'0')}</span>`;b.onclick=()=>{cur=i;render();};pills.appendChild(b);});
+function render(){
+  const v=VERSIONS[cur];
+  document.getElementById('vn').textContent=v.name;
+  document.getElementById('vd').textContent=v.desc;
+  [...pills.children].forEach((c,i)=>c.classList.toggle('on',i===cur));
+  document.getElementById('stage').innerHTML=v.render();
+  bindKpi();refreshList();
+}
+render();
+</script>
+</body>
+</html>
