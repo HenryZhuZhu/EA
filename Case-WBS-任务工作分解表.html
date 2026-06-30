@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1440, initial-scale=1" />
+  <title>EA Platform · Case WBS 任务工作分解表</title>
+  <style>
+    :root{--blue:#0052D9;--blue2:#00A4FF;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--soft:#f8fafc;--panel:#fff;--shadow:0 10px 30px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:1180px;background:#f4f7fb;color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:13px}
+    button,input,select{font:inherit}.app-header{position:sticky;top:0;z-index:20;height:64px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px);display:flex;align-items:center;padding:0 28px;gap:18px}
+    .brand{font-size:17px;font-weight:720;letter-spacing:.2px}.brand small{display:block;color:#94a3b8;font-size:10px;font-weight:500;letter-spacing:.7px;margin-top:2px}.header-sep{width:1px;height:28px;background:var(--line)}
+    .header-title{font-size:14px;color:#475569}.generated{margin-left:auto;color:#94a3b8;font-size:11px}.layout{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 64px)}
+    .side{position:sticky;top:64px;height:calc(100vh - 64px);background:#fff;border-right:1px solid var(--line);padding:20px 14px;overflow:auto}.side h3{font-size:11px;color:#94a3b8;font-weight:650;letter-spacing:1px;margin:2px 10px 12px;text-transform:uppercase}
+    .case-nav{display:flex;flex-direction:column;gap:4px}.case-nav button{border:0;background:transparent;border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:28px 1fr;gap:6px;align-items:center;text-align:left;color:#64748b;cursor:pointer}.case-nav button:hover{background:#eff6ff;color:var(--blue)}.case-nav b{font-size:11px;color:#94a3b8}.case-nav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+    main{min-width:0;padding:28px}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:20px}.eyebrow{font-size:11px;color:var(--blue);font-weight:700;letter-spacing:1px;text-transform:uppercase}.hero h1{margin:5px 0 6px;font-size:28px;letter-spacing:-.5px}.hero p{margin:0;color:#64748b;line-height:1.7}.hero-actions{display:flex;gap:8px}.btn{height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#475569;padding:0 13px;cursor:pointer}.btn:hover{border-color:#94a3b8}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+    .metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}.metric{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,23,42,.03)}.metric span{display:block;color:#64748b;font-size:11px}.metric strong{display:block;font-size:24px;margin-top:6px}.metric.accent{background:linear-gradient(135deg,#eff6ff,#fff);border-color:#bfdbfe}.metric.accent strong{color:var(--blue)}
+    .toolbar{position:sticky;top:76px;z-index:15;display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(250px,1fr) 150px 160px auto;gap:8px;background:rgba(244,247,251,.95);padding:10px 0;margin-bottom:8px;backdrop-filter:blur(10px)}.control{height:38px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#334155;padding:0 11px;outline:none;min-width:0}.control:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,82,217,.1)}.toolbar-buttons{display:flex;gap:7px;justify-content:flex-end}
+    .case-section{background:#fff;border:1px solid var(--line);border-radius:14px;margin:12px 0;box-shadow:0 2px 8px rgba(15,23,42,.035);overflow:hidden;scroll-margin-top:128px}.case-section[hidden]{display:none}.case-section>summary{list-style:none;display:grid;grid-template-columns:44px minmax(380px,1fr) auto 20px;gap:16px;align-items:center;padding:18px 20px;cursor:pointer}.case-section>summary::-webkit-details-marker{display:none}.case-section[open]>summary{border-bottom:1px solid var(--line);background:linear-gradient(90deg,#f8fbff,#fff)}
+    .case-index{width:38px;height:38px;border-radius:10px;background:#eff6ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:750}.case-code{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#94a3b8}.case-summary-main h2{font-size:17px;margin:4px 0 8px}.case-tags,.stack{display:flex;flex-wrap:wrap;gap:5px}.case-kpis{display:flex;gap:22px}.case-kpis div{min-width:52px;text-align:right}.case-kpis strong{display:block;font-size:17px}.case-kpis span{font-size:10px;color:#94a3b8}.chevron{color:#94a3b8;font-size:20px;transition:transform .2s}.case-section[open] .chevron{transform:rotate(180deg)}
+    .case-content{padding:16px}.case-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}.meta-item{background:#f8fafc;border:1px solid #eef2f7;border-radius:8px;padding:9px 10px;min-height:55px}.meta-item.wide{grid-column:span 2}.meta-item span{display:block;color:#94a3b8;font-size:10px;margin-bottom:4px}.meta-item strong{font-size:12px;color:#475569;line-height:1.55;font-weight:560}
+    .table-wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;max-width:100%}table{border-collapse:separate;border-spacing:0;min-width:1900px;width:100%;background:#fff}th{position:sticky;top:0;z-index:3;background:#f8fafc;color:#64748b;font-size:10px;letter-spacing:.2px;text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}td{vertical-align:top;padding:10px;border-bottom:1px solid #edf2f7;color:#475569;line-height:1.5;max-width:270px}tbody tr:hover td{background:#fbfdff}.sticky-col{position:sticky;left:0;z-index:2;background:#fff}th.sticky-col{z-index:5;background:#f8fafc}.wbs-code{font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--blue)}.mono{font:500 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#64748b;white-space:nowrap}.depth{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;color:#64748b;font-weight:700}.depth-0{background:#dbeafe;color:#1d4ed8}.depth-1{background:#ede9fe;color:#6d28d9}.depth-2{background:#fef3c7;color:#a16207}.title-cell{padding-left:calc(10px + var(--depth) * 14px);min-width:270px}.node-title{font-weight:650;color:#1e293b}.parent-line,.sub,.muted{color:#94a3b8;font-size:10px;margin-top:3px}.strong{font-weight:650;color:#334155}.long-cell{min-width:250px}.details-cell{min-width:300px}.detail-line{display:grid;grid-template-columns:76px 1fr;gap:6px;margin-bottom:4px}.detail-line b{font-size:10px;color:#94a3b8}.detail-line span{font-size:11px}.progress{width:100px;height:3px;background:#e2e8f0;border-radius:9px;margin-top:8px;overflow:hidden}.progress i{display:block;height:100%;background:var(--blue);border-radius:9px}.mt6{margin-top:6px}
+    .tag{display:inline-flex;align-items:center;min-height:20px;padding:2px 7px;border-radius:5px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;font-size:10px;font-weight:650;white-space:nowrap}.tag.thought{background:#fffbeb;color:#b45309;border-color:#fde68a}.tag.task{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.level-L1,.urgency-非常紧急{background:#fef2f2;color:#dc2626;border-color:#fecaca}.level-L2,.urgency-紧急{background:#fff7ed;color:#ea580c;border-color:#fed7aa}.level-L3{background:#fffbeb;color:#ca8a04;border-color:#fde68a}.level-L4,.urgency-一般,.status-进行中{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}.level-L5,.urgency-不紧急{background:#f8fafc;color:#64748b}.status-已完成,.validity-有效{background:#ecfdf5;color:#059669;border-color:#a7f3d0}.validity-部分有效{background:#fffbeb;color:#d97706;border-color:#fde68a}.validity-无效{background:#f1f5f9;color:#64748b}.case-status{background:#f8fafc;color:#475569}
+    .row-hidden{display:none}.filter-empty{padding:28px;text-align:center;color:#94a3b8;background:#fff}.case-empty{padding:28px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc;text-align:center}.case-empty strong{display:block;color:#475569}.case-empty span{display:block;color:#94a3b8;margin-top:5px}.footer{padding:30px;text-align:center;color:#94a3b8;font-size:11px}
+    @media print{body{min-width:0;background:#fff}.app-header,.side,.toolbar,.hero-actions{display:none!important}.layout{display:block}.hero{margin:0 0 12px}main{padding:0}.metrics{grid-template-columns:repeat(6,1fr)}.case-section{break-inside:avoid;box-shadow:none}.case-section:not([open])>.case-content{display:block}.table-wrap{overflow:visible}table{font-size:9px}.footer{display:none}}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">EA Platform<small>ENGINEERING PORTAL</small></div><div class="header-sep"></div>
+    <div class="header-title">Case WBS · 任务工作分解表</div><div class="generated">生成时间：2026年6月30日 15:39</div>
+  </header>
+  <div class="layout">
+    <aside class="side"><h3>Case 目录</h3><div class="case-nav"><button data-jump="EA-260511000001"><b>01</b><span>EA-260511000001</span></button><button data-jump="EA-260511000002"><b>02</b><span>EA-260511000002</span></button><button data-jump="EA-260511000003"><b>03</b><span>EA-260511000003</span></button><button data-jump="EA-260511000004"><b>04</b><span>EA-260511000004</span></button><button data-jump="EA-260511000005"><b>05</b><span>EA-260511000005</span></button><button data-jump="EA-260511000006"><b>06</b><span>EA-260511000006</span></button><button data-jump="EA-260511000007"><b>07</b><span>EA-260511000007</span></button><button data-jump="EA-260511000008"><b>08</b><span>EA-260511000008</span></button><button data-jump="EA-260511000009"><b>09</b><span>EA-260511000009</span></button><button data-jump="EA-260511000010"><b>10</b><span>EA-260511000010</span></button><button data-jump="EA-260511000011"><b>11</b><span>EA-260511000011</span></button><button data-jump="EA-260511000012"><b>12</b><span>EA-260511000012</span></button><button data-jump="EA-260511000013"><b>13</b><span>EA-260511000013</span></button><button data-jump="EA-260511000014"><b>14</b><span>EA-260511000014</span></button></div></aside>
+    <main>
+      <section class="hero">
+        <div><div class="eyebrow">Work Breakdown Structure</div><h1>Case WBS 任务工作分解表</h1><p>按 Case 汇总思路、怀疑方向与全部执行任务；WBS 编码对应任务树层级。</p></div>
+        <div class="hero-actions"><button class="btn" id="collapseAll">全部收起</button><button class="btn" id="expandAll">全部展开</button><button class="btn" id="exportCsv">导出筛选结果</button><button class="btn primary" onclick="window.print()">打印 / PDF</button></div>
+      </section>
+      <section class="metrics">
+        <div class="metric accent"><span>Case 总数</span><strong id="metricCases">14</strong></div>
+        <div class="metric"><span>有任务树 Case</span><strong>5</strong></div>
+        <div class="metric"><span>全部节点</span><strong id="metricNodes">38</strong></div>
+        <div class="metric"><span>思路 / 怀疑方向</span><strong id="metricThoughts">13</strong></div>
+        <div class="metric"><span>执行任务</span><strong id="metricTasks">25</strong></div>
+        <div class="metric"><span>已完成任务</span><strong id="metricDone">3</strong></div>
+      </section>
+      <section class="toolbar">
+        <input class="control" id="search" placeholder="搜索 Case、任务、人员、结论、附件…" />
+        <select class="control" id="caseFilter"><option value="all">全部 Case</option><option value="EA-260511000001">EA-260511000001 · DDR5 X-die CP1 yield drop @Site A</option><option value="EA-260511000002">EA-260511000002 · LPDDR5 FT Retest Rate 偏高</option><option value="EA-260511000003">EA-260511000003 · SPC 自动触发：WAT Vth 漂移</option><option value="EA-260511000004">EA-260511000004 · 站点 A 探针台校准规范更新</option><option value="EA-260511000005">EA-260511000005 · DDR4 Lot 退货影响分析</option><option value="EA-260511000006">EA-260511000006 · eMMC 写入寿命衰减异常分析</option><option value="EA-260511000007">EA-260511000007 · WLCSP 焊球桥连失效复现</option><option value="EA-260511000008">EA-260511000008 · 晶圆边缘良率衰退追因</option><option value="EA-260511000009">EA-260511000009 · 划片崩裂异常追溯</option><option value="EA-260511000010">EA-260511000010 · Bump 高度 CPK 不足排查</option><option value="EA-260511000011">EA-260511000011 · FT 工位温漂复测异常</option><option value="EA-260511000012">EA-260511000012 · 回流焊空洞率新案</option><option value="EA-260511000013">EA-260511000013 · SLT 老化箱温控偏差告警</option><option value="EA-260511000014">EA-260511000014 · 探针卡磨损导致误判结案</option></select>
+        <select class="control" id="kindFilter"><option value="all">全部节点类型</option><option value="thought">思路 / 怀疑方向</option><option value="task">执行任务</option></select>
+        <select class="control" id="statusFilter"><option value="all">全部状态</option><option>待开始</option><option>待接受</option><option>进行中</option><option>已拒绝</option><option>已完成</option><option>已中止</option></select>
+        <div class="toolbar-buttons"><button class="btn" id="resetFilters">重置筛选</button></div>
+      </section>
+      <div id="cases"><details class="case-section" data-case-section="EA-260511000001" data-case-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a 张伟 ddr5-x-6400 xdie-a0 icc2 超规格" open>
+    <summary>
+      <div class="case-index">01</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000001</div>
+        <h2>DDR5 X-die CP1 yield drop @Site A</h2>
+        <div class="case-tags"><span class="tag level-L2">L2</span><span class="tag urgency-非常紧急">非常紧急</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>11</strong><span>全部节点</span></div>
+        <div><strong>3</strong><span>思路方向</span></div>
+        <div><strong>8</strong><span>执行任务</span></div>
+        <div><strong>2</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>客户反馈批量良率低于基线 3.5%，需立即定位并给出改善方案。</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>近两周 Site A DDR5 X-die 在 CP1 出现 yield 异常，平均下降 3.5%，影响 Lot 数已达 42 批，客户已发出质量预警。</strong></div>
+  <div class="meta-item wide"><span>影响</span><strong>影响 42 批 Lot、约 3500 PPM；客户 Customer-K 已发质量预警，若未在 2 天内定位将触发交付延期与潜在退货风险。</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>由 L5 升级至 L2：影响范围已覆盖跨三级部门（PTE/CP/DA/EFA），且涉及客户端预警，需调用项目级资源。</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>张伟</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>李娜 · DA、陈磊 · EFA、王芳 · CP、赵敏 · FT</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE、CP、DA、EFA</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>DDR5-X-6400 / XDIE-A0</strong></div>
+  <div class="meta-item"><span>规格</span><strong>16Gb · x16 · BGA-96</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>CP1 / V93K-SMU8</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>ICC2 超规格</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>2.35% / 3500 PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>Customer-K</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>PD-2026-0417</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-04-15 / 2026-04-22 10:24</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>已完成 ICC2 分布分析与 Pattern 定位，正在执行 EFA 物理切片验证。</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>分布收敛 + Shmoo 对比 + Pattern bisect + EFA 物理分析。</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>初步定位为 Pattern P_ICC2_07 在低压下过激，叠加 wafer 边缘工艺偏移。</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>调整 Pattern timing margin；对边缘 die 引入 guardband 2mV。</strong></div>
+  <div class="meta-item wide"><span>AI 风险</span><strong>若物理分析确认工艺漂移，可能需要回退至上一版本 recipe，影响交付窗口。</strong></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sticky-col">WBS</th><th>层级</th><th>节点类型</th><th>任务编号</th><th>卡片名称 / 上级节点</th>
+            <th>责任信息</th><th>状态 / 紧急度 / 进度</th><th>时间计划</th><th>预期 / 怀疑方向</th><th>结论 / 有效性</th><th>卡片基本信息</th>
+          </tr></thead>
+          <tbody><tr class="wbs-row" data-case="EA-260511000001" data-kind="thought" data-status="待接受" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a pattern 异常导致 icc2 超规格 待指派 pte 待接受 非常紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">Pattern 异常导致 ICC2 超规格</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="已完成" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.001 icc2 分布分析与 pattern 定位 pattern 异常导致 icc2 超规格 张伟 pte cp 已完成 非常紧急 预期通过本动作确认「icc2 分布分析与 pattern 定位」是否成立，并定位相关失效特征。 锁定 pattern p_icc2_07 为主要嫌疑。 有效 需要拉取最近 42 批次数据 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.001</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">ICC2 分布分析与 Pattern 定位</div>
+      <div class="parent-line">上级：Pattern 异常导致 ICC2 超规格</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-已完成">已完成</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="sub">进度 100%</div>
+    </td>
+    <td>
+      <div>期望 2026-04-21</div>
+      <div class="sub">截止 2026-04-22 · 0 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「ICC2 分布分析与 Pattern 定位」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>锁定 Pattern P_ICC2_07 为主要嫌疑。</div>
+      <div class="mt6"><span class="tag validity-有效">结论有效</span></div>
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>主管</b><span>周主管</span></div><div class="detail-line"><b>站点管理员</b><span>孙志刚</span></div><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>需要拉取最近 42 批次数据</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div><div class="detail-line"><b>状态历史</b><span>待接受 · 2026-04-20 10:00 · 周主管、进行中 · 2026-04-20 15:20 · 张伟、已完成 · 2026-04-22 16:40 · 张伟</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="待接受" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.002 输出 pattern p_icc2_07 调整方案评审稿 pattern 异常导致 icc2 超规格 张伟 pte cp 待接受 非常紧急 预期通过本动作确认「输出 pattern p_icc2_07 调整方案评审稿」是否成立，并定位相关失效特征。 需要整理 margin 数据 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.002</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">输出 Pattern P_ICC2_07 调整方案评审稿</div>
+      <div class="parent-line">上级：Pattern 异常导致 ICC2 超规格</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:40%"></i></div>
+      <div class="sub">进度 40%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-23 · 1 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「输出 Pattern P_ICC2_07 调整方案评审稿」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>需要整理 margin 数据</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="已完成" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.007 icc2 温漂复测（仅 85°c 高温段） pattern 异常导致 icc2 超规格 刘洋 pte cp 已完成 紧急 预期通过本动作确认「icc2 温漂复测（仅 85°c 高温段）」是否成立，并定位相关失效特征。 高温段 icc2 未见明显异常，未能复现 pattern 漂移，该方向暂不成立。 无效 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.3</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.007</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">ICC2 温漂复测（仅 85°C 高温段）</div>
+      <div class="parent-line">上级：Pattern 异常导致 ICC2 超规格</div>
+    </td>
+    <td>
+      <div class="strong">刘洋</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-已完成">已完成</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="sub">进度 100%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 0 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「ICC2 温漂复测（仅 85°C 高温段）」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>高温段 ICC2 未见明显异常，未能复现 Pattern 漂移，该方向暂不成立。</div>
+      <div class="mt6"><span class="tag validity-无效">结论无效</span></div>
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div><div class="detail-line"><b>状态历史</b><span>待接受 · 2026-04-21 09:10 · 周主管、进行中 · 2026-04-21 14:30 · 刘洋、已完成 · 2026-04-24 17:05 · 刘洋</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="进行中" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.008 （重做）icc2 温漂复测 —— 扩到 -40~125°c 全温域 + 加测 corner lot pattern 异常导致 icc2 超规格 刘洋 pte cp 进行中 紧急 全温域 + corner lot 复测确认 icc2 漂移是否与温度/corner 相关；若仍无异常则彻底排除该方向 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.4</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.008</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">（重做）ICC2 温漂复测 —— 扩到 -40~125°C 全温域 + 加测 corner lot</div>
+      <div class="parent-line">上级：Pattern 异常导致 ICC2 超规格</div>
+    </td>
+    <td>
+      <div class="strong">刘洋</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:55%"></i></div>
+      <div class="sub">进度 55%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-28 · 4 天</div>
+    </td>
+    <td class="long-cell">全温域 + corner lot 复测确认 ICC2 漂移是否与温度/corner 相关；若仍无异常则彻底排除该方向</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div><div class="detail-line"><b>返工源任务</b><span>t1c</span></div><div class="detail-line"><b>返工理由</b><span>上一轮仅测 85°C 高温段，温度覆盖不足、未加 corner lot，结论判为无效，需扩大温域与样本重做。</span></div><div class="detail-line"><b>状态历史</b><span>待接受 · 2026-04-24 17:20 · 周主管、进行中 · 2026-04-25 09:40 · 刘洋</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="thought" data-status="待接受" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a wafer 工艺偏移导致边缘 die 异常 待指派 da 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">wafer 工艺偏移导致边缘 die 异常</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">DA</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="进行中" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.004 shmoo 对比 &amp; 边缘 die 分析 wafer 工艺偏移导致边缘 die 异常 李娜 da cp 进行中 紧急 若边缘 die vddmin 漂移&gt;10mv 则定位为工艺漂移，否则回到 pattern 方向 需要按 wafer map 分组分析 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.004</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">Shmoo 对比 &amp; 边缘 die 分析</div>
+      <div class="parent-line">上级：wafer 工艺偏移导致边缘 die 异常</div>
+    </td>
+    <td>
+      <div class="strong">李娜</div>
+      <div class="sub">DA · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:65%"></i></div>
+      <div class="sub">进度 65%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 2 天</div>
+    </td>
+    <td class="long-cell">若边缘 die VDDmin 漂移&gt;10mV 则定位为工艺漂移，否则回到 Pattern 方向</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>需要按 wafer map 分组分析</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="进行中" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.005 efa 物理切片验证 wafer 工艺偏移导致边缘 die 异常 陈磊 efa ft 进行中 紧急 预期通过本动作确认「efa 物理切片验证」是否成立，并定位相关失效特征。 fib 切片未见金属层异常，sem 成像显示边缘 die 氧化层偏薄约 4nm。 部分有效 需要 fib 定位和 sem 成像 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.005</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">EFA 物理切片验证</div>
+      <div class="parent-line">上级：wafer 工艺偏移导致边缘 die 异常</div>
+    </td>
+    <td>
+      <div class="strong">陈磊</div>
+      <div class="sub">EFA · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:30%"></i></div>
+      <div class="sub">进度 30%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-25 · 3 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「EFA 物理切片验证」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>FIB 切片未见金属层异常，SEM 成像显示边缘 die 氧化层偏薄约 4nm。</div>
+      <div class="mt6"><span class="tag validity-部分有效">结论部分有效</span></div>
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>主管</b><span>陈主管</span></div><div class="detail-line"><b>站点管理员</b><span>吴志强</span></div><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>需要 FIB 定位和 SEM 成像</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="thought" data-status="待接受" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a 氧化层偏薄需要调整工艺参数 efa 物理切片验证 待指派 efa 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1</span></td>
+    <td><span class="depth depth-2">3</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:2">
+      <div class="node-title">氧化层偏薄需要调整工艺参数</div>
+      <div class="parent-line">上级：EFA 物理切片验证</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">EFA</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="已拒绝" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.003 同步 efa 切片初步结论至客户沟通稿 氧化层偏薄需要调整工艺参数 张伟 pte rdbi 已拒绝 紧急 预期通过本动作确认「同步 efa 切片初步结论至客户沟通稿」是否成立，并定位相关失效特征。 需要收集 efa 当前结论 测试代码分析 代码diff.pdf 覆盖率.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1.1</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.003</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">同步 EFA 切片初步结论至客户沟通稿</div>
+      <div class="parent-line">上级：氧化层偏薄需要调整工艺参数</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · RDBI</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-已拒绝">已拒绝</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:10%"></i></div>
+      <div class="sub">进度 10%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-25 · 3 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「同步 EFA 切片初步结论至客户沟通稿」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试代码分析</span></div><div class="detail-line"><b>分派附言</b><span>需要收集 EFA 当前结论</span></div><div class="detail-line"><b>附件</b><span>代码diff.pdf、覆盖率.xlsx</span></div><div class="detail-line"><b>拒绝理由</b><span>客户沟通稿应由 PM 统一口径，本任务退回，改由 PM 牵头。</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000001" data-kind="task" data-status="待开始" data-search="ea-260511000001 ddr5 x-die cp1 yield drop @site a ea-260511000001.006 cp 测试程序 guardband 调整 wafer 工艺偏移导致边缘 die 异常 王芳 cp slt 待开始 一般 对边缘 die 引入 guardband 2mv，复测确认良率回升 需要评审 timing margin 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.3</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000001.006</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">CP 测试程序 guardband 调整</div>
+      <div class="parent-line">上级：wafer 工艺偏移导致边缘 die 异常</div>
+    </td>
+    <td>
+      <div class="strong">王芳</div>
+      <div class="sub">CP · SLT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待开始">待开始</span><span class="tag urgency-一般">一般</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-28 · 6 天</div>
+    </td>
+    <td class="long-cell">对边缘 die 引入 guardband 2mV，复测确认良率回升</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>需要评审 timing margin</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr></tbody>
+        </table>
+        <div class="filter-empty" hidden>当前筛选条件下没有匹配节点</div>
+      </div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000002" data-case-search="ea-260511000002 lpddr5 ft retest rate 偏高 刘洋 lpddr5-7500 lpd-b1 contact fail" open>
+    <summary>
+      <div class="case-index">02</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000002</div>
+        <h2>LPDDR5 FT Retest Rate 偏高</h2>
+        <div class="case-tags"><span class="tag level-L3">L3</span><span class="tag urgency-紧急">紧急</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>6</strong><span>全部节点</span></div>
+        <div><strong>2</strong><span>思路方向</span></div>
+        <div><strong>4</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>FT retest 率由 1.2% 上升至 4.8%，影响产出节奏。</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>近 5 天 LPDDR5 在 FT 阶段 retest 率显著上升。</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>跨 PTE 与 FT 部门协同，定级 L3。</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>刘洋</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>赵敏 · FT、周杰 · PTE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE、FT</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>LPDDR5-7500 / LPD-B1</strong></div>
+  <div class="meta-item"><span>规格</span><strong>12Gb · x32</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>FT / Magnum-V</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>Contact Fail</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>1200 PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>Customer-H</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>PD-2026-0418</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-04-18 / 2026-04-22 08:40</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>正在排查 socket 清洁周期与探针磨损。</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>retest bin 分析 + socket 周期对照。</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>疑似 socket contact 磨损。</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>缩短清洁周期 + 更换磨损 socket。</strong></div>
+  <div class="meta-item wide"><span>AI 风险</span><strong>更换 socket 将导致半天产出停机。</strong></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sticky-col">WBS</th><th>层级</th><th>节点类型</th><th>任务编号</th><th>卡片名称 / 上级节点</th>
+            <th>责任信息</th><th>状态 / 紧急度 / 进度</th><th>时间计划</th><th>预期 / 怀疑方向</th><th>结论 / 有效性</th><th>卡片基本信息</th>
+          </tr></thead>
+          <tbody><tr class="wbs-row" data-case="EA-260511000002" data-kind="thought" data-status="待接受" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 socket 磨损导致 contact fail 待指派 ft 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">Socket 磨损导致 contact fail</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000002" data-kind="task" data-status="进行中" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 ea-260511000002.001 retest bin 分布分析 socket 磨损导致 contact fail 刘洋 pte ft 进行中 紧急 预期通过本动作确认「retest bin 分布分析」是否成立，并定位相关失效特征。 分析 retest bin 集中分布情况 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000002.001</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">Retest bin 分布分析</div>
+      <div class="parent-line">上级：Socket 磨损导致 contact fail</div>
+    </td>
+    <td>
+      <div class="strong">刘洋</div>
+      <div class="sub">PTE · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:80%"></i></div>
+      <div class="sub">进度 80%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-23 · 1 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Retest bin 分布分析」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>分析 retest bin 集中分布情况</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000002" data-kind="task" data-status="进行中" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 ea-260511000002.002 socket 维护记录核对 socket 磨损导致 contact fail 赵敏 ft ft 进行中 一般 预期通过本动作确认「socket 维护记录核对」是否成立，并定位相关失效特征。 核对清洁周期记录 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000002.002</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">Socket 维护记录核对</div>
+      <div class="parent-line">上级：Socket 磨损导致 contact fail</div>
+    </td>
+    <td>
+      <div class="strong">赵敏</div>
+      <div class="sub">FT · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-一般">一般</span></div>
+      <div class="progress"><i style="width:40%"></i></div>
+      <div class="sub">进度 40%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-25 · 3 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Socket 维护记录核对」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>核对清洁周期记录</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000002" data-kind="thought" data-status="待接受" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 清洁周期不足导致 contact 劣化 socket 维护记录核对 待指派 ft 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2.1</span></td>
+    <td><span class="depth depth-2">3</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:2">
+      <div class="node-title">清洁周期不足导致 contact 劣化</div>
+      <div class="parent-line">上级：Socket 维护记录核对</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000002" data-kind="task" data-status="待接受" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 ea-260511000002.004 contact 清洁周期对照实验 清洁周期不足导致 contact 劣化 张伟 pte ft 待接受 紧急 预期通过本动作确认「contact 清洁周期对照实验」是否成立，并定位相关失效特征。 申请 3 套 socket 进行对照实验 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2.1.1</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000002.004</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">Contact 清洁周期对照实验</div>
+      <div class="parent-line">上级：清洁周期不足导致 contact 劣化</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 2 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Contact 清洁周期对照实验」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>申请 3 套 socket 进行对照实验</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000002" data-kind="task" data-status="已中止" data-search="ea-260511000002 lpddr5 ft retest rate 偏高 ea-260511000002.003 支援 ft retest bin 分布复核 socket 磨损导致 contact fail 张伟 pte ft 已中止 一般 预期通过本动作确认「支援 ft retest bin 分布复核」是否成立，并定位相关失效特征。 比对上周数据，输出 bin 偏移表 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.3</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000002.003</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">支援 FT retest bin 分布复核</div>
+      <div class="parent-line">上级：Socket 磨损导致 contact fail</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-已中止">已中止</span><span class="tag urgency-一般">一般</span></div>
+      <div class="progress"><i style="width:20%"></i></div>
+      <div class="sub">进度 20%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-27 · 5 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「支援 FT retest bin 分布复核」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>比对上周数据，输出 bin 偏移表</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div><div class="detail-line"><b>中止理由</b><span>FT 侧已自行复核完成，PTE 支援任务无需重复，终止。</span></div></td>
+  </tr></tbody>
+        </table>
+        <div class="filter-empty" hidden>当前筛选条件下没有匹配节点</div>
+      </div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000003" data-case-search="ea-260511000003 spc 自动触发：wat vth 漂移 系统自动 flash-n fln-c2 vth shift" open>
+    <summary>
+      <div class="case-index">03</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000003</div>
+        <h2>SPC 自动触发：WAT Vth 漂移</h2>
+        <div class="case-tags"><span class="tag level-L4">L4</span><span class="tag urgency-一般">一般</span><span class="tag case-status">Pending</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>2</strong><span>全部节点</span></div>
+        <div><strong>1</strong><span>思路方向</span></div>
+        <div><strong>1</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>SPC monitor 触发，等待工程师确认归属。</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>WAT Vth 连续 3 lot 超出 +2σ。</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>待分析影响范围，暂定 L4。</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>系统自动</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>周宇 · PE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>Flash-N / FLN-C2</strong></div>
+  <div class="meta-item"><span>规格</span><strong>64Gb · NAND</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>WAT / WAT-300</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>Vth shift</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>Internal</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-04-21 / 2026-04-22 07:00</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>Pending，等待 PEL 认领。</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 风险</span><strong>若持续漂移，可能影响下阶段 CP 良率。</strong></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sticky-col">WBS</th><th>层级</th><th>节点类型</th><th>任务编号</th><th>卡片名称 / 上级节点</th>
+            <th>责任信息</th><th>状态 / 紧急度 / 进度</th><th>时间计划</th><th>预期 / 怀疑方向</th><th>结论 / 有效性</th><th>卡片基本信息</th>
+          </tr></thead>
+          <tbody><tr class="wbs-row" data-case="EA-260511000003" data-kind="thought" data-status="待接受" data-search="ea-260511000003 spc 自动触发：wat vth 漂移 工艺参数漂移导致 vth 异常 待指派 pte 待接受 一般">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">工艺参数漂移导致 Vth 异常</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-一般">一般</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000003" data-kind="task" data-status="待接受" data-search="ea-260511000003 spc 自动触发：wat vth 漂移 ea-260511000003.001 认领 pending case 并初评影响范围 工艺参数漂移导致 vth 异常 张伟 pte cp 待接受 一般 预期通过本动作确认「认领 pending case 并初评影响范围」是否成立，并定位相关失效特征。 拉取 spc 历史，评估影响 lot fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000003.001</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">认领 Pending Case 并初评影响范围</div>
+      <div class="parent-line">上级：工艺参数漂移导致 Vth 异常</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-一般">一般</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-29 · 7 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「认领 Pending Case 并初评影响范围」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>拉取 SPC 历史，评估影响 lot</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr></tbody>
+        </table>
+        <div class="filter-empty" hidden>当前筛选条件下没有匹配节点</div>
+      </div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000004" data-case-search="ea-260511000004 站点 a 探针台校准规范更新 周杰 通用 — —" open>
+    <summary>
+      <div class="case-index">04</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000004</div>
+        <h2>站点 A 探针台校准规范更新</h2>
+        <div class="case-tags"><span class="tag level-L5">L5</span><span class="tag urgency-不紧急">不紧急</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>3</strong><span>全部节点</span></div>
+        <div><strong>1</strong><span>思路方向</span></div>
+        <div><strong>2</strong><span>执行任务</span></div>
+        <div><strong>1</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>例行校准规范 SOP 更新。</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>按季度更新探针台校准 SOP。</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>仅 PTE 内部事项，L5。</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>周杰</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>李昊 · PE、吴迪 · PE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>通用 / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-04-10 / 2026-04-21</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>SOP 草案已输出。</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>对照最新客户规范修订。</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>待评审。</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 风险</span><strong>—</strong></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sticky-col">WBS</th><th>层级</th><th>节点类型</th><th>任务编号</th><th>卡片名称 / 上级节点</th>
+            <th>责任信息</th><th>状态 / 紧急度 / 进度</th><th>时间计划</th><th>预期 / 怀疑方向</th><th>结论 / 有效性</th><th>卡片基本信息</th>
+          </tr></thead>
+          <tbody><tr class="wbs-row" data-case="EA-260511000004" data-kind="thought" data-status="待接受" data-search="ea-260511000004 站点 a 探针台校准规范更新 更新探针台校准规范以符合最新客户要求 待指派 pte 待接受 不紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">更新探针台校准规范以符合最新客户要求</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-不紧急">不紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000004" data-kind="task" data-status="已完成" data-search="ea-260511000004 站点 a 探针台校准规范更新 ea-260511000004.001 输出 sop 草案 更新探针台校准规范以符合最新客户要求 周杰 pte cp 已完成 不紧急 预期通过本动作确认「输出 sop 草案」是否成立，并定位相关失效特征。 对照最新客户规范修订 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000004.001</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">输出 SOP 草案</div>
+      <div class="parent-line">上级：更新探针台校准规范以符合最新客户要求</div>
+    </td>
+    <td>
+      <div class="strong">周杰</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-已完成">已完成</span><span class="tag urgency-不紧急">不紧急</span></div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="sub">进度 100%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-21 · -1 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「输出 SOP 草案」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>对照最新客户规范修订</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000004" data-kind="task" data-status="待接受" data-search="ea-260511000004 站点 a 探针台校准规范更新 ea-260511000004.002 评审探针台校准 sop 草案 更新探针台校准规范以符合最新客户要求 张伟 pte cp 待接受 不紧急 预期通过本动作确认「评审探针台校准 sop 草案」是否成立，并定位相关失效特征。 对照旧版 sop，提交评审意见 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000004.002</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">评审探针台校准 SOP 草案</div>
+      <div class="parent-line">上级：更新探针台校准规范以符合最新客户要求</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · CP</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-不紧急">不紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-05-02 · 10 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「评审探针台校准 SOP 草案」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>对照旧版 SOP，提交评审意见</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr></tbody>
+        </table>
+        <div class="filter-empty" hidden>当前筛选条件下没有匹配节点</div>
+      </div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000005" data-case-search="ea-260511000005 ddr4 lot 退货影响分析 孙楠 ddr4-3200 ddr4-x refresh fail" open>
+    <summary>
+      <div class="case-index">05</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000005</div>
+        <h2>DDR4 Lot 退货影响分析</h2>
+        <div class="case-tags"><span class="tag level-L1">L1</span><span class="tag urgency-非常紧急">非常紧急</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>16</strong><span>全部节点</span></div>
+        <div><strong>6</strong><span>思路方向</span></div>
+        <div><strong>10</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>客户退货 2 批次，需公司级评估。</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>客户报告 field failure，已退货 2 批次。</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>影响公司层面交付与客户关系，L1 由 PM own。</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>孙楠</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>张伟 · PTE、王芳 · CP、刘洋 · PTE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PM、PTE、CP、DA、EFA、QA</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>DDR4-3200 / DDR4-X</strong></div>
+  <div class="meta-item"><span>规格</span><strong>8Gb · x8</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>Field / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>Refresh fail</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>Customer-A</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>PD-2026-0401</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-04-05 / 2026-04-22 11:00</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>已完成根因初判，进入客户沟通阶段。</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>8D 分析 + EFA + 客户回片复测。</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>疑似 refresh timing margin 不足 + 特定环境触发。</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>fw patch + 新一轮 screening。</strong></div>
+  <div class="meta-item wide"><span>AI 风险</span><strong>客户审核结果将决定是否扩大召回。</strong></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sticky-col">WBS</th><th>层级</th><th>节点类型</th><th>任务编号</th><th>卡片名称 / 上级节点</th>
+            <th>责任信息</th><th>状态 / 紧急度 / 进度</th><th>时间计划</th><th>预期 / 怀疑方向</th><th>结论 / 有效性</th><th>卡片基本信息</th>
+          </tr></thead>
+          <tbody><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 refresh timing margin 不足导致 field failure 待指派 qa 待接受 非常紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">Refresh timing margin 不足导致 field failure</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">QA</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.002 回片复测数据汇总（pte 配合） refresh timing margin 不足导致 field failure 张伟 pte rdbi 进行中 非常紧急 预期通过本动作确认「回片复测数据汇总（pte 配合）」是否成立，并定位相关失效特征。 拉取回片 datalog，按失效模式分组 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.002</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">回片复测数据汇总（PTE 配合）</div>
+      <div class="parent-line">上级：Refresh timing margin 不足导致 field failure</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · RDBI</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:55%"></i></div>
+      <div class="sub">进度 55%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-23 · 1 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「回片复测数据汇总（PTE 配合）」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>拉取回片 datalog，按失效模式分组</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 需要分别从 array 和 pte 侧收集数据 回片复测数据汇总（pte 配合） 待指派 pte 待接受 非常紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1.1</span></td>
+    <td><span class="depth depth-2">3</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:2">
+      <div class="node-title">需要分别从 Array 和 PTE 侧收集数据</div>
+      <div class="parent-line">上级：回片复测数据汇总（PTE 配合）</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.002.001 array 侧 bitmap 拉取 需要分别从 array 和 pte 侧收集数据 周宇 pe-array 进行中 非常紧急 预期通过本动作确认「array 侧 bitmap 拉取」是否成立，并定位相关失效特征。 array tester 调取，bitmap 切图 测试代码分析 代码diff.pdf 覆盖率.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1.1.1</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.002.001</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">Array 侧 bitmap 拉取</div>
+      <div class="parent-line">上级：需要分别从 Array 和 PTE 侧收集数据</div>
+    </td>
+    <td>
+      <div class="strong">周宇</div>
+      <div class="sub">PE-Array</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:30%"></i></div>
+      <div class="sub">进度 30%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-22 · 0 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Array 侧 bitmap 拉取」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试代码分析</span></div><div class="detail-line"><b>分派附言</b><span>Array tester 调取，bitmap 切图</span></div><div class="detail-line"><b>附件</b><span>代码diff.pdf、覆盖率.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.002.002 pte 侧 datalog 整合 需要分别从 array 和 pte 侧收集数据 张伟 pte 进行中 非常紧急 预期通过本动作确认「pte 侧 datalog 整合」是否成立，并定位相关失效特征。 对齐 lot 时间戳，输出合并表 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.1.1.2</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.002.002</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">PTE 侧 datalog 整合</div>
+      <div class="parent-line">上级：需要分别从 Array 和 PTE 侧收集数据</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:70%"></i></div>
+      <div class="sub">进度 70%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-23 · 1 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「PTE 侧 datalog 整合」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>对齐 lot 时间戳，输出合并表</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.003 refresh timing margin 复测 refresh timing margin 不足导致 field failure 张伟 pte slt 待接受 紧急 预期通过本动作确认「refresh timing margin 复测」是否成立，并定位相关失效特征。 申请测试机台，制定 margin 表 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.003</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">Refresh timing margin 复测</div>
+      <div class="parent-line">上级：Refresh timing margin 不足导致 field failure</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE · SLT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 2 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Refresh timing margin 复测」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>申请测试机台，制定 margin 表</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 array 侧需要专项 refresh pattern 验证 refresh timing margin 复测 待指派 pe-array 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2.1</span></td>
+    <td><span class="depth depth-2">3</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:2">
+      <div class="node-title">Array 侧需要专项 refresh pattern 验证</div>
+      <div class="parent-line">上级：Refresh timing margin 复测</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PE-Array</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.003.001 array 侧 refresh pattern 复测 array 侧需要专项 refresh pattern 验证 李昊 pe-array 待接受 紧急 预期通过本动作确认「array 侧 refresh pattern 复测」是否成立，并定位相关失效特征。 制定 pattern，执行复测 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">1.2.1.1</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.003.001</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">Array 侧 refresh pattern 复测</div>
+      <div class="parent-line">上级：Array 侧需要专项 refresh pattern 验证</div>
+    </td>
+    <td>
+      <div class="strong">李昊</div>
+      <div class="sub">PE-Array</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-25 · 3 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Array 侧 refresh pattern 复测」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>制定 pattern，执行复测</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 需要通过 8d 流程系统性分析并输出改善方案 待指派 qa 待接受 非常紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2</span></td>
+    <td><span class="depth depth-0">1</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:0">
+      <div class="node-title">需要通过 8D 流程系统性分析并输出改善方案</div>
+      <div class="parent-line">Case 根节点</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">QA</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.001 8d 报告撰写 需要通过 8d 流程系统性分析并输出改善方案 孙楠 qa ft 进行中 非常紧急 预期通过本动作确认「8d 报告撰写」是否成立，并定位相关失效特征。 按 8d 流程撰写报告 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.1</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.001</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">8D 报告撰写</div>
+      <div class="parent-line">上级：需要通过 8D 流程系统性分析并输出改善方案</div>
+    </td>
+    <td>
+      <div class="strong">孙楠</div>
+      <div class="sub">QA · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:70%"></i></div>
+      <div class="sub">进度 70%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 2 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「8D 报告撰写」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>按 8D 流程撰写报告</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.004 pm 跨部门 8d 协调 需要通过 8d 流程系统性分析并输出改善方案 孙楠 pm ft 进行中 非常紧急 预期通过本动作确认「pm 跨部门 8d 协调」是否成立，并定位相关失效特征。 协调各部门完成 8d 各步骤 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2</span></td>
+    <td><span class="depth depth-1">2</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.004</td>
+    <td class="title-cell" style="--depth:1">
+      <div class="node-title">PM 跨部门 8D 协调</div>
+      <div class="parent-line">上级：需要通过 8D 流程系统性分析并输出改善方案</div>
+    </td>
+    <td>
+      <div class="strong">孙楠</div>
+      <div class="sub">PM · FT</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:60%"></i></div>
+      <div class="sub">进度 60%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-26 · 4 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「PM 跨部门 8D 协调」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>协调各部门完成 8D 各步骤</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 8d 需要分步骤执行：d4 根因分析、d5 改善措施 pm 跨部门 8d 协调 待指派 pm 待接受 非常紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1</span></td>
+    <td><span class="depth depth-2">3</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:2">
+      <div class="node-title">8D 需要分步骤执行：D4 根因分析、D5 改善措施</div>
+      <div class="parent-line">上级：PM 跨部门 8D 协调</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PM</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.004.001 8d d4 根因复核（pe） 8d 需要分步骤执行：d4 根因分析、d5 改善措施 吴迪 pe 进行中 非常紧急 预期通过本动作确认「8d d4 根因复核（pe）」是否成立，并定位相关失效特征。 pe 侧复核根因分析 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1.1</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.004.001</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">8D D4 根因复核（PE）</div>
+      <div class="parent-line">上级：8D 需要分步骤执行：D4 根因分析、D5 改善措施</div>
+    </td>
+    <td>
+      <div class="strong">吴迪</div>
+      <div class="sub">PE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-非常紧急">非常紧急</span></div>
+      <div class="progress"><i style="width:40%"></i></div>
+      <div class="sub">进度 40%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-24 · 2 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「8D D4 根因复核（PE）」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>PE 侧复核根因分析</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="进行中" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.004.002 8d d5 改善措施输出 8d 需要分步骤执行：d4 根因分析、d5 改善措施 张伟 pte 进行中 紧急 预期通过本动作确认「8d d5 改善措施输出」是否成立，并定位相关失效特征。 收集改善项，输出计划 fsa分析 fsa分析报告.pdf failmap.png bin统计.xlsx">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1.2</span></td>
+    <td><span class="depth depth-3">4</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.004.002</td>
+    <td class="title-cell" style="--depth:3">
+      <div class="node-title">8D D5 改善措施输出</div>
+      <div class="parent-line">上级：8D 需要分步骤执行：D4 根因分析、D5 改善措施</div>
+    </td>
+    <td>
+      <div class="strong">张伟</div>
+      <div class="sub">PTE</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-进行中">进行中</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:10%"></i></div>
+      <div class="sub">进度 10%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-26 · 4 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「8D D5 改善措施输出」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>FSA分析</span></div><div class="detail-line"><b>分派附言</b><span>收集改善项，输出计划</span></div><div class="detail-line"><b>附件</b><span>FSA分析报告.pdf、failmap.png、bin统计.xlsx</span></div></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="thought" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 改善措施需要新的 screening pattern 8d d5 改善措施输出 待指派 pe-array 待接受 紧急">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1.2.1</span></td>
+    <td><span class="depth depth-4">5</span></td>
+    <td><span class="tag thought">思路 / 怀疑方向</span></td>
+    <td class="mono">—</td>
+    <td class="title-cell" style="--depth:4">
+      <div class="node-title">改善措施需要新的 screening pattern</div>
+      <div class="parent-line">上级：8D D5 改善措施输出</div>
+    </td>
+    <td>
+      <div class="strong">待指派</div>
+      <div class="sub">PE-Array</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">未设置截止日期</div>
+    </td>
+    <td class="long-cell">—</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><span class="muted">无补充信息</span></td>
+  </tr><tr class="wbs-row" data-case="EA-260511000005" data-kind="task" data-status="待接受" data-search="ea-260511000005 ddr4 lot 退货影响分析 ea-260511000005.004.002.001 array 侧 screening pattern 设计 改善措施需要新的 screening pattern 周宇 pe-array 待接受 紧急 预期通过本动作确认「array 侧 screening pattern 设计」是否成立，并定位相关失效特征。 设计新的 screening pattern 测试程式分析 pattern对比.pdf shmoo.png 测试log.txt">
+    <td class="sticky-col wbs-cell"><span class="wbs-code">2.2.1.2.1.1</span></td>
+    <td><span class="depth depth-5">6</span></td>
+    <td><span class="tag task">执行任务</span></td>
+    <td class="mono">EA-260511000005.004.002.001</td>
+    <td class="title-cell" style="--depth:5">
+      <div class="node-title">Array 侧 screening pattern 设计</div>
+      <div class="parent-line">上级：改善措施需要新的 screening pattern</div>
+    </td>
+    <td>
+      <div class="strong">周宇</div>
+      <div class="sub">PE-Array</div>
+    </td>
+    <td>
+      <div class="stack"><span class="tag status-待接受">待接受</span><span class="tag urgency-紧急">紧急</span></div>
+      <div class="progress"><i style="width:0%"></i></div>
+      <div class="sub">进度 0%</div>
+    </td>
+    <td>
+      <div>—</div>
+      <div class="sub">截止 2026-04-27 · 5 天</div>
+    </td>
+    <td class="long-cell">预期通过本动作确认「Array 侧 screening pattern 设计」是否成立，并定位相关失效特征。</td>
+    <td class="long-cell">
+      <div>—</div>
+      
+    </td>
+    <td class="details-cell"><div class="detail-line"><b>任务类型</b><span>测试程式分析</span></div><div class="detail-line"><b>分派附言</b><span>设计新的 screening pattern</span></div><div class="detail-line"><b>附件</b><span>Pattern对比.pdf、shmoo.png、测试log.txt</span></div></td>
+  </tr></tbody>
+        </table>
+        <div class="filter-empty" hidden>当前筛选条件下没有匹配节点</div>
+      </div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000006" data-case-search="ea-260511000006 emmc 写入寿命衰减异常分析 孙楠 — — —" >
+    <summary>
+      <div class="case-index">06</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000006</div>
+        <h2>eMMC 写入寿命衰减异常分析</h2>
+        <div class="case-tags"><span class="tag level-L1">L1</span><span class="tag urgency-非常紧急">非常紧急</span><span class="tag case-status">已关闭</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>孙楠</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>李娜 · DA、陈磊 · EFA、王芳 · CP、赵敏 · FT</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE、FT、DA</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-06-01 / 2026-06-09 09:30</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000007" data-case-search="ea-260511000007 wlcsp 焊球桥连失效复现 张伟 — — —" >
+    <summary>
+      <div class="case-index">07</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000007</div>
+        <h2>WLCSP 焊球桥连失效复现</h2>
+        <div class="case-tags"><span class="tag level-L2">L2</span><span class="tag urgency-紧急">紧急</span><span class="tag case-status">已关闭</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>张伟</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>陈磊 · EFA、王芳 · CP</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PTE、EFA</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-05-28 / 2026-06-09 08:10</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000008" data-case-search="ea-260511000008 晶圆边缘良率衰退追因 陈磊 — — —" >
+    <summary>
+      <div class="case-index">08</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000008</div>
+        <h2>晶圆边缘良率衰退追因</h2>
+        <div class="case-tags"><span class="tag level-L3">L3</span><span class="tag urgency-紧急">紧急</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>陈磊</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>王芳 · CP、周宇 · PE、李昊 · PE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>CP、PE</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-05-30 / 2026-06-08 16:40</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000009" data-case-search="ea-260511000009 划片崩裂异常追溯 孙浩 — — —" >
+    <summary>
+      <div class="case-index">09</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000009</div>
+        <h2>划片崩裂异常追溯</h2>
+        <div class="case-tags"><span class="tag level-L3">L3</span><span class="tag urgency-一般">一般</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>孙浩</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>赵敏 · FT</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>CP、QA</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-05-25 / 2026-06-08 11:20</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000010" data-case-search="ea-260511000010 bump 高度 cpk 不足排查 赵敏 — — —" >
+    <summary>
+      <div class="case-index">10</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000010</div>
+        <h2>Bump 高度 CPK 不足排查</h2>
+        <div class="case-tags"><span class="tag level-L3">L3</span><span class="tag urgency-一般">一般</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>赵敏</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>周宇 · PE、吴迪 · PE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PKG、PE</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-05-20 / 2026-06-07 14:00</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000011" data-case-search="ea-260511000011 ft 工位温漂复测异常 周宇 — — —" >
+    <summary>
+      <div class="case-index">11</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000011</div>
+        <h2>FT 工位温漂复测异常</h2>
+        <div class="case-tags"><span class="tag level-L4">L4</span><span class="tag urgency-一般">一般</span><span class="tag case-status">待处理</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>周宇</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>赵敏 · FT</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>FT</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-06-05 / 2026-06-08 10:05</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000012" data-case-search="ea-260511000012 回流焊空洞率新案 李娜 — — —" >
+    <summary>
+      <div class="case-index">12</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000012</div>
+        <h2>回流焊空洞率新案</h2>
+        <div class="case-tags"><span class="tag level-L4">L4</span><span class="tag urgency-一般">一般</span><span class="tag case-status">进行中</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>李娜</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>陈磊 · EFA</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>PKG</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-06-09 / 2026-06-09 07:50</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000013" data-case-search="ea-260511000013 slt 老化箱温控偏差告警 系统自动 — — —" >
+    <summary>
+      <div class="case-index">13</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000013</div>
+        <h2>SLT 老化箱温控偏差告警</h2>
+        <div class="case-tags"><span class="tag level-L2">L2</span><span class="tag urgency-紧急">紧急</span><span class="tag case-status">待处理</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>系统自动</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>周宇 · PE</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>SLT、PE</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-06-09 / 2026-06-09 06:30</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details><details class="case-section" data-case-section="EA-260511000014" data-case-search="ea-260511000014 探针卡磨损导致误判结案 王芳 — — —" >
+    <summary>
+      <div class="case-index">14</div>
+      <div class="case-summary-main">
+        <div class="case-code">EA-260511000014</div>
+        <h2>探针卡磨损导致误判结案</h2>
+        <div class="case-tags"><span class="tag level-L4">L4</span><span class="tag urgency-不紧急">不紧急</span><span class="tag case-status">已关闭</span></div>
+      </div>
+      <div class="case-kpis">
+        <div><strong>0</strong><span>全部节点</span></div>
+        <div><strong>0</strong><span>思路方向</span></div>
+        <div><strong>0</strong><span>执行任务</span></div>
+        <div><strong>0</strong><span>已完成</span></div>
+      </div>
+      <span class="chevron">⌄</span>
+    </summary>
+    <div class="case-content">
+      <div class="case-meta">
+  <div class="meta-item wide"><span>发起事由</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>背景（What &amp; Why）</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>层级定义理由</span><strong>—</strong></div>
+  <div class="meta-item"><span>Owner</span><strong>王芳</strong></div>
+  <div class="meta-item"><span>参与人</span><strong>孙浩 · CP</strong></div>
+  <div class="meta-item"><span>协作部门</span><strong>CP</strong></div>
+  <div class="meta-item"><span>产品 / 物料</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>规格</span><strong>— · —</strong></div>
+  <div class="meta-item"><span>失效阶段 / 平台</span><strong>— / —</strong></div>
+  <div class="meta-item"><span>失效模式</span><strong>—</strong></div>
+  <div class="meta-item"><span>失效率 / PPM</span><strong>— PPM</strong></div>
+  <div class="meta-item"><span>客户</span><strong>—</strong></div>
+  <div class="meta-item"><span>PD ID</span><strong>—</strong></div>
+  <div class="meta-item"><span>创建 / 更新</span><strong>2026-05-10 / 2026-06-02 15:00</strong></div>
+  <div class="meta-item wide"><span>AI 进展</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方法</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 结论</span><strong>—</strong></div>
+  <div class="meta-item wide"><span>AI 方案</span><strong>—</strong></div></div>
+      <div class="case-empty"><strong>尚未拆解任务</strong><span>该 Case 已保留在 WBS 总表中，当前没有思路、怀疑方向或执行任务卡片。</span></div>
+    </div>
+  </details></div>
+      <div class="footer">EA Platform · Case WBS · 数据来源 app/src/app/components/data.ts</div>
+    </main>
+  </div>
+  <script>
+    (function(){
+      var search=document.getElementById('search');
+      var caseFilter=document.getElementById('caseFilter');
+      var kindFilter=document.getElementById('kindFilter');
+      var statusFilter=document.getElementById('statusFilter');
+      var sections=Array.from(document.querySelectorAll('.case-section'));
+      function applyFilters(){
+        var q=search.value.trim().toLowerCase();
+        var selectedCase=caseFilter.value;
+        var kind=kindFilter.value;
+        var status=statusFilter.value;
+        var visibleCases=0,visibleNodes=0,visibleThoughts=0,visibleTasks=0,visibleDone=0;
+        sections.forEach(function(section){
+          var sectionCase=section.dataset.caseSection;
+          var caseMatch=selectedCase==='all'||selectedCase===sectionCase;
+          var qMatchesCase=!q||(section.dataset.caseSearch||'').includes(q);
+          var rows=Array.from(section.querySelectorAll('.wbs-row'));
+          var shown=0;
+          rows.forEach(function(row){
+            var ok=caseMatch&&(qMatchesCase||(row.dataset.search||'').includes(q))&&(kind==='all'||row.dataset.kind===kind)&&(status==='all'||row.dataset.status===status);
+            row.classList.toggle('row-hidden',!ok);
+            if(ok){shown++;visibleNodes++;if(row.dataset.kind==='thought')visibleThoughts++;else visibleTasks++;if(row.dataset.status==='已完成'&&row.dataset.kind==='task')visibleDone++;}
+          });
+          var showSection=caseMatch&&((rows.length===0&&(!q||qMatchesCase))||shown>0);
+          section.hidden=!showSection;
+          if(showSection){visibleCases++;if(q||kind!=='all'||status!=='all')section.open=true;}
+          var empty=section.querySelector('.filter-empty');if(empty)empty.hidden=shown>0;
+        });
+        document.getElementById('metricCases').textContent=visibleCases;
+        document.getElementById('metricNodes').textContent=visibleNodes;
+        document.getElementById('metricThoughts').textContent=visibleThoughts;
+        document.getElementById('metricTasks').textContent=visibleTasks;
+        document.getElementById('metricDone').textContent=visibleDone;
+      }
+      [search,caseFilter,kindFilter,statusFilter].forEach(function(control){control.addEventListener(control.tagName==='INPUT'?'input':'change',applyFilters);});
+      document.getElementById('resetFilters').addEventListener('click',function(){search.value='';caseFilter.value='all';kindFilter.value='all';statusFilter.value='all';applyFilters();});
+      document.getElementById('expandAll').addEventListener('click',function(){sections.filter(function(s){return !s.hidden;}).forEach(function(s){s.open=true;});});
+      document.getElementById('collapseAll').addEventListener('click',function(){sections.forEach(function(s){s.open=false;});});
+      document.querySelectorAll('[data-jump]').forEach(function(button){button.addEventListener('click',function(){var target=document.querySelector('[data-case-section="'+button.dataset.jump+'"]');if(target){target.hidden=false;target.open=true;target.scrollIntoView({behavior:'smooth',block:'start'});}});});
+      document.getElementById('exportCsv').addEventListener('click',function(){
+        var lines=[['Case','WBS','节点类型','任务编号','卡片名称','上级节点','负责人','部门/站点','状态','紧急度','进度','期望时间','截止时间','预期/怀疑','结论','有效性']];
+        document.querySelectorAll('.case-section:not([hidden]) .wbs-row:not(.row-hidden)').forEach(function(row){
+          var cells=Array.from(row.cells).map(function(cell){return cell.innerText.replace(/s+/g,' ').trim();});
+          lines.push([row.dataset.case,cells[0],cells[2],cells[3],cells[4],cells[4],cells[5],cells[5],row.dataset.status,cells[6],cells[6],cells[7],cells[7],cells[8],cells[9],cells[9]]);
+        });
+        var csv='﻿'+lines.map(function(line){return line.map(function(value){return '"'+String(value||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+        var url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));var a=document.createElement('a');a.href=url;a.download='EA-Case-WBS.csv';a.click();URL.revokeObjectURL(url);
+      });
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>
