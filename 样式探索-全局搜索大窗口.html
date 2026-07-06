@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>样式探索 · 全局搜索大窗口</title>
+<style>
+  :root{
+    color-scheme:light;
+    --blue:#0052D9; --blue-2:#003FA8; --cyan:#00A4FF;
+    --ink:#0f172a; --sub:#64748b; --line:#e6ebf2; --bg:#f6f8fc;
+    font-family:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; color:var(--ink);
+    background:linear-gradient(120deg,#eef2ff,#f8fafc 60%);}
+  /* 模拟应用底衬 */
+  .app-hint{position:fixed; top:56px; left:0; right:0; text-align:center; color:#94a3b8; font-size:12px; z-index:1;}
+  .switch{position:fixed; top:0; left:0; right:0; display:flex; gap:6px; z-index:60; background:rgba(255,255,255,.95); border-bottom:1px solid var(--line); padding:9px 14px; overflow-x:auto; backdrop-filter:blur(6px);}
+  .switch button{white-space:nowrap; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:#fff; color:#475569; cursor:pointer;}
+  .switch button.on{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .switch button b{font-variant-numeric:tabular-nums; opacity:.55; margin-right:5px;}
+  .switch::-webkit-scrollbar{height:6px;} .switch::-webkit-scrollbar-thumb{background:#cbd5e1; border-radius:999px;}
+
+  /* 遮罩 + 窗口 */
+  .overlay{position:fixed; inset:0; background:rgba(15,23,42,.42); backdrop-filter:blur(3px); display:grid; place-items:center; z-index:50; padding:96px 32px 32px;}
+  .modal{width:min(1040px,94vw); height:min(680px,86vh); background:#fff; border-radius:20px; box-shadow:0 40px 100px -30px rgba(2,6,23,.55); display:flex; flex-direction:column; overflow:hidden;}
+
+  /* 顶部搜索条 */
+  .mhead{display:flex; align-items:center; gap:12px; padding:18px 22px; border-bottom:1px solid var(--line);}
+  .mhead .sicon{color:var(--blue);}
+  .mhead .qi{flex:1; font-size:19px; color:#1e293b; font-weight:500;}
+  .mhead .qi em{font-style:normal; color:var(--blue); border-bottom:2px solid rgba(0,82,217,.25);}
+  .mhead .caret{width:2px; height:22px; background:var(--blue); animation:bl 1s steps(1) infinite;}
+  @keyframes bl{50%{opacity:0;}}
+  .mhead .total{font-size:12px; color:#94a3b8; white-space:nowrap;}
+  .mhead .esc{font-size:11px; color:#94a3b8; border:1px solid var(--line); border-radius:6px; padding:3px 8px; cursor:pointer;}
+
+  .mbody{flex:1; min-height:0; display:flex;}
+
+  /* —— 左侧筛选栏（方案A） —— */
+  .facets{width:210px; border-right:1px solid var(--line); background:#fbfcfe; padding:16px 14px; overflow:auto; flex:none;}
+  .facets .fg{margin-bottom:20px;}
+  .facets .fh{font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:.06em; margin-bottom:8px;}
+  .facets .fo{display:flex; align-items:center; justify-content:space-between; font-size:13px; color:#475569; padding:7px 10px; border-radius:8px; cursor:pointer;}
+  .facets .fo:hover{background:#eef2f8;}
+  .facets .fo.on{background:rgba(0,82,217,.08); color:var(--blue); font-weight:600;}
+  .facets .fo .n{font-size:11px; color:#94a3b8;}
+  .facets .fo.on .n{color:var(--blue);}
+
+  /* —— 结果列 —— */
+  .results{flex:1; min-width:0; overflow:auto; padding:8px 0;}
+  .rsec{padding:6px 0;}
+  .rsec .sh{font-size:11px; font-weight:700; color:#94a3b8; padding:8px 22px 4px; letter-spacing:.04em;}
+  .ri{display:flex; align-items:center; gap:12px; padding:11px 22px; cursor:pointer; border-left:3px solid transparent;}
+  .ri:hover{background:#f6f8fc;}
+  .ri.sel{background:rgba(0,82,217,.06); border-left-color:var(--blue);}
+  .ri .bdg{flex:none; font-size:10px; font-weight:700; padding:3px 9px; border-radius:7px;}
+  .ri .bdg.case{background:rgba(0,82,217,.09); color:var(--blue);}
+  .ri .bdg.task{background:rgba(0,164,255,.13); color:#0284c7;}
+  .ri .rb{min-width:0; flex:1;}
+  .ri .rt{font-size:14px; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ri .rm{font-size:12px; color:var(--sub); margin-top:3px; display:flex; gap:8px; align-items:center;}
+  .ri .rm .code{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:11px; color:#7c8db0;}
+  .ri em.hl{font-style:normal; color:var(--blue); font-weight:600;}
+  .ftag{font-size:10px; color:#7c8db0; background:#eef2f8; border-radius:6px; padding:2px 7px;}
+  .stat{font-size:11px; padding:2px 8px; border-radius:999px;}
+  .stat.进行中{background:#e0f2fe; color:#0369a1;}
+  .stat.待处理,.stat.待接受{background:#fef3c7; color:#b45309;}
+  .stat.已完成{background:#dcfce7; color:#15803d;}
+  .stat.已升级{background:#fee2e2; color:#b91c1c;}
+
+  /* —— 右侧预览 —— */
+  .preview{width:340px; flex:none; border-left:1px solid var(--line); background:#fbfcfe; overflow:auto; padding:22px;}
+  .preview .pbdg{display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:7px; margin-bottom:10px;}
+  .preview .pbdg.case{background:rgba(0,82,217,.09); color:var(--blue);}
+  .preview .pbdg.task{background:rgba(0,164,255,.13); color:#0284c7;}
+  .preview h3{margin:0 0 4px; font-size:17px; line-height:1.4;}
+  .preview .pcode{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:12px; color:#7c8db0; margin-bottom:16px;}
+  .preview .kv{display:grid; grid-template-columns:76px 1fr; gap:9px 12px; font-size:13px; margin-bottom:16px;}
+  .preview .kv dt{color:#94a3b8;} .preview .kv dd{margin:0; color:#334155;}
+  .preview .snip{font-size:13px; color:#475569; line-height:1.7; background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:16px;}
+  .preview .acts{display:flex; gap:10px;}
+  .btn{flex:1; text-align:center; font-size:13px; padding:9px 0; border-radius:9px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#475569;}
+  .btn.pri{background:linear-gradient(90deg,var(--blue),var(--blue-2)); color:#fff; border:none;}
+  .preview .empty{color:#94a3b8; font-size:13px; text-align:center; margin-top:60px;}
+
+  /* —— 顶部 Tab（方案B） —— */
+  .tabs{display:flex; gap:4px; padding:10px 18px 0; border-bottom:1px solid var(--line);}
+  .tab{font-size:13px; padding:9px 14px; border-bottom:2px solid transparent; color:#64748b; cursor:pointer; margin-bottom:-1px;}
+  .tab.on{color:var(--blue); border-bottom-color:var(--blue); font-weight:600;}
+  .tab .c{font-size:11px; color:#94a3b8; margin-left:4px;}
+  .tab.on .c{color:var(--blue);}
+
+  /* —— 卡片网格（方案C） —— */
+  .chipsbar{display:flex; gap:8px; padding:14px 22px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .chip{font-size:12px; padding:6px 13px; border-radius:999px; border:1px solid var(--line); background:#fff; color:#475569; cursor:pointer;}
+  .chip.on{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .cards{padding:18px 22px; display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; overflow:auto;}
+  .rcard{border:1px solid var(--line); border-radius:14px; padding:15px; cursor:pointer; transition:.15s;}
+  .rcard:hover{border-color:var(--blue); box-shadow:0 12px 26px -12px rgba(0,82,217,.3); transform:translateY(-2px);}
+  .rcard .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .rcard .ct{font-size:14px; font-weight:600; color:#1e293b; margin-bottom:6px; line-height:1.4;}
+  .rcard .cc{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:11px; color:#7c8db0; margin-bottom:10px;}
+  .rcard .cmeta{display:flex; gap:8px; flex-wrap:wrap; font-size:11px; color:#64748b;}
+  .rcard .cmeta b{color:#334155; font-weight:500;}
+
+  /* ===== 扩展布局补充样式 ===== */
+  .catnav{width:196px; border-right:1px solid var(--line); background:#fbfcfe; padding:14px 12px; overflow:auto; flex:none;}
+  .cards{flex:1;}
+  /* 表格 */
+  .tbl{width:100%; border-collapse:collapse; font-size:13px;}
+  .tbl thead th{position:sticky; top:0; background:#f8fafc; text-align:left; font-size:11px; color:#94a3b8; font-weight:700; padding:11px 18px; border-bottom:1px solid var(--line);}
+  .tbl td{padding:12px 18px; border-bottom:1px solid #f1f5f9; color:#334155;}
+  .tbl td.code{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:11px; color:#7c8db0;}
+  .tbl tbody tr{cursor:pointer;}
+  .tbl tbody tr:hover{background:#f6f8fc;}
+  .tbl tbody tr.sel{background:rgba(0,82,217,.06);}
+  .tbl .bdg{font-size:10px; font-weight:700; padding:3px 9px; border-radius:7px;}
+  .tbl .bdg.case{background:rgba(0,82,217,.09); color:var(--blue);} .tbl .bdg.task{background:rgba(0,164,255,.13); color:#0284c7;}
+  /* 看板 */
+  .kanban{display:flex; gap:14px; padding:16px; overflow:auto; flex:1;}
+  .kcol{flex:1; min-width:210px; background:#f8fafc; border-radius:12px; padding:10px; align-self:flex-start;}
+  .khead{font-size:12px; font-weight:700; color:#334155; padding:4px 6px 10px; display:flex; justify-content:space-between;}
+  .kcard{background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px; margin-bottom:8px; cursor:pointer;}
+  .kcard:hover{border-color:var(--blue); box-shadow:0 8px 18px -10px rgba(0,82,217,.4);}
+  .kcard .kt{font-size:13px; color:#1e293b; margin-bottom:5px;}
+  .kcard .kc{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:10px; color:#7c8db0;}
+  /* 统计面板 */
+  .stats{width:290px; flex:none; border-left:1px solid var(--line); background:#fbfcfe; padding:22px; overflow:auto;}
+  .stats h4{margin:0 0 10px; font-size:12px; color:#94a3b8; font-weight:700;}
+  .statrow{margin-bottom:13px;}
+  .statrow .l{display:flex; justify-content:space-between; font-size:12px; color:#475569; margin-bottom:5px;}
+  .bar{height:7px; border-radius:999px; background:#eef2f8; overflow:hidden;}
+  .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--blue),var(--cyan));}
+  /* spotlight */
+  .spot{flex:1; display:flex; justify-content:center; padding:24px; overflow:auto;}
+  .spot .sl{width:min(600px,100%);}
+  /* 分区块 */
+  .blocks{flex:1; overflow:auto; padding:6px 22px 22px;}
+  .blocks .bk{margin-top:16px;}
+  .blocks .bkh{font-size:12px; font-weight:700; color:#334155; margin:0 0 10px; display:flex; justify-content:space-between;}
+  .blocks .bkh span{color:#94a3b8; font-weight:500;}
+  /* 手风琴 */
+  .acc .grph{cursor:pointer; padding:13px 22px; display:flex; align-items:center; border-bottom:1px solid #f1f5f9;}
+  .acc .grph .ar{transition:.2s; color:#94a3b8; font-size:10px;}
+  .acc .grph.open .ar{transform:rotate(90deg);}
+  /* hero */
+  .hero{padding:20px 22px 8px;} .hero .ht{font-size:14px; color:#475569;} .hero .ht b{color:var(--blue);}
+  /* 密集列表 */
+  .results.dense .ri{padding:7px 22px;} .results.dense .rm{margin-top:1px;}
+  /* 深色命令台 */
+  .dk{flex:1; display:flex; min-width:0; background:#0b1220;}
+  .dk .catnav,.dk .preview{background:#0f172a; border-color:#1e293b;}
+  .dk .fh{color:#64748b;} .dk .fo{color:#94a3b8;} .dk .fo:hover{background:#1e293b;} .dk .fo.on{background:rgba(0,82,217,.32); color:#93c5fd;} .dk .fo .n{color:#64748b;}
+  .dk .results{background:#0b1220;}
+  .dk .ri:hover{background:#1e293b;} .dk .ri.sel{background:rgba(0,82,217,.22); border-left-color:#3b82f6;} .dk .ri .rt{color:#e2e8f0;} .dk .ri .rm{color:#64748b;} .dk .ri .rm .code{color:#64748b;} .dk .ftag{background:#1e293b; color:#94a3b8;}
+  .dk .preview h3{color:#e2e8f0;} .dk .preview .pcode{color:#64748b;} .dk .preview .kv dt{color:#64748b;} .dk .preview .kv dd{color:#cbd5e1;} .dk .snip{background:#0f172a; border-color:#1e293b; color:#94a3b8;} .dk .btn{background:#1e293b; border-color:#334155; color:#cbd5e1;} .dk .btn.pri{background:linear-gradient(90deg,var(--blue),var(--blue-2)); color:#fff;}
+</style>
+</head>
+<body>
+<div class="switch" id="switch"></div>
+<div class="app-hint">（模拟：用户点击顶部全局搜索后弹出的大窗口 · 顶部切换 20 个布局方案）</div>
+
+<div class="overlay">
+  <div class="modal">
+    <div class="mhead">
+      <svg class="sicon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+      <div class="qi">EA <em>张伟</em></div>
+      <div class="caret"></div>
+      <div class="total" id="total"></div>
+      <div class="esc">ESC 关闭</div>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<script>
+// —— 统一数据（含预览详情 + 命中字段标签）——
+const ITEMS = [
+  { id:'c1', kind:'case', title:'CP Vdd 漂移致批量 Bin7 失效', code:'EA-260511000001', owner:'张伟', level:'L2', status:'进行中', product:'XC7Z020', customer:'北美 A 客户', failMode:'漏电', tags:['编号','Owner','客户'], snip:'CP 阶段出现 Vdd 漂移，导致同批次 Bin7 集中失效，怀疑与晶圆边缘工艺波动相关，已展开 FSA 与程式复核。' },
+  { id:'c2', kind:'case', title:'SLT 随机停机复现追查', code:'EA-260511000042', owner:'赵敏', level:'L3', status:'进行中', product:'GD32F4', customer:'华东 B 客户', failMode:'随机停机', tags:['编号'], snip:'系统级测试出现随机停机，无法稳定复现，正在搭建 SLT 复现环境采集触发条件。' },
+  { id:'c3', kind:'case', title:'FT 高温 Icc 漏电超规', code:'EA-260511000018', owner:'王芳', level:'L2', status:'待处理', product:'XC7Z020', customer:'北美 A 客户', failMode:'漏电', tags:['名称','失效模式'], snip:'FT 高温段 Icc 静态电流超上限，疑似漏电通路，待分配 FSA 分析。' },
+  { id:'c4', kind:'case', title:'RDBI 数据保持力异常批次', code:'EA-260511000027', owner:'刘洋', level:'L4', status:'待处理', product:'W25Q128', customer:'欧洲 C 客户', failMode:'保持力', tags:['名称'], snip:'RDBI 后数据保持力下降，集中于特定 lot，需确认存储单元退化机理。' },
+  { id:'c5', kind:'case', title:'CP 阶段 Bitmap 边缘失效', code:'EA-260511000009', owner:'张伟', level:'L3', status:'进行中', product:'XC7Z020', customer:'北美 A 客户', failMode:'边缘失效', tags:['Owner'], snip:'Bitmap 显示失效点集中在晶圆边缘环带，怀疑光刻/刻蚀均匀性问题。' },
+  { id:'c6', kind:'case', title:'封装后开路批量退货', code:'EA-260511000051', owner:'张伟', level:'L1', status:'已升级', product:'BGA-256', customer:'北美 A 客户', failMode:'开路', tags:['Owner'], snip:'客户端封装后开路批量退货，已升级为 L1，跨部门联合排查焊球与基板。' },
+  { id:'t1', kind:'task', title:'FSA 定位失效区域', code:'EA-260511000001.003', owner:'陈磊', dept:'EFA', type:'FSA分析', status:'进行中', tags:['编号'], snip:'对失效样品做 FSA，结合 EMMI/OBIRCH 定位漏电点，输出坐标供切片。' },
+  { id:'t2', kind:'task', title:'测试程式复核 timing', code:'EA-260511000001.005', owner:'刘洋', dept:'PTE', type:'测试程式分析', status:'待接受', tags:['编号'], snip:'复核测试程式 timing set，排查是否因 setup/hold 余量不足导致误判。' },
+  { id:'t3', kind:'task', title:'SLT 复现高温停机', code:'EA-260511000042.002', owner:'赵敏', dept:'FT', type:'SLT复现', status:'进行中', tags:['任务名'], snip:'在 SLT 平台叠加高温应力，尝试复现停机并抓取触发向量。' },
+  { id:'t4', kind:'task', title:'测试代码分析 patch 影响面', code:'EA-260511000018.004', owner:'李娜', dept:'DA', type:'测试代码分析', status:'进行中', tags:['任务名'], snip:'评估最近一次测试代码 patch 对 Icc 判据的影响范围。' },
+  { id:'t5', kind:'task', title:'FSA 分析切片结果', code:'EA-260511000009.001', owner:'张伟', dept:'PTE', type:'FSA分析', status:'已完成', tags:['负责人'], snip:'切片确认边缘环带存在缺陷层，已出具分析结论，有效性：有效。' },
+  { id:'t6', kind:'task', title:'程式参数回归验证', code:'EA-260511000009.006', owner:'张伟', dept:'PTE', type:'测试程式分析', status:'进行中', tags:['负责人'], snip:'调整程式参数后做回归，确认不引入良率回退。' },
+];
+const TOTAL = ITEMS.length;
+const CASE_N = ITEMS.filter(i=>i.kind==='case').length;
+const TASK_N = ITEMS.filter(i=>i.kind==='task').length;
+
+const state = { layout:0, type:'all', status:'all', tab:'all', chip:'all', cat:'all', sel:'c1', acc:null };
+document.getElementById('total').textContent = `共 ${TOTAL} 条`;
+const STATUSES = [...new Set(ITEMS.map(i=>i.status))];
+const CATS = [...new Set(ITEMS.flatMap(i=>i.tags))];
+const cnt = fn => ITEMS.filter(fn).length;
+
+const kindLabel = k => k==='case' ? 'Case' : '任务';
+const hl = s => String(s).replace('张伟','<em class="hl">张伟</em>');
+function metaLine(it){
+  const who = it.kind==='case' ? it.owner : `${it.owner}·${it.dept}`;
+  return `<span class="code">${it.code}</span> · ${hl(who)}`;
+}
+function riHTML(it){
+  return `<div class="ri ${it.id===state.sel?'sel':''}" data-id="${it.id}">
+    <span class="bdg ${it.kind}">${kindLabel(it.kind)}</span>
+    <div class="rb"><div class="rt">${it.title}</div><div class="rm">${metaLine(it)}</div></div>
+    <span class="stat ${it.status}">${it.status}</span>
+    <span class="ftag">${it.tags[0]}</span>
+  </div>`;
+}
+function previewHTML(){
+  const it = ITEMS.find(i=>i.id===state.sel);
+  if(!it) return `<div class="empty">选择结果查看详情</div>`;
+  const kv = it.kind==='case'
+    ? [['编号',it.code],['Owner',it.owner],['等级',it.level],['状态',it.status],['产品',it.product],['客户',it.customer],['失效模式',it.failMode]]
+    : [['编号',it.code],['负责人',it.owner],['部门',it.dept],['任务类型',it.type],['状态',it.status]];
+  return `<div class="pbdg ${it.kind}">${kindLabel(it.kind)}</div>
+    <h3>${it.title}</h3>
+    <div class="pcode">${it.code}</div>
+    <dl class="kv">${kv.map(([k,v])=>`<dt>${k}</dt><dd>${v||'—'}</dd>`).join('')}</dl>
+    <div class="snip">${it.snip}</div>
+    <div class="acts"><div class="btn pri">打开${kindLabel(it.kind)}</div><div class="btn">在新页签打开</div></div>`;
+}
+function cardHTML(it){
+  return `<div class="rcard" data-id="${it.id}">
+    <div class="top"><span class="bdg ${it.kind}" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:7px;${it.kind==='case'?'background:rgba(0,82,217,.09);color:#0052D9':'background:rgba(0,164,255,.13);color:#0284c7'}">${kindLabel(it.kind)}</span><span class="stat ${it.status}">${it.status}</span></div>
+    <div class="ct">${it.title}</div>
+    <div class="cc">${it.code}</div>
+    <div class="cmeta">${it.kind==='case'
+      ? `<span>Owner <b>${hl(it.owner)}</b></span><span>${it.level}</span><span>${it.product}</span>`
+      : `<span>负责人 <b>${hl(it.owner)}</b></span><span>${it.dept}</span><span>${it.type}</span>`}</div>
+  </div>`;
+}
+
+/* ---- 过滤器 ---- */
+const fType = a => a.filter(it => (state.type==='all'||it.kind===state.type) && (state.status==='all'||it.status===state.status));
+const fTab  = a => a.filter(it => state.tab==='all' || (state.tab==='case'&&it.kind==='case') || (state.tab==='task'&&it.kind==='task') || (state.tab==='code'&&it.tags.includes('编号')) || (state.tab==='owner'&&(it.tags.includes('Owner')||it.tags.includes('负责人'))));
+const fChip = a => a.filter(it => state.chip==='all' || it.kind===state.chip);
+const fCat  = a => a.filter(it => state.cat==='all' || it.tags.includes(state.cat));
+
+/* ---- 结构块 ---- */
+const col  = (...k)=>`<div style="flex:1;min-width:0;display:flex;flex-direction:column">${k.join('')}</div>`;
+const rowd = (...k)=>`<div style="flex:1;min-width:0;display:flex;min-height:0">${k.join('')}</div>`;
+const empty = '<div class="empty" style="padding:40px;text-align:center;color:#94a3b8">该分类暂无结果</div>';
+
+function facetsHTML(){
+  const facet=(grp,label,opts)=>`<div class="fg"><div class="fh">${label}</div>${opts.map(o=>`<div class="fo ${state[grp]===o.v?'on':''}" data-facet="${grp}" data-v="${o.v}"><span>${o.t}</span><span class="n">${o.n??''}</span></div>`).join('')}</div>`;
+  return `<div class="facets">${facet('type','类型',[{t:'全部',v:'all',n:TOTAL},{t:'Case',v:'case',n:CASE_N},{t:'任务',v:'task',n:TASK_N}])}${facet('status','状态',[{t:'全部',v:'all'},...STATUSES.map(s=>({t:s,v:s}))])}</div>`;
+}
+function catnavHTML(){
+  return `<div class="catnav"><div class="fg"><div class="fh">命中字段</div>
+    <div class="fo ${state.cat==='all'?'on':''}" data-facet="cat" data-v="all"><span>全部</span><span class="n">${TOTAL}</span></div>
+    ${CATS.map(c=>`<div class="fo ${state.cat===c?'on':''}" data-facet="cat" data-v="${c}"><span>${c}</span><span class="n">${cnt(i=>i.tags.includes(c))}</span></div>`).join('')}
+  </div></div>`;
+}
+function grouped(items){
+  const sec=(t,a)=>a.length?`<div class="rsec"><div class="sh">${t}（${a.length}）</div>${a.map(riHTML).join('')}</div>`:'';
+  return `<div class="results">${sec('Case',items.filter(i=>i.kind==='case'))}${sec('任务',items.filter(i=>i.kind==='task'))||''}${items.length?'':empty}</div>`;
+}
+const flat = (items,cls='')=>`<div class="results ${cls}">${items.map(riHTML).join('')||empty}</div>`;
+const preview = ()=>`<div class="preview">${previewHTML()}</div>`;
+const cards = items=>`<div class="cards">${items.map(cardHTML).join('')||empty}</div>`;
+function tabsHTML(){
+  const tabs=[['all','全部',TOTAL],['case','Case',CASE_N],['task','任务',TASK_N],['code','编号命中',cnt(i=>i.tags.includes('编号'))],['owner','负责人命中',cnt(i=>i.tags.includes('Owner')||i.tags.includes('负责人'))]];
+  return `<div class="tabs">${tabs.map(([v,t,n])=>`<div class="tab ${state.tab===v?'on':''}" data-tab="${v}">${t}<span class="c">${n}</span></div>`).join('')}</div>`;
+}
+function chipsHTML(){
+  return `<div class="chipsbar">${[['all','全部'],['case','Case'],['task','任务']].map(([v,t])=>`<div class="chip ${state.chip===v?'on':''}" data-chip="${v}">${t}</div>`).join('')}</div>`;
+}
+function tableHTML(items){
+  return `<div class="results" style="padding:0"><table class="tbl"><thead><tr><th>类型</th><th>名称</th><th>编号</th><th>负责人</th><th>状态</th></tr></thead><tbody>${items.map(it=>`<tr class="${it.id===state.sel?'sel':''}" data-id="${it.id}"><td><span class="bdg ${it.kind}">${kindLabel(it.kind)}</span></td><td>${it.title}</td><td class="code">${it.code}</td><td>${hl(it.owner)}${it.dept?' · '+it.dept:''}</td><td><span class="stat ${it.status}">${it.status}</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+function kanbanHTML(){
+  return `<div class="kanban">${STATUSES.map(s=>{const a=ITEMS.filter(i=>i.status===s);return `<div class="kcol"><div class="khead"><span class="stat ${s}">${s}</span><span>${a.length}</span></div>${a.map(it=>`<div class="kcard" data-id="${it.id}"><div class="kt">${it.title}</div><div class="kc">${it.code} · ${hl(it.owner)}</div></div>`).join('')}</div>`;}).join('')}</div>`;
+}
+function statsHTML(){
+  const bar=(l,n)=>`<div class="statrow"><div class="l"><span>${l}</span><span>${n}</span></div><div class="bar"><i style="width:${Math.round(n/TOTAL*100)}%"></i></div></div>`;
+  return `<div class="stats"><h4>按类型</h4>${bar('Case',CASE_N)}${bar('任务',TASK_N)}<h4 style="margin-top:18px">按状态</h4>${STATUSES.map(s=>bar(s,cnt(i=>i.status===s))).join('')}<h4 style="margin-top:18px">按命中字段</h4>${CATS.map(c=>bar(c,cnt(i=>i.tags.includes(c)))).join('')}</div>`;
+}
+function duoHTML(){
+  const c=(t,a)=>`<div><div class="colh">${t}<span>${a.length} 条</span></div>${a.map(riHTML).join('')}</div>`;
+  return `<div class="duo" style="flex:1;overflow:auto">${c('Case',ITEMS.filter(i=>i.kind==='case'))}${c('任务',ITEMS.filter(i=>i.kind==='task'))}</div>`;
+}
+function blocksHTML(){
+  const bk=(t,a)=>`<div class="bk"><div class="bkh">${t}<span>${a.length} 条</span></div><div class="cards" style="padding:0;overflow:visible;flex:none">${a.map(cardHTML).join('')}</div></div>`;
+  return `<div class="blocks">${bk('Case',ITEMS.filter(i=>i.kind==='case'))}${bk('任务',ITEMS.filter(i=>i.kind==='task'))}</div>`;
+}
+function accHTML(){
+  const open=state.acc||STATUSES[0];
+  return `<div class="results acc" style="flex:1">${STATUSES.map(s=>{const a=ITEMS.filter(i=>i.status===s);const iso=s===open;return `<div class="grp"><div class="grph ${iso?'open':''}" data-acc="${s}"><span class="ar">▶</span><b style="font-size:13px;color:#334155;margin-left:8px">${s}</b><span style="color:#94a3b8;font-size:12px;margin-left:8px">${a.length} 条</span></div>${iso?a.map(riHTML).join(''):''}</div>`;}).join('')}</div>`;
+}
+const spotHTML = ()=>`<div class="spot"><div class="sl">${ITEMS.map(riHTML).join('')}</div></div>`;
+const heroHTML = ()=>`<div class="hero"><div class="ht">为你找到 <b>${TOTAL}</b> 条与「EA · 张伟」相关的结果</div></div>`;
+
+/* ---- 20 个布局 ---- */
+const LAYOUTS = [
+  { t:'三栏中心',     r:()=>facetsHTML()+grouped(fType(ITEMS))+preview() },
+  { t:'Tab+预览',     r:()=>col(tabsHTML(), rowd(flat(fTab(ITEMS)), preview())) },
+  { t:'卡片网格',     r:()=>col(chipsHTML(), cards(fChip(ITEMS))) },
+  { t:'类目+分组',    r:()=>catnavHTML()+grouped(fCat(ITEMS)) },
+  { t:'预览优先',     r:()=>`<div class="results" style="flex:none;width:320px;border-right:1px solid var(--line)">${ITEMS.map(riHTML).join('')}</div><div class="preview" style="flex:1;width:auto">${previewHTML()}</div>` },
+  { t:'双列+预览',    r:()=>duoHTML()+preview() },
+  { t:'全宽表格',     r:()=>col(chipsHTML(), tableHTML(fChip(ITEMS))) },
+  { t:'分屏 5:5',     r:()=>`<div class="results" style="flex:1;border-right:1px solid var(--line)">${ITEMS.map(riHTML).join('')}</div><div class="preview" style="flex:1;width:auto">${previewHTML()}</div>` },
+  { t:'状态看板',     r:()=>kanbanHTML() },
+  { t:'深色命令台',   r:()=>`<div class="dk">${catnavHTML()}${flat(fCat(ITEMS))}${preview()}</div>` },
+  { t:'分区块',       r:()=>blocksHTML() },
+  { t:'筛选+卡片',    r:()=>facetsHTML()+cards(fType(ITEMS)) },
+  { t:'结果+统计',    r:()=>flat(ITEMS)+statsHTML() },
+  { t:'密集列表',     r:()=>flat(ITEMS,'dense') },
+  { t:'Spotlight',    r:()=>spotHTML() },
+  { t:'Hero+卡片',    r:()=>col(heroHTML(), cards(ITEMS)) },
+  { t:'手风琴',       r:()=>accHTML() },
+  { t:'类目|卡片|预览',r:()=>catnavHTML()+cards(fCat(ITEMS))+preview() },
+  { t:'网格+预览',    r:()=>cards(ITEMS)+preview() },
+  { t:'Tab+卡片',     r:()=>col(tabsHTML(), cards(fTab(ITEMS))) },
+];
+
+const switchEl = document.getElementById('switch');
+switchEl.innerHTML = LAYOUTS.map((l,i)=>`<button data-l="${i}" class="${i===state.layout?'on':''}"><b>${String(i+1).padStart(2,'0')}</b>${l.t}</button>`).join('');
+
+function render(){
+  const b = document.getElementById('mbody');
+  b.innerHTML = LAYOUTS[state.layout].r();
+}
+render();
+
+document.addEventListener('click', e=>{
+  const sw = e.target.closest('.switch button');
+  if(sw){ state.layout=+sw.dataset.l; switchEl.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===sw)); render(); return; }
+  const fo = e.target.closest('[data-facet]'); if(fo){ state[fo.dataset.facet]=fo.dataset.v; render(); return; }
+  const tab= e.target.closest('[data-tab]');   if(tab){ state.tab=tab.dataset.tab; render(); return; }
+  const chip=e.target.closest('[data-chip]');  if(chip){ state.chip=chip.dataset.chip; render(); return; }
+  const ac = e.target.closest('[data-acc]');   if(ac){ state.acc=ac.dataset.acc; render(); return; }
+  const ri = e.target.closest('[data-id]');    if(ri){ state.sel=ri.dataset.id; render(); return; }
+});
+</script>
+</body>
+</html>
