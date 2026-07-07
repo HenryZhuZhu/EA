@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>EA 概念模型 · 整体图</title>
+<style>
+  :root{
+    --blue:#0052D9; --blueDk:#003FA8; --cyan:#00A4FF; --purple:#7A3DFF;
+    --ink:#1d1d1f; --gray:#86868b; --bg:#f5f5f7;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);
+    font-family:"PingFang SC","SF Pro Display","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);}
+  .wrap{width:1600px;margin:0 auto;padding:56px 56px 64px;}
+  .head{margin-bottom:28px;}
+  .kicker{font-size:15px;letter-spacing:2px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+  h1{font-size:40px;margin:8px 0 6px;letter-spacing:-1px;}
+  .sub{font-size:16px;color:var(--gray);}
+  .card{background:#fff;border-radius:22px;padding:34px 30px;
+    box-shadow:0 10px 40px rgba(0,40,120,.08);border:1px solid rgba(0,60,160,.06);}
+  .legend{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:#3a3f4a;}
+  .legend b{color:var(--ink);}
+  .mermaid{font-size:16px;}
+  .foot{margin-top:20px;font-size:13px;color:var(--gray);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">EA Platform · Domain Model</div>
+      <h1>产品 · 阶段 · 项目 · Checklist · Issue 整体概念图</h1>
+      <div class="sub">从产品 0→1 生命周期到共性问题收敛与扩散验证的完整数据关系（对齐版）</div>
+    </div>
+
+    <div class="card">
+      <pre class="mermaid">
+flowchart TD
+    classDef def fill:#eef3ff,stroke:#0052D9,stroke-width:1.5px,color:#12203a;
+    classDef run fill:#eafaf2,stroke:#0a9d63,stroke-width:1.5px,color:#0c3324;
+    classDef solve fill:#f3edff,stroke:#7A3DFF,stroke-width:1.5px,color:#241242;
+    classDef spread fill:#fff2e8,stroke:#e8730c,stroke-width:1.5px,color:#4a2a08;
+    classDef win fill:#e7f8ee,stroke:#0a9d63,stroke-width:2px,color:#0c3324;
+    classDef dead fill:#f3f4f6,stroke:#c2c6cc,color:#9aa0a8;
+    classDef mid fill:#fff6e6,stroke:#e8a33c,color:#5a3d08;
+
+    subgraph DEF["① 定义层 · 全局固定模板（所有产品共用）"]
+      direction TB
+      SD["StageDef · 8 固定阶段（有序主干）<br/>DKO→AR→FVR→DBR→FSO→ES→CS→MP"]
+      PT["ProjectTemplate 项目模板<br/>stageSpan：单阶段 / 跨阶段"]
+      CLD["ChecklistDef 清单模板（很多份）<br/>stageId：归属某阶段"]
+      CID["CheckItemDef 检查项定义"]
+      PT --> CLD --> CID
+      PT -. 挂靠 / 可跨阶段 .-> SD
+      CLD -. 定位到阶段 .-> SD
+    end
+
+    subgraph RUN["② 运行实例层 · 每个产品一份"]
+      direction TB
+      PROD["Product 产品（一级实体）<br/>当前阶段 + 各阶段状态"]
+      PRJ["Project 项目（继承 stageSpan）"]
+      CL["Checklist 清单（很多份）"]
+      CIR["CheckItemResult 检查项结果<br/>未开始 / 进行中 / Pass / Fail / N/A"]
+      PROD --> PRJ --> CL --> CIR
+    end
+
+    SD -. 实例化 .-> PROD
+    PT -. 实例化 .-> PRJ
+    CLD -. 实例化 .-> CL
+    CID -. 实例化 .-> CIR
+
+    subgraph SOLVE["③ 问题收敛与解决"]
+      direction TB
+      ISS["Issue 共性问题<br/>affectedProductIds[]"]
+      CASE["Case 案件（收敛后统一的那一个）<br/>productId 贯穿全局"]
+      ISS --> CASE
+    end
+
+    subgraph TREE["⑤ Case 内部 · 递归思路/任务树 + 解题路径（结案人工指定）"]
+      direction TB
+      R["Case 根"]
+      R --> H1["思路①"]:::dead
+      R --> H2["思路②"]:::win
+      H1 --> K1["任务A · 无效"]:::dead
+      H2 --> K2["任务B · 有效 ✅"]:::win
+      K2 --> H3["思路③（任务延伸）"]:::win
+      H3 --> K3["任务C · 有效 ✅ 关键结论"]:::win
+      H2 --> K4["任务D · 部分有效"]:::mid
+      SP(["解题路径 solutionPath<br/>结案时人工勾选：根→②→B→③→C"]):::win
+      K3 -.标记.-> SP
+    end
+
+    CASE ==>|"收敛后统一调查（思路/任务无限嵌套）"| R
+
+    CIR ==>|"Fail：跨产品共性归纳（多 → 一）"| ISS
+
+    subgraph SPREAD["④ 扩散与同步"]
+      direction TB
+      FO["fanout（提交解决方案时·系统强制）<br/>抓取全部 MP 之前的产品（排除源产品）"]
+      FC["为每个产品创建 1 个验证 Case<br/>→ 推送该产品负责人 · 独立验证"]
+      RETS["RETs 外部系统（接口待定）"]
+      FO --> FC
+    end
+
+    ISS ==>|"提交解决方案 · 强制触发"| FO
+    ISS -.->|"信息同步"| RETS
+    FC -. 目标产品 .-> PROD
+    FC -. fanouts[] 覆盖 / 进度 .-> ISS
+    CASE -. productId .-> PROD
+
+    class SD,PT,CLD,CID def;
+    class PROD,PRJ,CL,CIR run;
+    class ISS,CASE solve;
+    class FO,FC,RETS spread;
+      </pre>
+    </div>
+
+    <div class="legend">
+      <span><b>①定义层</b>（蓝）全局固定模板</span>
+      <span><b>②运行层</b>（绿）每个产品一份实例</span>
+      <span><b>③收敛</b>（紫）Fail→Issue→统一 Case</span>
+      <span><b>④扩散/同步</b>（橙）fanout & RETs</span>
+      <span><b>⑤Case内部</b>（绿=解题路径 / 灰=死路）递归思路·任务树</span>
+      <span>粗箭头＝核心业务流｜虚线＝实例化 / 同步 / 待定</span>
+    </div>
+    <div class="foot">已锁定：阶段=产品级主干 · 项目挂靠可跨阶段 · Checklist 量大 · Fail 收敛为 Issue（方案B）· Issue 统一挂 Case · 思路/任务递归嵌套 · 解题路径结案人工指定 · fanout 提交解决方案时强制（MP前产品各建1验证Case）。待补：项目清单 / RETs 接口。</div>
+  </div>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad:true, theme:"base", securityLevel:"loose",
+      flowchart:{ curve:"basis", nodeSpacing:46, rankSpacing:60, htmlLabels:true },
+      themeVariables:{
+        fontFamily:'"PingFang SC","SF Pro Display",sans-serif',
+        primaryColor:"#eef3ff", primaryTextColor:"#12203a", primaryBorderColor:"#0052D9",
+        lineColor:"#5b6472", clusterBkg:"#fbfcff", clusterBorder:"#c9d6f2",
+        fontSize:"16px"
+      }
+    });
+    window.__mmReady = false;
+    await mermaid.run();
+    window.__mmReady = true;
+  </script>
+</body>
+</html>
