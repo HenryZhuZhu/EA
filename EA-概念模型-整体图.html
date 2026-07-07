@@ -50,8 +50,8 @@ flowchart TD
       CLD["ChecklistDef 清单模板（很多份）<br/>stageId：归属某阶段"]
       CID["CheckItemDef 检查项定义"]
       PT --> CLD --> CID
-      PT -. 挂靠 / 可跨阶段 .-> SD
-      CLD -. 定位到阶段 .-> SD
+      PT -->|挂靠 / 可跨阶段| SD
+      CLD -->|定位到阶段| SD
     end
 
     subgraph RUN["② 运行实例层 · 每个产品一份"]
@@ -63,18 +63,24 @@ flowchart TD
       PROD --> PRJ --> CL --> CIR
     end
 
-    SD -. 实例化 .-> PROD
-    PT -. 实例化 .-> PRJ
-    CLD -. 实例化 .-> CL
-    CID -. 实例化 .-> CIR
+    DEF -->|"按产品实例化"| RUN
 
-    subgraph SOLVE["③ 问题收敛与解决 · Issue 两种来源"]
+    subgraph SOLVE["③ 问题收敛与解决 · 多入口 + 自动归并"]
       direction TB
-      SRC2["客户反馈（仅 DBR 后产品）<br/>→ Q 部门登记"]
-      ISS["Issue 共性问题<br/>source：检查项Fail / 客户反馈<br/>objectType：Wafer/Die/IC/DIMM…<br/>affectedProductIds[]"]
-      CASE["Case 案件（收敛后统一的那一个）<br/>productId 贯穿全局"]
-      SRC2 -->|登记| ISS
+      SRCM["MC 部门 · AVL 填 WBS<br/>（ES 后 ~ CS 前）"]
+      WBSI["WBS 系统 ⇄ EA 接口同步"]
+      MCASE["形成 Case"]
+      SRCF["SC·FAE →（暂未命名系统）<br/>→ SAE 部门"]
+      SCASE["SAE 部门提 Case"]
+      SRCQ["CS 后 / MP 产品问题<br/>Q·FAQA 直接提 Issue"]
+      ISS["Issue 共性问题<br/>问题 = Fail = Case，共性 Case 形成 Issue<br/>objectType：Wafer/Die/IC/DIMM…"]
+      CASE["Case ①（Issue 下可含多个 Case）<br/>productId 贯穿全局 · 示例展开见 ⑤"]
+      CASE2["Case ② … 各自递归调查、各有解题路径"]
+      SRCM --> WBSI --> MCASE -->|人工归集| ISS
+      SRCF --> SCASE -->|人工归集| ISS
+      SRCQ -->|直接提| ISS
       ISS --> CASE
+      ISS --> CASE2
     end
 
     subgraph TREE["⑤ Case 内部 · 递归思路/任务树 + 解题路径（结案人工指定）"]
@@ -87,44 +93,47 @@ flowchart TD
       K2 --> H3["思路③（任务延伸）"]:::win
       H3 --> K3["任务C · 有效 ✅ 关键结论"]:::win
       H2 --> K4["任务D · 部分有效"]:::mid
-      SP(["解题路径 solutionPath<br/>结案时人工勾选：根→②→B→③→C"]):::win
-      K3 -.标记.-> SP
+      SP(["解题路径 solutionPath（＝本 Issue 解决方案）<br/>结案时人工勾选：根→②→B→③→C"]):::win
+      K3 -->|标记| SP
     end
 
-    CASE ==>|"收敛后统一调查（思路/任务无限嵌套）"| R
+    SP -->|"沉淀为将来检查内容 · 防止复发"| KB
+    SP -->|"solutionPath 完成"| ISSDONE["Issue 已解决 / 关闭<br/>（全部 Case 的解题路径均完成）"]
+    CASE2 -->|"其解题路径完成"| ISSDONE
 
-    CIR ==>|"Fail：跨产品共性归纳（多 → 一）"| ISS
+    CASE -->|"收敛后统一调查（思路/任务无限嵌套）"| R
+
+    CIR -->|"check fail"| ISS
 
     subgraph SPREAD["④ 扩散与同步"]
       direction TB
       FO["fanout（提交解决方案时·系统强制）<br/>自动检查全部产品（含 MP，排除源产品）"]
       FC["为每个目标产品创建 1 个验证 Case<br/>→ 推送该产品负责人 · 独立验证"]
-      RETS["RETs 外部系统（接口待定）"]
+      KB["若 checklist 中无此项<br/>沉淀为新的 checklist item"]
+      RETS["RETs 外部系统<br/>EA 单向推送 · 接口待定"]
+      KB -->|反写（新增检查项）| CLD
       FO --> FC
     end
 
-    ISS ==>|"提交解决方案 · 强制触发"| FO
-    ISS -.->|"信息同步"| RETS
-    FC -. 目标产品 .-> PROD
-    FC -. fanouts[] 覆盖 / 进度 .-> ISS
-    CASE -. productId .-> PROD
+    ISS -->|"提交解决方案 · 强制触发"| FO
+    ISSDONE -->|"已解决后 · 整个 Issue 单向推送"| RETS
 
     class SD,PT,CLD,CID def;
     class PROD,PRJ,CL,CIR run;
-    class ISS,CASE,SRC2 solve;
-    class FO,FC,RETS spread;
+    class ISS,CASE,CASE2,SRCM,WBSI,MCASE,SRCF,SCASE,SRCQ,ISSDONE solve;
+    class FO,FC,KB,RETS spread;
       </pre>
     </div>
 
     <div class="legend">
       <span><b>①定义层</b>（蓝）全局固定模板</span>
       <span><b>②运行层</b>（绿）每个产品一份实例</span>
-      <span><b>③收敛</b>（紫）Fail→Issue→统一 Case</span>
+      <span><b>③收敛</b>（紫）WBS/FAQA/check fail → Issue 自动归并 → 统一 Case</span>
       <span><b>④扩散/同步</b>（橙）fanout & RETs</span>
       <span><b>⑤Case内部</b>（绿=解题路径 / 灰=死路）递归思路·任务树</span>
-      <span>粗箭头＝核心业务流｜虚线＝实例化 / 同步 / 待定</span>
+      <span>全部实线箭头＝流向｜框内颜色区分四大阶段</span>
     </div>
-    <div class="foot">已锁定：阶段=产品级主干 · 项目挂靠可跨阶段 · Checklist 量大 · Issue 两来源（检查项Fail / 客户反馈经Q部登记）· objectType（Wafer/Die/IC/DIMM）· Fail 收敛为 Issue（方案B）· 思路/任务递归 · 解题路径结案人工指定 · fanout 提交方案时强制·自动检查全部产品（含MP）。待补：项目清单 / RETs 接口。</div>
+    <div class="foot">已锁定：阶段=产品级主干 · 项目挂靠可跨阶段 · Checklist 量大 · 入口：MC 部门用 AVL 在 ES~CS 填 WBS→WBS 接口同步 EA 形成 Case→人工归集 Issue；SC·FAE 经（暂未命名系统）给 SAE 部门提 Case→人工归集 Issue；Q·FAQA（CS 后/MP）直接提 Issue；所有 check fail 必进 Issue（共性自动归并 / 否则新建）· 思路/任务递归 · 解题路径结案人工指定 · Issue 解法若 checklist 中不存在则沉淀为新 item · fanout 提交方案时强制、自动检查全部产品（含 MP）· 待补：项目清单 / RETs 接口 / 未命名系统名。</div>
   </div>
 
   <script type="module">
