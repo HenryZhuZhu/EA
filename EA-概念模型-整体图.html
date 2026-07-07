@@ -68,10 +68,12 @@ flowchart TD
     CLD -. 实例化 .-> CL
     CID -. 实例化 .-> CIR
 
-    subgraph SOLVE["③ 问题收敛与解决"]
+    subgraph SOLVE["③ 问题收敛与解决 · Issue 两种来源"]
       direction TB
-      ISS["Issue 共性问题<br/>affectedProductIds[]"]
+      SRC2["客户反馈（仅 DBR 后产品）<br/>→ Q 部门登记"]
+      ISS["Issue 共性问题<br/>source：检查项Fail / 客户反馈<br/>objectType：Wafer/Die/IC/DIMM…<br/>affectedProductIds[]"]
       CASE["Case 案件（收敛后统一的那一个）<br/>productId 贯穿全局"]
+      SRC2 -->|登记| ISS
       ISS --> CASE
     end
 
@@ -95,8 +97,8 @@ flowchart TD
 
     subgraph SPREAD["④ 扩散与同步"]
       direction TB
-      FO["fanout（提交解决方案时·系统强制）<br/>抓取全部 MP 之前的产品（排除源产品）"]
-      FC["为每个产品创建 1 个验证 Case<br/>→ 推送该产品负责人 · 独立验证"]
+      FO["fanout（提交解决方案时·系统强制）<br/>自动检查全部产品（含 MP，排除源产品）"]
+      FC["为每个目标产品创建 1 个验证 Case<br/>→ 推送该产品负责人 · 独立验证"]
       RETS["RETs 外部系统（接口待定）"]
       FO --> FC
     end
@@ -109,7 +111,7 @@ flowchart TD
 
     class SD,PT,CLD,CID def;
     class PROD,PRJ,CL,CIR run;
-    class ISS,CASE solve;
+    class ISS,CASE,SRC2 solve;
     class FO,FC,RETS spread;
       </pre>
     </div>
@@ -122,7 +124,7 @@ flowchart TD
       <span><b>⑤Case内部</b>（绿=解题路径 / 灰=死路）递归思路·任务树</span>
       <span>粗箭头＝核心业务流｜虚线＝实例化 / 同步 / 待定</span>
     </div>
-    <div class="foot">已锁定：阶段=产品级主干 · 项目挂靠可跨阶段 · Checklist 量大 · Fail 收敛为 Issue（方案B）· Issue 统一挂 Case · 思路/任务递归嵌套 · 解题路径结案人工指定 · fanout 提交解决方案时强制（MP前产品各建1验证Case）。待补：项目清单 / RETs 接口。</div>
+    <div class="foot">已锁定：阶段=产品级主干 · 项目挂靠可跨阶段 · Checklist 量大 · Issue 两来源（检查项Fail / 客户反馈经Q部登记）· objectType（Wafer/Die/IC/DIMM）· Fail 收敛为 Issue（方案B）· 思路/任务递归 · 解题路径结案人工指定 · fanout 提交方案时强制·自动检查全部产品（含MP）。待补：项目清单 / RETs 接口。</div>
   </div>
 
   <script type="module">
