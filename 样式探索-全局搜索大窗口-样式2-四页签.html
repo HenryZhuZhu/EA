@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>样式探索 · 全局搜索大窗口（样式2·四页签）</title>
+<style>
+  :root {
+    color-scheme: light;
+    --blue: #0052D9;
+    --blue-2: #003FA8;
+    --cyan: #00A4FF;
+    --ink: #0f172a;
+    --sub: #64748b;
+    --line: #e6ebf2;
+    font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(120deg, #eef2ff, #f8fafc 60%);
+    color: var(--ink);
+  }
+
+  .hint {
+    position: fixed;
+    top: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    backdrop-filter: blur(3px);
+    display: grid;
+    place-items: center;
+    padding: 56px 28px 28px;
+  }
+
+  .modal {
+    width: min(1040px, 94vw);
+    height: min(680px, 86vh);
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 40px 100px -30px rgba(2, 6, 23, 0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mhead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mhead .sicon { color: var(--blue); }
+  .mhead .qi {
+    flex: 1;
+    font-size: 19px;
+    color: #1e293b;
+    font-weight: 500;
+  }
+  .mhead .qi em {
+    font-style: normal;
+    color: var(--blue);
+    border-bottom: 2px solid rgba(0, 82, 217, 0.25);
+  }
+  .mhead .caret {
+    width: 2px;
+    height: 22px;
+    background: var(--blue);
+    animation: blink 1s steps(1) infinite;
+  }
+  .mhead .total {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
+  .mhead .esc {
+    font-size: 11px;
+    color: #94a3b8;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 18px 0;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+  }
+  .tab {
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+    padding: 9px 14px;
+    border-bottom: 2px solid transparent;
+    color: #64748b;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: all .15s;
+  }
+  .tab:hover { color: #334155; }
+  .tab.on {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+    font-weight: 600;
+  }
+  .tab .c {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-left: 4px;
+  }
+  .tab.on .c { color: var(--blue); }
+
+  .list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: #fff;
+  }
+
+  .group {
+    padding-top: 4px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .group:last-child { border-bottom: 0; }
+
+  .gh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 22px 6px;
+  }
+  .gh b {
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+  }
+  .gh .tag {
+    font-size: 10px;
+    color: #7c8db0;
+    background: #eef2f8;
+    border-radius: 6px;
+    padding: 2px 7px;
+  }
+  .gh .cnt {
+    margin-left: auto;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  .ri {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 22px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background .15s, border-color .15s;
+  }
+  .ri:hover {
+    background: #f6f8fc;
+    border-left-color: rgba(0, 82, 217, 0.35);
+  }
+
+  .bdg {
+    flex: none;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 7px;
+  }
+  .bdg.user { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+  .bdg.case { background: rgba(0, 82, 217, 0.09); color: var(--blue); }
+  .bdg.task { background: rgba(0, 164, 255, 0.13); color: #0284c7; }
+
+  .rb { min-width: 0; flex: 1; }
+  .rt {
+    font-size: 14px;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rm {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 3px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+  }
+  .code {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: #7c8db0;
+  }
+  em.hl {
+    font-style: normal;
+    color: var(--blue);
+    font-weight: 700;
+    background: rgba(255, 214, 0, 0.35);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  .status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .status.进行中 { background: #e0f2fe; color: #0369a1; }
+  .status.Pending, .status.待接受 { background: #fef3c7; color: #b45309; }
+  .status.已完成 { background: #dcfce7; color: #15803d; }
+
+  .empty {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 46px 0;
+  }
+
+  .foot {
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 12px;
+  }
+  .foot .hint {
+    position: static;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+</style>
+</head>
+<body>
+<div class="hint">样式2（顶部页签） · 页签：全部 / 用户 / Case / 任务</div>
+
+<div class="overlay">
+  <div class="modal">
+    <div class="mhead">
+      <svg class="sicon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+      <div class="qi"><em>张伟</em></div>
+      <div class="caret"></div>
+      <div class="total" id="total"></div>
+      <div class="esc">ESC 关闭</div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+    <div class="list" id="list"></div>
+
+    <div class="foot">
+      <span class="hint">↑ ↓ 选择 · Enter 打开</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const Q = "张伟";
+
+const DATA = {
+  user: [
+    { id:"u1", kind:"user", title:"张伟", meta:"PTE · 高级产品测试工程师", status:"进行中" },
+    { id:"u2", kind:"user", title:"张伟（PTE-夜班）", meta:"PTE · 轮值支持", status:"Pending" },
+  ],
+  case: [
+    { id:"c1", kind:"case", title:"CP Vdd 漂移致批量 Bin7 失效", code:"EA-260511000001", meta:"Owner: 张伟 · 北美 A 客户", status:"进行中" },
+    { id:"c2", kind:"case", title:"张伟专项 · CP 良率改善追踪", code:"EA-260511000073", meta:"Owner: 王芳 · 名称命中", status:"进行中" },
+    { id:"c3", kind:"case", title:"封装后开路批量退货", code:"EA-260511000051", meta:"Owner: 张伟", status:"Pending" },
+  ],
+  task: [
+    { id:"t1", kind:"task", title:"FSA 分析切片结果", code:"EA-260511000009.001", meta:"负责人: 张伟 · PTE", status:"已完成" },
+    { id:"t2", kind:"task", title:"程式参数回归验证", code:"EA-260511000009.006", meta:"负责人: 张伟 · PTE", status:"进行中" },
+    { id:"t3", kind:"task", title:"协助张伟复核 FSA 结论", code:"EA-260511000009.008", meta:"负责人: 陈磊 · EFA", status:"待接受" },
+  ],
+};
+
+const TAB_DEFS = [
+  { key:"all", label:"全部" },
+  { key:"user", label:"用户" },
+  { key:"case", label:"Case" },
+  { key:"task", label:"任务" },
+];
+
+const state = { tab: "all" };
+
+function allItems() {
+  return [...DATA.user, ...DATA.case, ...DATA.task];
+}
+
+function hit(s) {
+  return String(s || "").replaceAll(Q, `<em class="hl">${Q}</em>`);
+}
+
+function badge(kind) {
+  const label = kind === "user" ? "用户" : kind === "case" ? "Case" : "任务";
+  return `<span class="bdg ${kind}">${label}</span>`;
+}
+
+function row(it) {
+  const code = it.code ? `<span class="code">${it.code}</span> · ` : "";
+  return `
+    <div class="ri">
+      ${badge(it.kind)}
+      <div class="rb">
+        <div class="rt">${hit(it.title)}</div>
+        <div class="rm">${code}${hit(it.meta)}</div>
+      </div>
+      <span class="status ${it.status}">${it.status}</span>
+    </div>
+  `;
+}
+
+function groupsForTab() {
+  if (state.tab === "user") return [{ key:"user", title:"用户", tag:"人员", items: DATA.user }];
+  if (state.tab === "case") return [{ key:"case", title:"Case", tag:"案件", items: DATA.case }];
+  if (state.tab === "task") return [{ key:"task", title:"任务", tag:"执行", items: DATA.task }];
+  return [
+    { key:"user", title:"用户", tag:"人员", items: DATA.user },
+    { key:"case", title:"Case", tag:"案件", items: DATA.case },
+    { key:"task", title:"任务", tag:"执行", items: DATA.task },
+  ];
+}
+
+function renderTabs() {
+  const counts = {
+    all: allItems().length,
+    user: DATA.user.length,
+    case: DATA.case.length,
+    task: DATA.task.length,
+  };
+  document.getElementById("tabs").innerHTML = TAB_DEFS.map((t) => `
+    <div class="tab ${state.tab === t.key ? "on" : ""}" data-tab="${t.key}">
+      ${t.label}<span class="c">${counts[t.key]}</span>
+    </div>
+  `).join("");
+  document.getElementById("total").textContent = `共 ${counts[state.tab]} 条`;
+}
+
+function renderList() {
+  const groups = groupsForTab();
+  const html = groups.map((g) => `
+    <section class="group">
+      <div class="gh">
+        <b>${g.title}</b>
+        <span class="tag">${g.tag}</span>
+        <span class="cnt">${g.items.length} 条</span>
+      </div>
+      ${g.items.map(row).join("")}
+    </section>
+  `).join("");
+  document.getElementById("list").innerHTML = html || `<div class="empty">没有匹配结果</div>`;
+}
+
+function render() {
+  renderTabs();
+  renderList();
+}
+
+document.addEventListener("click", (e) => {
+  const tab = e.target.closest("[data-tab]");
+  if (tab) {
+    state.tab = tab.getAttribute("data-tab");
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
