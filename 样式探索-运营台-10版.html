@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440" />
+<title>运营台（一线主管）· 10 版样式探索 · V1.0.3</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#003FA8;--cyan:#00A4FF;--violet:#7A3DFF;
+    --ink:#0f172a;--t7:#334155;--t6:#475569;--t5:#64748b;--t4:#94a3b8;--t3:#cbd5e1;
+    --line:#e2e8f0;--line2:#eef2f7;--bg:#eef2f7;--bg2:#f8fafc;
+    --emerald:#16a34a;--amber:#d97706;--rose:#e11d48;--red:#ef4444;--orange:#f97316;--teal:#0d9488;--lime:#84cc16;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  /* version chooser */
+  .picker{position:sticky;top:0;z-index:50;background:rgba(248,250,252,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:11px 24px}
+  .picker .row{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .picker h2{font-size:14px;font-weight:800;margin:0;color:var(--ink)}
+  .picker .sub{font-size:11.5px;color:var(--t5)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .pill{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:999px;height:30px;padding:0 13px;font-size:12px;font-weight:600;color:var(--t6);transition:.12s;display:inline-flex;align-items:center;gap:6px}
+  .pill:hover{border-color:var(--t3);color:var(--t7)}
+  .pill.on{background:linear-gradient(90deg,var(--blue),var(--violet));border-color:transparent;color:#fff;box-shadow:0 6px 16px -8px var(--blue)}
+  .pill .no{font-weight:800;opacity:.6}
+  .pill.on .no{opacity:.9}
+  .vmeta{max-width:1400px;margin:12px auto 0;padding:0 24px;display:flex;align-items:baseline;gap:12px}
+  .vmeta .vn{font-size:18px;font-weight:800}
+  .vmeta .vd{font-size:12.5px;color:var(--t5)}
+  .wrap{max-width:1400px;margin:0 auto;padding:14px 24px 80px}
+
+  /* ===== shared component styles ===== */
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .ph{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .ph .ic{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:#fff;font-size:12px;background:linear-gradient(135deg,var(--blue),var(--violet))}
+  .ph .t{font-size:13px;font-weight:700;color:var(--t7)}
+  .ph .x{margin-left:auto;font-size:11px;color:var(--t4)}
+  .mut{color:var(--t4);font-size:11px}
+  .hd{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .hd h1{font-size:19px;font-weight:800;margin:0}
+  .hd .scope{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--t6)}
+  .hd .scope b{color:var(--blue)}
+  .hd .role{font-size:11px;font-weight:700;color:#fff;background:linear-gradient(90deg,var(--blue),var(--violet));padding:3px 10px;border-radius:999px}
+  .hd .date{margin-left:auto;font-size:12px;color:var(--t5)}
+
+  /* kpi */
+  .kpi{position:relative;background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 13px;cursor:pointer;transition:.15s;overflow:hidden}
+  .kpi:hover{border-color:var(--t3);box-shadow:0 6px 18px -12px rgba(15,23,42,.3)}
+  .kpi.on{border-color:var(--blue);box-shadow:0 8px 22px -12px var(--blue)}
+  .kpi .bar0{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi .lab{font-size:11px;color:var(--t5)}
+  .kpi .val{font-size:24px;font-weight:800;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi .dl{font-size:10px;margin-top:3px;color:var(--t4)}
+
+  .gw{text-align:center}
+  .gw .lab{font-size:11px;color:var(--t6);font-weight:600;margin-top:-4px}
+  .gw .sub{font-size:9.5px;color:var(--t4)}
+  .cols{display:flex;align-items:flex-end;gap:10px;height:80px;margin-top:8px}
+  .cols .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+  .cols .cb{width:60%;border-radius:5px 5px 0 0;min-height:3px}
+  .cols .cl{font-size:9px;color:var(--t5);text-align:center;line-height:1.15}
+  .cols .cv{font-size:10px;font-weight:700;color:var(--t7)}
+
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  .mx th{font-size:9.5px;color:var(--t4);font-weight:600;text-align:center;padding:3px}
+  .mx td{padding:2px;text-align:center;height:36px}
+  .bub{border-radius:50%;margin:0 auto;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700}
+  .mx td .yl{font-size:10.5px;color:var(--t6);font-weight:700;text-align:right;padding-right:6px}
+
+  .qrow{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+  .qrow .qt{flex:1}
+  .qrow .qt .qn{font-size:12.5px;font-weight:700;color:var(--t7)}
+  .qrow .qt .qs{font-size:10.5px;color:var(--t5);margin-top:2px}
+  .qbig{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
+
+  .bars .b{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .bars .ava{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex:0 0 auto}
+  .bars .bn{font-size:12px;color:var(--t6);width:42px;flex:0 0 auto}
+  .bars .bt{flex:1;height:14px;border-radius:7px;background:var(--line2);overflow:hidden}
+  .bars .bf{height:100%;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;font-size:9px;color:#fff;font-weight:700}
+  .bars .rt{font-size:10px;color:var(--t5);width:60px;text-align:right}
+  .over{color:var(--rose);font-weight:700}
+
+  .tm{display:flex;flex-direction:column;gap:5px;height:120px}
+  .tm .row{display:flex;gap:5px;flex:1}
+  .tm .cell{border-radius:8px;padding:7px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-width:0;overflow:hidden}
+  .tm .cell .n{font-size:10.5px;font-weight:700;line-height:1.2}
+  .tm .cell .v{font-size:15px;font-weight:800}
+
+  .rw{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid var(--line2)}
+  .rw .badge{font-size:10px;font-weight:800;color:#fff;background:var(--rose);border-radius:6px;padding:2px 7px;flex:0 0 auto}
+  .rw .nm{font-size:12px;color:var(--t7);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rw .dp{font-size:10px;color:var(--t4)}
+
+  .alist .arow{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line2);border-radius:10px;margin-bottom:7px;transition:.12s}
+  .alist .arow:hover{border-color:var(--t3);background:var(--bg2)}
+  .lvl{font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;color:#fff;flex:0 0 auto}
+  .arow .nm{font-size:12.5px;color:var(--t7);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .arow .meta{font-size:11px;color:var(--t5);flex:0 0 auto}
+  .arow .due{font-size:11px;font-weight:700;flex:0 0 auto;width:80px;text-align:right}
+  .btns{display:flex;gap:5px;flex:0 0 auto}
+  .btn{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:7px;height:27px;padding:0 9px;font-size:11px;font-weight:600;color:var(--t6);transition:.12s}
+  .btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(0,82,217,.05)}
+  .btn.warn:hover{border-color:var(--rose);color:var(--rose);background:rgba(225,29,72,.05)}
+  .tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .legend i{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--t6)}
+  .legend i b{width:9px;height:9px;border-radius:3px}
+  svg{display:block;overflow:visible}
+
+  /* grids */
+  .g2{display:grid;grid-template-columns:1fr 1.25fr;gap:14px;margin-bottom:14px}
+  .g3{display:grid;grid-template-columns:1.05fr 1.15fr .9fr;gap:14px;margin-bottom:14px}
+  .kstrip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#0b1220;color:#fff;padding:10px 16px;border-radius:10px;font-size:12.5px;box-shadow:0 14px 30px -8px rgba(15,23,42,.5);opacity:0;transition:.2s;z-index:99;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="picker">
+  <div class="row">
+    <h2>运营台 · 一线主管视角</h2>
+    <span class="sub">10 版样式 · 同一套数据 · 点上方数字切换</span>
+    <div class="pills" id="pills"></div>
+  </div>
+</div>
+<div class="vmeta"><span class="vn" id="vn"></span><span class="vd" id="vd"></span></div>
+<div class="wrap"><div id="stage"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ============ 共享数据 ============ */
+const LVLC={L1:'#ef4444',L2:'#f97316',L3:'#f59e0b',L4:'#0052D9',L5:'#94a3b8'};
+const PAL=['#0052D9','#00A4FF','#7A3DFF','#16a34a','#d97706','#e11d48','#0d9488'];
+const D={
+  kpis:[
+    {k:'all',  lab:'在办 Case', val:14, dl:'本部门', c:'var(--blue)', tone:'ink'},
+    {k:'crit', lab:'L1 / L2 关键', val:4, dl:'需重点跟', c:'var(--red)', tone:'red'},
+    {k:'over', lab:'已逾期', val:3, dl:'SLA 风险', c:'var(--rose)', tone:'rose'},
+    {k:'today',lab:'今日到期', val:2, dl:'抓紧清', c:'var(--amber)', tone:'amber'},
+    {k:'accept',lab:'待接受积压', val:5, dl:'超 24h 未接', c:'var(--teal)', tone:'teal'},
+    {k:'sla',  lab:'SLA 按时率', val:'86%', dl:'目标 ≥90%', c:'var(--emerald)', tone:'emerald'},
+  ],
+  // [桶, 含义, 数量, 色]
+  aging:[['办了 0-2天','刚接手·健康',6,'#16a34a'],['办了 3-5天','正常推进',4,'#84cc16'],['办了 6-10天','偏慢·留意',2,'#f59e0b'],['超过 10天','滞留·该催了',2,'#e11d48']],
+  matrix:[ {x:0,y:0,v:1,c:'#ef4444'},{x:1,y:0,v:2,c:'#ef4444'},{x:2,y:0,v:1,c:'#f97316'},
+    {x:1,y:1,v:1,c:'#f97316'},{x:2,y:1,v:2,c:'#f59e0b'},{x:3,y:1,v:2,c:'#0052D9'},
+    {x:2,y:2,v:2,c:'#0052D9'},{x:3,y:2,v:1,c:'#0052D9'},{x:4,y:3,v:1,c:'#94a3b8'} ],
+  stuck:[['DDR4 退货影响分析','L1',9],['封装空洞率超标','L3',8]],
+  load:[['张伟',23,5.2],['刘洋',16,8.1],['周杰',12,28.5],['赵敏',14,12.0],['王芳',9,6.4]],
+  fm:[['退货失效',5],['CP yield drop',4],['封装空洞',3],['焊球桥连',2],['其他',3]],
+  rework:[['DDR4 PKG 内引线偏移',3,'PTE'],['CP1 边缘 die VDDmin 漂移',2,'CP'],['FT Retest 误判',2,'FT']],
+  tasks:[
+    {nm:'DDR4 Lot 退货影响分析',lvl:'L1',owner:'张伟',due:-3,tags:['crit','over'],note:'客户A升级'},
+    {nm:'eMMC 写入寿命衰减异常',lvl:'L1',owner:'孙楠',due:-1,tags:['crit','over']},
+    {nm:'封装空洞率超标分析',lvl:'L3',owner:'陈磊',due:0,tags:['today']},
+    {nm:'CP1 yield drop 验证',lvl:'L2',owner:'王芳',due:2,tags:['crit']},
+    {nm:'LPDDR5 FT Retest 偏高',lvl:'L3',owner:'刘洋',due:1,tags:['today','over']},
+    {nm:'Pattern P_ICC2_07 调整评审（待接受）',lvl:'L4',owner:'周杰',due:4,tags:['accept']},
+    {nm:'边缘良率衰退追因（待接受）',lvl:'L3',owner:'赵敏',due:3,tags:['accept']},
+    {nm:'Bump 高度 CPK 不足（待接受）',lvl:'L3',owner:'周宇',due:5,tags:['accept']},
+  ],
+};
+const XL=['L1','L2','L3','L4','L5'], YL=['非常紧急','紧急','一般','不紧急'];
+
+/* ============ 通用渲染片段 ============ */
+let activeKpi='all';
+function header(extra){return `<div class="hd"><h1>运营台</h1><span class="role">一线主管</span><span class="scope">分管：<b>PTE 部门</b> · 周主管</span>${extra||''}<span class="date">2026-06-24 周三 · 实时</span></div>`;}
+function gauge(pct,label,color,sub){return `<div class="gw"><svg viewBox="0 0 100 58" width="100"><path d="M6 50 A44 44 0 0 1 94 50" fill="none" stroke="#eef2f7" stroke-width="10" stroke-linecap="round"/><path d="M6 50 A44 44 0 0 1 94 50" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round" pathLength="100" stroke-dasharray="${pct} 100"/><text x="50" y="44" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">${pct}%</text></svg><div class="lab">${label}</div><div class="sub">${sub}</div></div>`;}
+function gaugesHTML(){return gauge(86,'按时关闭','#16a34a','目标 90%')+gauge(78,'响应达标','#0052D9','24h 接受')+gauge(21,'逾期占比','#e11d48','3 / 14');}
+function agingHTML(){const m=Math.max(...D.aging.map(a=>a[2]));return `<div class="cols">${D.aging.map(a=>`<div class="c" title="${a[1]}"><span class="cv">${a[2]}</span><span class="cb" style="height:${a[2]/m*100}%;background:${a[3]}"></span><span class="cl">${a[0]}</span><span class="cl" style="color:var(--t4);font-size:8px">${a[1]}</span></div>`).join('')}</div>`;}
+function matrixHTML(){const mxv=Math.max(...D.matrix.map(c=>c.v));let h='<table class="mx"><tr><th></th>'+XL.map(x=>`<th>${x}</th>`).join('')+'</tr>';YL.forEach((y,yi)=>{h+=`<tr><td class="yl">${y}</td>`+XL.map((x,xi)=>{const c=D.matrix.find(c=>c.x===xi&&c.y===yi);const v=c?c.v:0;const sz=v?16+v/mxv*20:0;return `<td>${v?`<div class="bub" style="width:${sz}px;height:${sz}px;background:${c.c}">${v}</div>`:''}</td>`;}).join('')+'</tr>';});return h+'</table>';}
+function stuckHTML(){return D.stuck.map(s=>`<div class="rw"><span class="badge" style="background:#0b1220">停滞 ${s[2]}d</span><span class="lvl" style="background:${LVLC[s[1]]}">${s[1]}</span><span class="nm">${s[0]}</span></div>`).join('');}
+function ring(pct,color,size){size=size||56;const r=size/2-5,c=2*Math.PI*r;return `<svg viewBox="0 0 ${size} ${size}" width="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#eef2f7" stroke-width="6"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}" transform="rotate(-90 ${size/2} ${size/2})"/><text x="${size/2}" y="${size/2+4}" font-size="13" font-weight="800" fill="#0f172a" text-anchor="middle">${pct}</text></svg>`;}
+function qualityHTML(){return `
+  <div class="qrow">${ring(90,'#16a34a')}<div class="qt"><div class="qn">闭环率 90%</div><div class="qs">本月关闭 / 受理</div></div></div>
+  <div class="qrow"><div style="width:56px;text-align:center"><div class="qbig" style="color:#e11d48">17%</div></div><div class="qt"><div class="qn">返工率 / 复发率</div><div class="qs">含返工链的目标占比 · 较上月 ↑3%</div></div></div>
+  <div class="qrow"><div style="width:56px;text-align:center"><div class="qbig" style="color:#d97706">12%</div></div><div class="qt"><div class="qn">无效结论率</div><div class="qs">结论判无效/部分有效占比</div></div></div>
+  <div class="qrow"><div style="width:56px;text-align:center"><div class="qbig" style="color:#0052D9">2.3</div></div><div class="qt"><div class="qn">平均试错深度</div><div class="qs">每个怀疑方向的执行任务数</div></div></div>`;}
+function loadHTML(){const lmax=Math.max(...D.load.map(l=>l[1]));return '<div class="bars">'+D.load.map((l,i)=>`<div class="b"><span class="ava" style="background:${PAL[i%PAL.length]}">${l[0][0]}</span><span class="bn">${l[0]}</span><span class="bt"><span class="bf" style="width:${l[1]/lmax*100}%;background:${l[1]>18?'#e11d48':'#0052D9'}">${l[1]}</span></span><span class="rt ${l[2]>24?'over':''}">响应 ${l[2]}h</span></div>`).join('')+'</div>';}
+function treemapHTML(){const tot=D.fm.reduce((s,x)=>s+x[1],0),half=tot/2;let acc=0,sp=D.fm.length;for(let i=0;i<D.fm.length;i++){acc+=D.fm[i][1];if(acc>=half){sp=i+1;break;}}const r1=D.fm.slice(0,sp),r2=D.fm.slice(sp);const row=(arr,off)=>`<div class="row">${arr.map((d,i)=>`<div class="cell" style="flex:${d[1]};background:${PAL[(i+off)%PAL.length]}"><span class="n">${d[0]}</span><span class="v">${d[1]}</span></div>`).join('')}</div>`;return `<div class="tm">${row(r1,0)}${r2.length?row(r2,sp):''}</div>`;}
+function reworkHTML(){return D.rework.map(r=>`<div class="rw"><span class="badge">第 ${r[1]} 次</span><span class="nm">${r[0]}</span><span class="dp">${r[2]}</span></div>`).join('');}
+const dueLabel=d=>d<0?`逾期 ${-d}d`:d===0?'今日到期':`${d}d 到期`;
+const dueColor=d=>d<0?'var(--rose)':d===0?'var(--amber)':'var(--t5)';
+function actionListHTML(compact){
+  const rows=D.tasks.filter(t=>activeKpi==='all'||t.tags.includes(activeKpi));
+  const info=`${rows.length} 项 · 筛选：${(D.kpis.find(k=>k.k===activeKpi)||{}).lab||'全部'}`;
+  const body=rows.map(t=>`<div class="arow">
+    <span class="lvl" style="background:${LVLC[t.lvl]}">${t.lvl}</span>
+    <span class="nm">${t.nm}${t.note?` <span class="tag" style="background:rgba(225,29,72,.1);color:#e11d48">⚠ ${t.note}</span>`:''}</span>
+    <span class="meta">${t.owner}</span>
+    <span class="due" style="color:${dueColor(t.due)}">${dueLabel(t.due)}</span>
+    <span class="btns"><button class="btn" onclick="act('催办','${t.nm}','${t.owner}')">催办</button><button class="btn warn" onclick="act('升级','${t.nm}','${t.owner}')">升级</button><button class="btn" onclick="act('改派','${t.nm}','${t.owner}')">改派</button></span></div>`).join('');
+  return {info, body};
+}
+let _tt;
+function act(kind,nm,owner){const t=document.getElementById('toast');const msg=kind==='催办'?`已向 ${owner} 发送催办：「${nm}」`:kind==='升级'?`已发起升级：「${nm}」→ 上一层级`:`已发起改派：「${nm}」`;t.textContent='✓ '+msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* KPI 点击：各版本统一委托 */
+function bindKpi(scope){
+  scope=scope||document;
+  scope.querySelectorAll('[data-kpi]').forEach(el=>{
+    el.onclick=()=>{const k=el.dataset.kpi;if(k==='sla')return;activeKpi=k;render();};
+  });
+}
+function refreshList(){const r=actionListHTML();const b=document.getElementById('alist');if(b)b.innerHTML=r.body;const i=document.getElementById('listInfo');if(i)i.textContent=r.info;}
+
+/* ============ KPI 卡片渲染（多形态） ============ */
+function kpiCard(k,style){
+  const on=activeKpi===k.k?' on':'';
+  if(style==='tile'){return `<div class="kpi${on}" data-kpi="${k.k}"><span class="bar0" style="background:${k.c}"></span><div class="lab">${k.lab}</div><div class="val" style="color:${k.tone==='emerald'?'var(--emerald)':'var(--ink)'}">${k.val}</div><div class="dl">${k.dl}</div></div>`;}
+  if(style==='mini'){return `<div class="kpi${on}" data-kpi="${k.k}" style="padding:9px 11px;border-radius:11px"><div style="display:flex;align-items:baseline;gap:7px"><span class="val" style="font-size:19px;color:${k.tone==='emerald'?'var(--emerald)':'var(--ink)'}">${k.val}</span><span class="lab">${k.lab}</span></div></div>`;}
+  if(style==='line'){return `<div class="kpi${on}" data-kpi="${k.k}" style="display:flex;align-items:center;gap:10px;padding:10px 12px"><span style="width:8px;height:8px;border-radius:50%;background:${k.c};flex:0 0 auto"></span><span class="lab" style="flex:1">${k.lab}</span><span class="val" style="font-size:20px;color:${k.tone==='emerald'?'var(--emerald)':'var(--ink)'}">${k.val}</span></div>`;}
+  return kpiCard(k,'tile');
+}
+function kpiStrip(style){return `<div class="kstrip">${D.kpis.map(k=>kpiCard(k,style||'tile')).join('')}</div>`;}
+
+/* ============ 10 个版本 ============ */
+const VERSIONS=[
+/* 1 经典分区 */
+{name:'01 · 经典分区卡片',desc:'当前线上结构的精修版：KPI 条 → SLA/风险/质量三栏 → 负载/失效双栏 → 可行动列表。信息分区清晰、稳。',
+ render(){return header()+
+   `<div style="font-size:11.5px;color:var(--t4);margin:-6px 0 12px">运营台聚焦"今天要不要介入、介入哪"。点 KPI 联动下方待办。</div>`+
+   kpiStrip('tile')+
+   `<div class="g3">
+     <div class="panel"><div class="ph"><span class="ic">◷</span><span class="t">SLA 健康度</span><span class="x">近 30 天</span></div><div style="display:flex;justify-content:space-around">${gaugesHTML()}</div><div style="margin-top:10px"><div class="mut">在办任务·已经办了多久（越久越该催）</div>${agingHTML()}</div></div>
+     <div class="panel"><div class="ph"><span class="ic">◎</span><span class="t">风险矩阵 · 紧急度 × 等级</span><span class="x">气泡越大越多</span></div>${matrixHTML()}<div class="mut" style="margin-top:6px">左上红区＝最高优先；下方为停滞卡死案</div><div style="margin-top:8px">${stuckHTML()}</div></div>
+     <div class="panel"><div class="ph"><span class="ic">✓</span><span class="t">质量</span><span class="x">本月</span></div>${qualityHTML()}</div>
+   </div>
+   <div class="g2">
+     <div class="panel"><div class="ph"><span class="ic">●</span><span class="t">人 · 负载与响应</span><span class="x">在办数 · 派单响应</span></div>${loadHTML()}<div class="mut" style="margin-top:4px">右侧＝平均派单响应（红色超 24h）</div></div>
+     <div class="panel"><div class="ph"><span class="ic">◧</span><span class="t">系统性失效洞察</span><span class="x">失效分布 + 反复试错</span></div><div class="g2" style="grid-template-columns:1.1fr 1fr;margin:0"><div><div class="mut" style="margin-bottom:6px">失效模式</div>${treemapHTML()}</div><div><div class="mut" style="margin-bottom:6px">返工链 Top</div>${reworkHTML()}</div></div></div>
+   </div>
+   <div class="panel"><div class="ph"><span class="ic">⚡</span><span class="t">待处理 · 可行动</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>`;
+ }},
+
+/* 2 指挥中心 深色 */
+{name:'02 · 指挥中心（深色作战室）',desc:'深色"作战室"风格，红黄高亮告警，主管早上扫一眼就知道哪几个 case 要立刻管。适合大屏 / 早会投屏。',
+ dark:true,
+ render(){return `<div class="cmd">
+   <div class="cmd-hd"><div><span class="cmd-dot"></span><b>PTE 运营作战室</b> <span class="cmd-sub">周主管 · 2026-06-24 实时</span></div><div class="cmd-alert">⚠ 3 个 case 需立即介入</div></div>
+   <div class="cmd-kpis">${D.kpis.map(k=>`<div class="cmd-k${activeKpi===k.k?' on':''}" data-kpi="${k.k}"><div class="cv" style="color:${k.tone==='emerald'?'#34d399':k.tone==='red'||k.tone==='rose'?'#f87171':k.tone==='amber'?'#fbbf24':'#fff'}">${k.val}</div><div class="cl">${k.lab}</div></div>`).join('')}</div>
+   <div class="cmd-grid">
+     <div class="cmd-card span2"><div class="cmd-t">⚡ 立即处理队列</div><div class="alist" id="alist"></div></div>
+     <div class="cmd-card"><div class="cmd-t">◷ SLA</div><div style="display:flex;justify-content:space-around;filter:saturate(1.2)">${gaugesHTML()}</div></div>
+     <div class="cmd-card"><div class="cmd-t">◎ 风险矩阵</div>${matrixHTML()}</div>
+     <div class="cmd-card"><div class="cmd-t">● 负载 / 响应</div>${loadHTML()}</div>
+     <div class="cmd-card"><div class="cmd-t">◧ 反复试错方向</div>${reworkHTML()}<div style="margin-top:8px;font-size:11px;color:#94a3b8">返工率 <b style="color:#f87171">17%</b> · 无效结论 <b style="color:#fbbf24">12%</b></div></div>
+   </div></div>`;
+ }},
+
+/* 3 杂志左锚点 */
+{name:'03 · 杂志式 · 左锚点导航',desc:'左侧固定小节锚点，右侧单列长卡叙述式滚动。像读一份排版精良的运营周报，层次顺序强。',
+ render(){return header()+
+   `<div class="mag">
+     <div class="mag-nav"><div class="mn-t">运营台</div>${['健康度现状','SLA 与时效','风险与停滞','质量与返工','人与负载','失效洞察','可行动'].map((s,i)=>`<a class="mn-i${i===0?' on':''}">${String(i+1).padStart(2,'0')} ${s}</a>`).join('')}</div>
+     <div class="mag-body">
+       <section><h3>① 健康度现状</h3>${kpiStrip('tile')}</section>
+       <section><h3>② SLA 与时效</h3><div class="panel"><div style="display:flex;justify-content:space-around">${gaugesHTML()}</div><div style="margin-top:10px"><div class="mut">在办任务·已经办了多久（越久越该催）</div>${agingHTML()}</div></div></section>
+       <section><h3>③ 风险与停滞</h3><div class="g2" style="grid-template-columns:1.2fr 1fr;margin:0"><div class="panel">${matrixHTML()}</div><div class="panel"><div class="mut" style="margin-bottom:6px">停滞 &gt; 7 天卡死案</div>${stuckHTML()}</div></div></section>
+       <section><h3>④ 质量与返工</h3><div class="panel">${qualityHTML()}</div></section>
+       <section><h3>⑤ 人与负载</h3><div class="panel">${loadHTML()}</div></section>
+       <section><h3>⑥ 失效洞察</h3><div class="g2" style="grid-template-columns:1fr 1fr;margin:0"><div class="panel"><div class="mut" style="margin-bottom:6px">失效模式</div>${treemapHTML()}</div><div class="panel"><div class="mut" style="margin-bottom:6px">返工链 Top</div>${reworkHTML()}</div></div></section>
+       <section><h3>⑦ 可行动</h3><div class="panel"><div class="ph"><span class="t">待处理</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div></section>
+     </div>
+   </div>`;
+ }},
+
+/* 4 待办优先 左右双栏 */
+{name:'04 · 待办优先（左主右辅）',desc:'最核心的"可行动列表"占左侧大半屏，右侧是收窄的指标侧边栏。主管打开就直接干活，指标是辅助。',
+ render(){return header()+
+   `<div class="af">
+     <div class="af-main panel"><div class="ph"><span class="ic">⚡</span><span class="t">今天要处理的</span><span class="x" id="listInfo"></span></div>
+       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">${D.kpis.filter(k=>k.k!=='sla'&&k.k!=='all').map(k=>`<button class="chip${activeKpi===k.k?' on':''}" data-kpi="${k.k}">${k.lab} <b>${k.val}</b></button>`).join('')}<button class="chip${activeKpi==='all'?' on':''}" data-kpi="all">全部 <b>14</b></button></div>
+       <div class="alist" id="alist"></div></div>
+     <div class="af-side">
+       <div class="panel"><div class="mut" style="margin-bottom:6px">SLA 按时率</div><div style="text-align:center">${ring(86,'#16a34a',86)}</div><div class="mut" style="text-align:center;margin-top:4px">目标 ≥ 90%</div></div>
+       <div class="panel"><div class="mut" style="margin-bottom:6px">在办任务·办了多久</div>${agingHTML()}</div>
+       <div class="panel"><div class="mut" style="margin-bottom:8px">质量速览</div><div style="display:flex;justify-content:space-between;text-align:center"><div><div class="qbig" style="color:#e11d48;font-size:19px">17%</div><div class="mut">返工率</div></div><div><div class="qbig" style="color:#d97706;font-size:19px">12%</div><div class="mut">无效结论</div></div><div><div class="qbig" style="color:#0052D9;font-size:19px">2.3</div><div class="mut">试错深度</div></div></div></div>
+       <div class="panel"><div class="mut" style="margin-bottom:6px">停滞卡死</div>${stuckHTML()}</div>
+     </div>
+   </div>`;
+ }},
+
+/* 5 Bento 密集网格 */
+{name:'05 · Bento 密集网格',desc:'便当盒式高密度网格，每个指标一个小格，一屏看尽全部。适合信息量大、想"一览无余"的主管。',
+ render(){return header()+
+   `<div class="bento">
+     ${D.kpis.map(k=>`<div class="bento-k bento-s2" data-kpi="${k.k}" style="cursor:pointer;${activeKpi===k.k?'outline:2px solid var(--blue);outline-offset:-2px':''}"><div class="bk-v" style="color:${k.tone==='emerald'?'var(--emerald)':k.tone==='red'||k.tone==='rose'?'var(--rose)':'var(--ink)'}">${k.val}</div><div class="bk-l">${k.lab}</div></div>`).join('')}
+     <div class="bento-c bento-s3 bento-r2"><div class="bt">◎ 风险矩阵</div>${matrixHTML()}</div>
+     <div class="bento-c bento-s3 bento-r2"><div class="bt">● 负载 / 响应</div>${loadHTML()}</div>
+     <div class="bento-c bento-s3"><div class="bt">◷ SLA</div><div style="display:flex;justify-content:space-around;transform:scale(.92);transform-origin:left">${gaugesHTML()}</div></div>
+     <div class="bento-c bento-s3"><div class="bt">⧗ 在办·办了多久</div>${agingHTML()}</div>
+     <div class="bento-c bento-s2"><div class="bt">✓ 闭环率</div><div style="text-align:center;margin-top:4px">${ring(90,'#16a34a',66)}</div></div>
+     <div class="bento-c bento-s2"><div class="bt">↻ 返工/无效</div><div style="display:flex;justify-content:space-around;text-align:center;margin-top:8px"><div><div class="qbig" style="color:#e11d48;font-size:20px">17%</div><div class="mut">返工</div></div><div><div class="qbig" style="color:#d97706;font-size:20px">12%</div><div class="mut">无效</div></div></div></div>
+     <div class="bento-c bento-s2"><div class="bt">◧ 失效模式</div>${treemapHTML()}</div>
+     <div class="bento-c bento-s6"><div class="bt">⚡ 可行动 · <span class="x" id="listInfo" style="font-weight:400"></span></div><div class="alist" id="alist"></div></div>
+   </div>`;
+ }},
+
+/* 6 健康度评分 首屏 */
+{name:'06 · 健康度评分 · 首屏聚焦',desc:'一个大"综合健康度 78 分"仪表盘统领全屏，旁边列扣分项。从"一个数"出发，再下钻细节，最适合快速判断状态。',
+ render(){return header()+
+   `<div class="hs">
+     <div class="hs-hero panel"><div class="mut" style="margin-bottom:4px">本部门 · 综合运营健康度</div>
+       <svg viewBox="0 0 200 120" width="240" style="margin:0 auto"><path d="M16 108 A92 92 0 0 1 184 108" fill="none" stroke="#eef2f7" stroke-width="16" stroke-linecap="round"/><path d="M16 108 A92 92 0 0 1 184 108" fill="none" stroke="url(#hg)" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="78 100"/><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#84cc16"/></linearGradient></defs><text x="100" y="92" font-size="44" font-weight="800" fill="#0f172a" text-anchor="middle">78</text><text x="100" y="112" font-size="13" fill="#64748b" text-anchor="middle">良好 · 较上周 +4</text></svg>
+       <div class="hs-break"><div class="hsb"><span>SLA 按时率</span><span style="color:var(--emerald)">86% <i>−7</i></span></div><div class="hsb"><span>逾期 case</span><span style="color:var(--rose)">3 个 <i>−8</i></span></div><div class="hsb"><span>返工率</span><span style="color:var(--amber)">17% <i>−5</i></span></div><div class="hsb"><span>待接受积压</span><span style="color:var(--teal)">5 个 <i>−2</i></span></div></div>
+     </div>
+     <div class="hs-side">
+       <div class="kstrip" style="grid-template-columns:repeat(3,1fr);margin:0 0 12px">${D.kpis.map(k=>kpiCard(k,'tile')).join('')}</div>
+       <div class="g2" style="grid-template-columns:1fr 1fr;margin:0 0 12px"><div class="panel"><div class="ph"><span class="t">风险矩阵</span></div>${matrixHTML()}</div><div class="panel"><div class="ph"><span class="t">质量</span></div>${qualityHTML()}</div></div>
+       <div class="panel"><div class="ph"><span class="ic">⚡</span><span class="t">待处理</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>
+     </div>
+   </div>`;
+ }},
+
+/* 7 今日动线 时间轴 */
+{name:'07 · 今日动线 · 时间轴',desc:'以"今天这一天怎么过"为主线：上午盯逾期、午间清今日到期、午后接待办、随时看风险。把指标编进时间叙事里。',
+ render(){return header()+
+   `<div class="kstrip" style="grid-template-columns:repeat(6,1fr)">${D.kpis.map(k=>kpiCard(k,'mini')).join('')}</div>
+   <div class="tl">
+     ${[
+       {t:'上午 · 救火',c:'#e11d48',h:'先清 3 个逾期 case',body:`<div class="alist" id="alist"></div>`,note:'按"已逾期"已为你筛好 ↑ 点上方 KPI 可切换'},
+       {t:'午间 · 清临期',c:'#d97706',h:'2 个今日到期，别拖到明天',body:`<div class="mini-list">${D.tasks.filter(t=>t.tags.includes('today')).map(t=>`<div class="ml"><span class="lvl" style="background:${LVLC[t.lvl]}">${t.lvl}</span>${t.nm} · ${t.owner}</div>`).join('')}</div>`},
+       {t:'午后 · 派活',c:'#0d9488',h:'5 个待接受积压，超 24h 要催接单',body:loadHTML()},
+       {t:'随时 · 盯风险',c:'#0052D9',h:'风险矩阵 + 停滞卡死',body:`<div class="g2" style="grid-template-columns:1.3fr 1fr;margin:0">${`<div>${matrixHTML()}</div>`}<div>${stuckHTML()}</div></div>`},
+       {t:'周度 · 复盘',c:'#7A3DFF',h:'返工 17% / 无效 12%，挑反复试错方向立专项',body:reworkHTML()},
+     ].map(s=>`<div class="tl-i"><div class="tl-dot" style="background:${s.c}"></div><div class="tl-c panel"><div class="tl-t" style="color:${s.c}">${s.t}</div><div class="tl-h">${s.h}</div>${s.body}${s.note?`<div class="mut" style="margin-top:6px">${s.note}</div>`:''}</div></div>`).join('')}
+   </div>`;
+ }},
+
+/* 8 信号灯分级 */
+{name:'08 · 信号灯分级（红黄绿）',desc:'按"该不该管"把所有事分进红/黄/绿三区：红＝立即介入、黄＝本周关注、绿＝正常运转。最直觉的 triage 看板。',
+ render(){return header()+
+   `<div class="sig">
+     <div class="sig-col red"><div class="sig-hd"><span class="sig-dot"></span>红区 · 立即介入<span class="sig-n">5</span></div>
+       <div class="alist" id="alist"></div>
+       <div class="sig-foot">逾期 3 · L1/L2 关键 4 · 停滞卡死 2</div></div>
+     <div class="sig-col amber"><div class="sig-hd"><span class="sig-dot"></span>黄区 · 本周关注<span class="sig-n">7</span></div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">待接受积压（超 24h 未接）</div>${D.tasks.filter(t=>t.tags.includes('accept')).map(t=>`<div class="ml"><span class="lvl" style="background:${LVLC[t.lvl]}">${t.lvl}</span>${t.nm.replace('（待接受）','')} · ${t.owner}</div>`).join('')}</div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">在办偏慢（办了 6 天以上）</div>${agingHTML()}</div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">超载成员</div>${loadHTML()}</div></div>
+     <div class="sig-col green"><div class="sig-hd"><span class="sig-dot"></span>绿区 · 正常运转<span class="sig-n">良好</span></div>
+       <div class="sig-card"><div style="text-align:center">${ring(90,'#16a34a',70)}<div class="mut" style="margin-top:4px">闭环率 90%</div></div></div>
+       <div class="sig-card"><div style="display:flex;justify-content:space-around;text-align:center"><div><div class="qbig" style="color:#16a34a;font-size:19px">86%</div><div class="mut">SLA</div></div><div><div class="qbig" style="font-size:19px">78%</div><div class="mut">响应达标</div></div></div></div>
+       <div class="sig-card"><div class="mut" style="margin-bottom:6px">本周已闭环亮点</div><div class="ml" style="color:var(--emerald)">✓ FT 程式优化 已结案</div><div class="ml" style="color:var(--emerald)">✓ CP2 良率回升 已验证</div></div></div>
+   </div>`;
+ }},
+
+/* 9 卡片瀑布 模块化 */
+{name:'09 · 模块卡片瀑布',desc:'每个关注面是一张自含迷你图的独立卡，三列瀑布排布，模块化、可增删，像一面可自由拼的"指标墙"。',
+ render(){return header()+
+   `<div class="mason">
+     <div class="mc"><div class="mc-h">健康度</div>${kpiStrip('line').replace('class="kstrip"','class="kstrip" style="grid-template-columns:1fr;gap:7px"')}</div>
+     <div class="mc"><div class="mc-h">SLA 健康度</div><div style="display:flex;justify-content:space-around">${gaugesHTML()}</div></div>
+     <div class="mc"><div class="mc-h">风险矩阵</div>${matrixHTML()}</div>
+     <div class="mc"><div class="mc-h">在办·办了多久</div>${agingHTML()}</div>
+     <div class="mc"><div class="mc-h">质量</div>${qualityHTML()}</div>
+     <div class="mc"><div class="mc-h">人 · 负载与响应</div>${loadHTML()}</div>
+     <div class="mc"><div class="mc-h">失效模式</div>${treemapHTML()}</div>
+     <div class="mc"><div class="mc-h">反复试错方向</div>${reworkHTML()}</div>
+     <div class="mc"><div class="mc-h">停滞卡死</div>${stuckHTML()}</div>
+     <div class="mc mc-wide"><div class="mc-h">⚡ 可行动 · <span class="x" id="listInfo" style="font-weight:400"></span></div><div class="alist" id="alist"></div></div>
+   </div>`;
+ }},
+
+/* 10 结论先行 极简 */
+{name:'10 · 结论先行（高管极简）',desc:'文字驱动、留白克制，每个模块先给"一句话结论"，再配极简数据。给不想看图表、只想要判断的主管 / 给上级汇报时用。',
+ render(){return header()+
+   `<div class="exec">
+     <div class="exec-lead panel"><div class="el-tag">今日一句话</div><div class="el-text">本部门整体<b style="color:var(--emerald)">良好</b>，但 <b style="color:var(--rose)">3 个逾期 case</b> 需今天介入，<b style="color:var(--amber)">返工率升至 17%</b> 建议立专项。</div></div>
+     ${[
+       {h:'健康度',c:'结论：在办 14，其中 L1/L2 关键 4 个，SLA 按时率 86%（低于目标 90%）。',d:`<div class="ex-nums">${D.kpis.map(k=>`<span data-kpi="${k.k}" class="${activeKpi===k.k?'on':''}"><b style="color:${k.tone==='emerald'?'var(--emerald)':k.tone==='rose'||k.tone==='red'?'var(--rose)':'var(--ink)'}">${k.val}</b>${k.lab}</span>`).join('')}</div>`},
+       {h:'风险',c:'结论：2 个 case 停滞超 8 天卡死，紧急度×等级集中在左上红区，优先 DDR4 退货。',d:stuckHTML()},
+       {h:'质量',c:'结论：闭环率 90% 健康；但返工率 17%（↑3%）、无效结论 12%，反复试错集中在 DDR4 PKG 方向。',d:`<div class="ex-nums"><span><b style="color:var(--emerald)">90%</b>闭环率</span><span><b style="color:var(--rose)">17%</b>返工率</span><span><b style="color:var(--amber)">12%</b>无效结论</span><span><b style="color:var(--blue)">2.3</b>试错深度</span></div>`},
+       {h:'负载',c:'结论：张伟在办 23 已超载；周杰派单响应 28.5h 超 24h 阈值，需关注接单速度。',d:loadHTML()},
+     ].map(s=>`<div class="exec-row panel"><div class="er-h">${s.h}</div><div class="er-c">${s.c}</div><div class="er-d">${s.d}</div></div>`).join('')}
+     <div class="panel"><div class="ph"><span class="ic">⚡</span><span class="t">需我处理</span><span class="x" id="listInfo"></span></div><div class="alist" id="alist"></div></div>
+   </div>`;
+ }},
+];
+
+/* ============ 版本专属样式（注入一次） ============ */
+const VCSS=`
+/* v2 dark */
+.cmd{background:#0b1220;border-radius:18px;padding:18px;color:#e2e8f0}
+.cmd-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cmd-hd b{font-size:16px;color:#fff}.cmd-sub{font-size:11px;color:#64748b;margin-left:8px}
+.cmd-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#34d399;margin-right:8px;box-shadow:0 0 0 4px rgba(52,211,153,.18)}
+.cmd-alert{background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.35);font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px}
+.cmd-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.cmd-k{background:#131c2e;border:1px solid #1e293b;border-radius:12px;padding:11px 13px;cursor:pointer;transition:.12s}
+.cmd-k:hover{border-color:#334155}.cmd-k.on{border-color:#3b82f6;box-shadow:0 0 0 1px #3b82f6}
+.cmd-k .cv{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}.cmd-k .cl{font-size:11px;color:#94a3b8;margin-top:2px}
+.cmd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cmd-card{background:#131c2e;border:1px solid #1e293b;border-radius:14px;padding:13px}
+.cmd-card.span2{grid-column:span 2;grid-row:span 2}
+.cmd-t{font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:10px}
+.cmd .arow{border-color:#1e293b !important;background:#0f1828}.cmd .arow:hover{background:#16213a;border-color:#334155 !important}
+.cmd .arow .nm{color:#e2e8f0}.cmd .arow .meta{color:#94a3b8}.cmd .btn{background:#0b1220;border-color:#334155;color:#cbd5e1}
+.cmd .rw{border-color:#1e293b}.cmd .rw .nm{color:#cbd5e1}.cmd .bars .bn{color:#94a3b8}.cmd .bars .bt{background:#0b1220}
+.cmd .mx th{color:#64748b}.cmd .mx td .yl{color:#94a3b8}.cmd text{fill:#e2e8f0 !important}
+/* v3 magazine */
+.mag{display:grid;grid-template-columns:160px 1fr;gap:20px}
+.mag-nav{position:sticky;top:64px;align-self:start;display:flex;flex-direction:column;gap:2px}
+.mn-t{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:8px}
+.mn-i{font-size:12px;color:var(--t5);padding:6px 10px;border-radius:8px;border-left:2px solid var(--line);cursor:pointer}
+.mn-i.on,.mn-i:hover{color:var(--blue);background:rgba(0,82,217,.05);border-left-color:var(--blue)}
+.mag-body section{margin-bottom:22px}
+.mag-body h3{font-size:15px;font-weight:800;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+/* v4 action-first */
+.af{display:grid;grid-template-columns:1.7fr 1fr;gap:14px}
+.af-side{display:flex;flex-direction:column;gap:12px}
+.chip{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:999px;height:28px;padding:0 11px;font-size:11.5px;color:var(--t6);font-weight:600}
+.chip b{color:var(--ink)}.chip.on{border-color:var(--blue);color:var(--blue);background:rgba(0,82,217,.06)}.chip.on b{color:var(--blue)}
+/* v5 bento */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:78px;gap:12px}
+.bento-k,.bento-c{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;overflow:hidden}
+.bento-s2{grid-column:span 2}.bento-s3{grid-column:span 3}.bento-s6{grid-column:span 6}.bento-r2{grid-row:span 2}.bento-s6{grid-column:span 12}
+.bento-k{display:flex;flex-direction:column;justify-content:center}
+.bk-v{font-size:25px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}.bk-l{font-size:11px;color:var(--t5);margin-top:4px}
+.bt{font-size:11.5px;font-weight:700;color:var(--t7);margin-bottom:8px}
+.bento-s6 .alist{max-height:none}
+/* v6 health score */
+.hs{display:grid;grid-template-columns:300px 1fr;gap:14px}
+.hs-hero{display:flex;flex-direction:column;align-items:center}
+.hs-break{width:100%;margin-top:10px}
+.hsb{display:flex;justify-content:space-between;font-size:12px;padding:7px 2px;border-bottom:1px solid var(--line2);color:var(--t6)}
+.hsb i{font-size:10px;color:var(--t4);margin-left:6px;font-style:normal}
+/* v7 timeline */
+.tl{position:relative;margin-top:14px;padding-left:26px}
+.tl::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl-i{position:relative;margin-bottom:14px}
+.tl-dot{position:absolute;left:-26px;top:14px;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tl-t{font-size:11px;font-weight:800;letter-spacing:.02em}.tl-h{font-size:14px;font-weight:700;color:var(--t7);margin:3px 0 10px}
+.mini-list .ml,.ml{font-size:12px;color:var(--t6);padding:5px 2px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:7px}
+/* v8 signal */
+.sig{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px}
+.sig-col{border-radius:14px;padding:13px;border:1px solid}
+.sig-col.red{background:linear-gradient(180deg,rgba(239,68,68,.06),#fff);border-color:rgba(239,68,68,.28)}
+.sig-col.amber{background:linear-gradient(180deg,rgba(217,119,6,.06),#fff);border-color:rgba(217,119,6,.26)}
+.sig-col.green{background:linear-gradient(180deg,rgba(22,163,74,.06),#fff);border-color:rgba(22,163,74,.24)}
+.sig-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--t7);margin-bottom:12px}
+.sig-dot{width:10px;height:10px;border-radius:50%}
+.red .sig-dot{background:#ef4444}.amber .sig-dot{background:#d97706}.green .sig-dot{background:#16a34a}
+.sig-n{margin-left:auto;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.sig-card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:10px}
+.sig-foot{font-size:11px;color:var(--t5);text-align:center;margin-top:6px}
+.sig .arow{background:#fff}
+/* v9 masonry */
+.mason{column-count:3;column-gap:14px}
+.mc{break-inside:avoid;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:14px;display:inline-block;width:100%}
+.mc-h{font-size:12.5px;font-weight:700;color:var(--t7);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--line2)}
+.mc-wide{}
+/* v10 exec */
+.exec{max-width:980px}
+.exec-lead{margin-bottom:14px;border-left:4px solid var(--blue)}
+.el-tag{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.el-text{font-size:16px;line-height:1.6;color:var(--t7)}
+.exec-row{display:grid;grid-template-columns:90px 1fr;gap:14px;margin-bottom:12px;align-items:start}
+.er-h{font-size:14px;font-weight:800;color:var(--ink);padding-top:2px}
+.er-c{font-size:13px;color:var(--t6);line-height:1.6;grid-column:2}
+.er-d{grid-column:2;margin-top:10px}
+.ex-nums{display:flex;flex-wrap:wrap;gap:18px}
+.ex-nums span{font-size:12px;color:var(--t5);display:flex;flex-direction:column;cursor:pointer}
+.ex-nums span b{font-size:21px;font-weight:800;line-height:1.1}
+.ex-nums span.on b{text-decoration:underline}
+`;
+const st=document.createElement('style');st.textContent=VCSS;document.head.appendChild(st);
+
+/* ============ 切换 ============ */
+let cur=0;
+const pills=document.getElementById('pills');
+VERSIONS.forEach((v,i)=>{const b=document.createElement('button');b.className='pill'+(i===0?' on':'');b.innerHTML=`<span class="no">${String(i+1).padStart(2,'0')}</span>`;b.onclick=()=>{cur=i;render();};pills.appendChild(b);});
+function render(){
+  const v=VERSIONS[cur];
+  document.getElementById('vn').textContent=v.name;
+  document.getElementById('vd').textContent=v.desc;
+  [...pills.children].forEach((c,i)=>c.classList.toggle('on',i===cur));
+  document.body.style.background=v.dark?'#0a0f1c':'var(--bg)';
+  document.getElementById('stage').innerHTML=v.render();
+  bindKpi();
+  refreshList();
+}
+render();
+</script>
+</body>
+</html>

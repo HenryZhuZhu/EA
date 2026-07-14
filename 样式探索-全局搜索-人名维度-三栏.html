@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>样式探索 · 全局搜索（人名维度 · 三栏中心）</title>
+<style>
+  :root{
+    color-scheme:light;
+    --blue:#0052D9; --blue-2:#003FA8; --cyan:#00A4FF;
+    --ink:#0f172a; --sub:#64748b; --line:#e6ebf2;
+    font-family:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; color:var(--ink);
+    background:linear-gradient(120deg,#eef2ff,#f8fafc 60%);}
+  .hint{position:fixed; top:20px; left:0; right:0; text-align:center; color:#94a3b8; font-size:13px; z-index:1;}
+  .overlay{position:fixed; inset:0; background:rgba(15,23,42,.42); backdrop-filter:blur(3px); display:grid; place-items:center; z-index:50; padding:64px 32px 32px;}
+  .modal{width:min(1040px,94vw); height:min(680px,86vh); background:#fff; border-radius:20px; box-shadow:0 40px 100px -30px rgba(2,6,23,.55); display:flex; flex-direction:column; overflow:hidden;}
+
+  /* 顶部搜索条 */
+  .mhead{display:flex; align-items:center; gap:12px; padding:18px 22px; border-bottom:1px solid var(--line);}
+  .mhead .sicon{color:var(--blue);}
+  .mhead .qi{flex:1; font-size:19px; color:#1e293b; font-weight:500;}
+  .mhead .qi em{font-style:normal; color:var(--blue); border-bottom:2px solid rgba(0,82,217,.25);}
+  .mhead .caret{width:2px; height:22px; background:var(--blue); animation:bl 1s steps(1) infinite;}
+  @keyframes bl{50%{opacity:0;}}
+  .mhead .total{font-size:12px; color:#94a3b8; white-space:nowrap;}
+  .mhead .esc{font-size:11px; color:#94a3b8; border:1px solid var(--line); border-radius:6px; padding:3px 8px; cursor:pointer;}
+
+  .mbody{flex:1; min-height:0; display:flex;}
+
+  /* 左侧类目 */
+  .facets{width:230px; border-right:1px solid var(--line); background:#fbfcfe; padding:16px 12px; overflow:auto; flex:none;}
+  .facets .fh{font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:.06em; margin:0 8px 8px;}
+  .facets .fo{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; color:#475569; padding:9px 10px; border-radius:9px; cursor:pointer;}
+  .facets .fo:hover{background:#eef2f8;}
+  .facets .fo.on{background:rgba(0,82,217,.08); color:var(--blue); font-weight:600;}
+  .facets .fo .lbl{display:flex; align-items:center; gap:8px; min-width:0;}
+  .facets .fo .lbl span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .facets .fo .n{font-size:11px; color:#94a3b8; background:#eef2f8; border-radius:999px; padding:1px 8px; flex:none;}
+  .facets .fo.on .n{color:var(--blue); background:rgba(0,82,217,.12);}
+  .facets .divi{height:1px; background:#eef2f8; margin:10px 6px;}
+
+  /* 结果列 */
+  .results{flex:1; min-width:0; overflow:auto; padding:6px 0;}
+  .rsec{padding:4px 0 6px;}
+  .rsec .sh{display:flex; align-items:center; gap:8px; padding:10px 22px 6px;}
+  .rsec .sh b{font-size:12px; font-weight:700; color:#334155;}
+  .rsec .sh .tag{font-size:10px; color:#7c8db0; background:#eef2f8; border-radius:6px; padding:2px 7px;}
+  .rsec .sh .cnt{font-size:11px; color:#94a3b8; margin-left:auto;}
+  .ri{display:flex; align-items:center; gap:12px; padding:11px 22px; cursor:pointer; border-left:3px solid transparent;}
+  .ri:hover{background:#f6f8fc;}
+  .ri.sel{background:rgba(0,82,217,.06); border-left-color:var(--blue);}
+  .ri .bdg{flex:none; font-size:10px; font-weight:700; padding:3px 9px; border-radius:7px;}
+  .ri .bdg.case{background:rgba(0,82,217,.09); color:var(--blue);}
+  .ri .bdg.task{background:rgba(0,164,255,.13); color:#0284c7;}
+  .ri .bdg.person{background:rgba(124,58,237,.1); color:#7c3aed;}
+  .ri .av{flex:none; width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; display:grid; place-items:center; font-size:13px; font-weight:700;}
+  .ri .rb{min-width:0; flex:1;}
+  .ri .rt{font-size:14px; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ri .rm{font-size:12px; color:var(--sub); margin-top:3px; display:flex; gap:8px; align-items:center;}
+  .ri .rm .code{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:11px; color:#7c8db0;}
+  em.hl{font-style:normal; color:var(--blue); font-weight:700; background:rgba(255,214,0,.35); border-radius:3px; padding:0 2px;}
+  .stat{font-size:11px; padding:2px 8px; border-radius:999px; flex:none;}
+  .stat.进行中{background:#e0f2fe; color:#0369a1;}
+  .stat.待处理,.stat.待接受{background:#fef3c7; color:#b45309;}
+  .stat.已完成{background:#dcfce7; color:#15803d;}
+  .stat.已升级{background:#fee2e2; color:#b91c1c;}
+
+  /* 右侧预览 */
+  .preview{width:330px; flex:none; border-left:1px solid var(--line); background:#fbfcfe; overflow:auto; padding:22px;}
+  .preview .pbdg{display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:7px; margin-bottom:12px;}
+  .preview .pbdg.case{background:rgba(0,82,217,.09); color:var(--blue);}
+  .preview .pbdg.task{background:rgba(0,164,255,.13); color:#0284c7;}
+  .preview .pbdg.person{background:rgba(124,58,237,.1); color:#7c3aed;}
+  .preview .avatar{width:60px; height:60px; border-radius:18px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; display:grid; place-items:center; font-size:24px; font-weight:700; margin-bottom:12px;}
+  .preview h3{margin:0 0 4px; font-size:18px; line-height:1.4;}
+  .preview .pcode{font-family:"SFMono-Regular",Menlo,Consolas,monospace; font-size:12px; color:#7c8db0; margin-bottom:16px;}
+  .preview .psub{font-size:13px; color:var(--sub); margin-bottom:16px;}
+  .preview .kv{display:grid; grid-template-columns:76px 1fr; gap:9px 12px; font-size:13px; margin-bottom:16px;}
+  .preview .kv dt{color:#94a3b8;} .preview .kv dd{margin:0; color:#334155;}
+  .preview .snip{font-size:13px; color:#475569; line-height:1.7; background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:16px;}
+  .preview .acts{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{flex:1; min-width:120px; text-align:center; font-size:13px; padding:9px 0; border-radius:9px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#475569;}
+  .btn.pri{background:linear-gradient(90deg,var(--blue),var(--blue-2)); color:#fff; border:none;}
+</style>
+</head>
+<body>
+<div class="hint">（模拟：全局搜索人名「张伟」——方案 1 三栏中心，按“匹配原因”分组）</div>
+<div class="overlay">
+  <div class="modal">
+    <div class="mhead">
+      <svg class="sicon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg>
+      <div class="qi"><em>张伟</em></div>
+      <div class="caret"></div>
+      <div class="total" id="total"></div>
+      <div class="esc">ESC 关闭</div>
+    </div>
+    <div class="mbody">
+      <div class="facets" id="facets"></div>
+      <div class="results" id="results"></div>
+      <div class="preview" id="preview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const Q = '张伟';
+
+// 被搜索的用户本人
+const PERSON = { id:'p1', kind:'person', name:'张伟', dept:'PTE', role:'高级产品测试工程师', email:'zhangwei@corp.com',
+  ownCases:3, activeTasks:2, doneTasks:1, snip:'PTE 部门产品测试工程师，主要负责 CP/FT 阶段良率与失效分析，当前活跃于多个进行中 Case。' };
+
+// 五类匹配（含各自条目的预览详情）
+const CATS = [
+  { key:'person', title:'用户', ico:'👤', tag:'人员', items:[PERSON] },
+  { key:'own-case', title:'张伟 负责的 Case', ico:'📁', tag:'Owner=张伟', items:[
+    { id:'c1', kind:'case', matchOn:'owner', title:'CP Vdd 漂移致批量 Bin7 失效', code:'EA-260511000001', owner:'张伟', level:'L2', status:'进行中', product:'XC7Z020', customer:'北美 A 客户', failMode:'漏电', snip:'CP 阶段 Vdd 漂移导致同批次 Bin7 集中失效，正推进 FSA 与程式复核。' },
+    { id:'c2', kind:'case', matchOn:'owner', title:'CP 阶段 Bitmap 边缘失效', code:'EA-260511000009', owner:'张伟', level:'L3', status:'进行中', product:'XC7Z020', customer:'北美 A 客户', failMode:'边缘失效', snip:'失效点集中在晶圆边缘环带，怀疑光刻/刻蚀均匀性问题。' },
+    { id:'c3', kind:'case', matchOn:'owner', title:'封装后开路批量退货', code:'EA-260511000051', owner:'张伟', level:'L1', status:'已升级', product:'BGA-256', customer:'北美 A 客户', failMode:'开路', snip:'客户端封装后开路批量退货，已升级 L1，跨部门联合排查焊球与基板。' },
+  ]},
+  { key:'own-task', title:'张伟 负责的任务', ico:'✅', tag:'负责人=张伟', items:[
+    { id:'t1', kind:'task', matchOn:'owner', title:'FSA 分析切片结果', code:'EA-260511000009.001', owner:'张伟', dept:'PTE', type:'FSA分析', status:'已完成', snip:'切片确认边缘环带存在缺陷层，已出具结论，有效性：有效。' },
+    { id:'t2', kind:'task', matchOn:'owner', title:'程式参数回归验证', code:'EA-260511000009.006', owner:'张伟', dept:'PTE', type:'测试程式分析', status:'进行中', snip:'调整程式参数后做回归，确认不引入良率回退。' },
+  ]},
+  { key:'name-case', title:'Case 名称包含「张伟」', ico:'🔎', tag:'名称匹配', items:[
+    { id:'c4', kind:'case', matchOn:'name', title:'张伟专项 · CP 良率改善追踪', code:'EA-260511000073', owner:'王芳', level:'L3', status:'进行中', product:'XC7Z020', customer:'华东 B 客户', failMode:'良率', snip:'以张伟前期分析为基线，跨批次追踪良率改善效果。' },
+    { id:'c5', kind:'case', matchOn:'name', title:'张伟交接遗留 FT 失效复盘', code:'EA-260511000064', owner:'赵敏', level:'L4', status:'待处理', product:'GD32F4', customer:'欧洲 C 客户', failMode:'停机', snip:'张伟离岗前交接的遗留 FT 失效，待重新分配 Owner 复盘。' },
+  ]},
+  { key:'name-task', title:'任务名称包含「张伟」', ico:'🔎', tag:'名称匹配', items:[
+    { id:'t3', kind:'task', matchOn:'name', title:'协助张伟复核 FSA 结论', code:'EA-260511000009.008', owner:'陈磊', dept:'EFA', type:'FSA分析', status:'待接受', snip:'EFA 协助张伟复核切片结论的一致性。' },
+    { id:'t4', kind:'task', matchOn:'name', title:'张伟交接的程式回归任务', code:'EA-260511000001.011', owner:'刘洋', dept:'PTE', type:'测试程式分析', status:'进行中', snip:'承接张伟交接的程式回归项，确认判据稳定。' },
+  ]},
+];
+
+const ALL = CATS.flatMap(c=>c.items);
+const TOTAL = ALL.length;
+const state = { cat:'all', sel:'p1' };
+document.getElementById('total').textContent = `共 ${TOTAL} 条`;
+
+const kindLabel = k => k==='person' ? '人员' : k==='case' ? 'Case' : '任务';
+const hl = s => String(s).replaceAll(Q, `<em class="hl">${Q}</em>`);
+
+function riHTML(it){
+  const sel = it.id===state.sel ? 'sel' : '';
+  if(it.kind==='person'){
+    return `<div class="ri ${sel}" data-id="${it.id}">
+      <span class="av">${it.name[0]}</span>
+      <div class="rb"><div class="rt">${hl(it.name)}</div><div class="rm">${it.dept} · ${it.role}</div></div>
+      <span class="bdg person">人员</span></div>`;
+  }
+  const title = it.matchOn==='name' ? hl(it.title) : it.title;
+  const who = it.kind==='case' ? it.owner : `${it.owner}·${it.dept}`;
+  const meta = `<span class="code">${it.code}</span> · ${it.matchOn==='owner' ? hl(who) : who}`;
+  return `<div class="ri ${sel}" data-id="${it.id}">
+    <span class="bdg ${it.kind}">${kindLabel(it.kind)}</span>
+    <div class="rb"><div class="rt">${title}</div><div class="rm">${meta}</div></div>
+    <span class="stat ${it.status}">${it.status}</span></div>`;
+}
+
+function previewHTML(){
+  const it = ALL.find(i=>i.id===state.sel);
+  if(!it) return '<div class="psub" style="text-align:center;margin-top:60px;color:#94a3b8">选择结果查看详情</div>';
+  if(it.kind==='person'){
+    const kv=[['部门',it.dept],['角色',it.role],['邮箱',it.email],['负责 Case',it.ownCases+' 个'],['进行中任务',it.activeTasks+' 个'],['已完成任务',it.doneTasks+' 个']];
+    return `<div class="pbdg person">人员</div>
+      <div class="avatar">${it.name[0]}</div>
+      <h3>${hl(it.name)}</h3>
+      <div class="psub">${it.dept} · ${it.role}</div>
+      <dl class="kv">${kv.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      <div class="snip">${it.snip}</div>
+      <div class="acts"><div class="btn pri">查看个人主页</div><div class="btn">给 TA 派单</div></div>`;
+  }
+  const kv = it.kind==='case'
+    ? [['编号',it.code],['Owner',it.owner],['等级',it.level],['状态',it.status],['产品',it.product],['客户',it.customer],['失效模式',it.failMode]]
+    : [['编号',it.code],['负责人',it.owner],['部门',it.dept],['任务类型',it.type],['状态',it.status]];
+  const title = it.matchOn==='name' ? hl(it.title) : it.title;
+  return `<div class="pbdg ${it.kind}">${kindLabel(it.kind)}</div>
+    <h3>${title}</h3>
+    <div class="pcode">${it.code}</div>
+    <dl class="kv">${kv.map(([k,v])=>`<dt>${k}</dt><dd>${(it.matchOn==='owner'&&(k==='Owner'||k==='负责人'))?hl(v):(v||'—')}</dd>`).join('')}</dl>
+    <div class="snip">${hl(it.snip)}</div>
+    <div class="acts"><div class="btn pri">打开${kindLabel(it.kind)}</div><div class="btn">在新页签打开</div></div>`;
+}
+
+function renderFacets(){
+  const fo=(key,label,n)=>`<div class="fo ${state.cat===key?'on':''}" data-cat="${key}"><span class="lbl"><span>${label}</span></span><span class="n">${n}</span></div>`;
+  document.getElementById('facets').innerHTML =
+    `<div class="fh">匹配「${Q}」的结果</div>`
+    + fo('all','全部结果',TOTAL)
+    + `<div class="divi"></div>`
+    + CATS.map(c=>fo(c.key,c.title,c.items.length)).join('');
+}
+function renderResults(){
+  const cats = state.cat==='all' ? CATS : CATS.filter(c=>c.key===state.cat);
+  document.getElementById('results').innerHTML = cats.map(c=>`
+    <div class="rsec">
+      <div class="sh"><b>${c.title}</b><span class="tag">${c.tag}</span><span class="cnt">${c.items.length} 条</span></div>
+      ${c.items.map(riHTML).join('')}
+    </div>`).join('');
+}
+function render(){ renderFacets(); renderResults(); document.getElementById('preview').innerHTML = previewHTML(); }
+render();
+
+document.addEventListener('click', e=>{
+  const fo = e.target.closest('[data-cat]'); if(fo){ state.cat=fo.dataset.cat; render(); return; }
+  const ri = e.target.closest('[data-id]'); if(ri){ state.sel=ri.dataset.id; render(); return; }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1200" />
+<title>我的任务 · 欢迎标语 30 版</title>
+<style>
+  :root{
+    --blue:#0052D9;--blue2:#003FA8;--cyan:#00A4FF;--violet:#7A3DFF;
+    --ink:#0f172a;--t7:#334155;--t6:#475569;--t5:#64748b;--t4:#94a3b8;
+    --line:#e2e8f0;--line2:#eef2f7;--bg:#eef2f7;--bg2:#f8fafc;
+    --amber:#d97706;--emerald:#16a34a;--rose:#e11d48;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:32px 26px 80px}
+  .ph{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .ph h1{font-size:24px;font-weight:800;margin:0;letter-spacing:-.01em}
+  .ph .s{font-size:13px;color:var(--t5);margin:0 0 2px}
+  .pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:700;background:linear-gradient(90deg,var(--blue),var(--violet));color:#fff}
+  .intro{margin:14px 0 24px;padding:12px 15px;background:#fff;border:1px solid var(--line);border-radius:12px;font-size:12.5px;color:var(--t6);line-height:1.7}
+  .intro b{color:var(--t7)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04);display:flex;flex-direction:column}
+  .cap{display:flex;align-items:center;gap:9px;padding:11px 16px 0}
+  .cap .no{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center}
+  .cap .tone{font-size:11px;font-weight:700;color:var(--blue)}
+  .cap .fit{margin-left:auto;font-size:10.5px;color:var(--t4)}
+  /* 还原「我的任务」页头区域 */
+  .stage{margin:10px 14px 0;border:1px solid var(--line2);border-radius:12px;background:linear-gradient(180deg,#fcfdff,#f7faff);padding:20px 20px 18px;min-height:104px;display:flex;flex-direction:column;justify-content:center}
+  .hi{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+  .sub{font-size:13px;color:var(--t5);margin-top:7px;line-height:1.5}
+  .b{color:var(--ink);font-weight:700}
+  .blue{color:var(--blue);font-weight:700}
+  .amber{color:var(--amber);font-weight:700}
+  .rose{color:var(--rose);font-weight:700}
+  .emer{color:var(--emerald);font-weight:700}
+  .note{padding:10px 16px 14px;font-size:11.5px;color:var(--t5);line-height:1.55}
+  /* 特殊布局零件 */
+  .row{display:flex;align-items:center;gap:14px}
+  .ava{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#fff;display:grid;place-items:center;font-size:20px;font-weight:800;flex:0 0 auto}
+  .bignum{font-size:40px;font-weight:800;line-height:1;color:var(--blue);font-variant-numeric:tabular-nums}
+  .chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:600;background:#fff;border:1px solid var(--line);color:var(--t6)}
+  .stat{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--t6)}
+  .stat b{color:var(--ink)}
+  .dot{width:6px;height:6px;border-radius:99px;display:inline-block}
+  .progress{height:6px;border-radius:99px;background:#e9eef5;overflow:hidden;margin-top:9px;max-width:280px}
+  .progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--blue))}
+  .sig{font-size:12px;color:var(--t4);letter-spacing:.04em}
+  /* —— 游戏台词彩蛋 —— */
+  .egg-sec{margin-top:30px;background:linear-gradient(135deg,#0b1220,#141b2e);border:1px solid #1e293b;border-radius:18px;padding:22px;color:#e2e8f0}
+  .egg-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .egg-h h2{font-size:18px;margin:0;color:#fff;font-weight:800}
+  .egg-h .tag{font-size:11px;color:#93c5fd;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);padding:3px 10px;border-radius:999px}
+  .egg-intro{font-size:12px;color:#94a3b8;line-height:1.7;margin:10px 0 16px}
+  .egg-intro b{color:#cbd5e1}
+  .egg-feature{background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:20px;display:flex;align-items:center;gap:18px;margin-bottom:16px;min-height:96px}
+  .egg-feature .pad{flex:1;min-width:0}
+  .egg-feature .src{font-size:11px;color:#64748b;margin-bottom:6px}
+  .egg-feature .line{font-size:21px;font-weight:800;color:#fff;line-height:1.3}
+  .egg-feature .ls{font-size:13px;color:#94a3b8;margin-top:6px}
+  .roll{cursor:pointer;border:none;font-family:inherit;font-weight:700;font-size:13px;color:#0b1220;background:linear-gradient(90deg,#22d3ee,#3b82f6);border-radius:10px;height:40px;padding:0 16px;white-space:nowrap}
+  .roll:hover{filter:brightness(1.08)}
+  .egg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .egg-card{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:13px 14px}
+  .egg-card .src{font-size:10.5px;color:#64748b;margin-bottom:5px}
+  .egg-card .src b{color:#93c5fd;font-weight:700}
+  .egg-card .line{font-size:14.5px;font-weight:700;color:#e2e8f0;line-height:1.4}
+  .egg-card .ls{font-size:11.5px;color:#94a3b8;margin-top:4px;line-height:1.5}
+  .egg-card .note{font-size:10.5px;color:#64748b;margin-top:7px;border-top:1px solid #1e293b;padding-top:7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ph">
+    <div><h1>我的任务 · 欢迎标语</h1><p class="s">30 版方案，按真实页头样式渲染，挑一版替换现在「下午好，张伟 / 这是你当前需要处理的任务」。</p></div>
+    <span class="pill">✦ 30 版</span>
+  </div>
+  <div class="intro">
+    示例数据：<b>待接受 7</b> · <b>进行中 21</b> · <b>今日到期 4</b> · <b>本周闭环 11</b> · <b>本月完成 97</b> · <b>L1 1</b>。
+    实际会随<b>时间</b>（早/中/下午/晚）与<b>真实任务数</b>动态变化；带 emoji 的版本如不想要可去掉。
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <!-- 游戏台词彩蛋 -->
+  <div class="egg-sec">
+    <div class="egg-h"><h2>✨ 鼓励台词彩蛋（隐藏款）</h2><span class="tag">Easter Egg</span></div>
+    <div class="egg-intro">
+      偏<b>鼓励 / 激励</b>的隐藏问候，涵盖 <b>🎮 游戏</b> · <b>🎬 影视</b> · <b>🎌 动漫</b> · <b>💬 名人名言</b>。
+      不当默认问候，作为<b>低概率彩蛋</b>随机触发 —— 建议 <b>~5% 概率</b>，或限定<b>周五 / 特定纪念日</b>，或<b>头像连点 7 下</b> / <b>Konami 秘籍</b>（↑↑↓↓←→←→BA）召唤。
+      尤其失效分析里"每一次失败都是更强一次"，和"为何跌倒/真相只有一个/杀不死我的使我更强"这类台词天生契合。点按钮试试手感 👇
+    </div>
+    <div class="egg-feature">
+      <div class="pad"><div class="src" id="efSrc"></div><div class="line" id="efLine"></div><div class="ls" id="efSub"></div></div>
+      <button class="roll" onclick="rollEgg()">🎲 随机抽一句</button>
+    </div>
+    <div class="egg-grid" id="eggGrid"></div>
+  </div>
+</div>
+
+<script>
+const U={name:'张伟',dept:'PTE 测试工程',avatar:'张'};
+// 每版：tone 语气标签 / fit 适合 / hi 主标 / sub 副标(可含html) / note 说明 / custom 自定义渲染
+const G=[
+ {tone:'数据导览',fit:'信息密度高',
+  hi:()=>`下午好，${U.name}`,
+  sub:()=>`今天有 <span class="b">7 项</span>待处理，其中 <span class="rose">4 项今日到期</span>，已为你按紧急度排好序`,
+  note:'温和地把"今天要紧的事"一句话讲清，替代空泛的"需要处理的任务"。'},
+
+ {tone:'激励攻坚',fit:'工程师士气',
+  hi:()=>`新的一天，去攻下一个失效 🔬`,
+  sub:()=>`${U.name}，<span class="blue">5 个怀疑方向</span>正等你验证`,
+  note:'把"做任务"升华成"攻克失效"，贴合 EA 失效分析的使命感。'},
+
+ {tone:'极简利落',fit:'高频用户/老手',
+  hi:()=>`你好，${U.name}`,
+  sub:()=>`<span class="stat"><span class="dot" style="background:#0d9488"></span>待接受 <b>7</b></span> &nbsp; <span class="stat"><span class="dot" style="background:#0052D9"></span>进行中 <b>21</b></span> &nbsp; <span class="stat"><span class="dot" style="background:#e11d48"></span>今日到期 <b>4</b></span>`,
+  note:'问候极短，把版面让给"三个数"，一眼掌握全局。'},
+
+ {tone:'陪伴口吻',fit:'亲和温度',
+  hi:()=>`回来啦，${U.name} 👋`,
+  sub:()=>`今天要紧的事我都帮你理好了，从最急的开始吧`,
+  note:'像助理在身边，柔化系统的冰冷感。'},
+
+ {tone:'成就回顾',fit:'正反馈',
+  hi:()=>`${U.name}，本周已闭环 <span class="emer">11 项</span>`,
+  sub:()=>`保持这个节奏，还有 <span class="b">7 项</span>在路上`,
+  note:'先肯定成果再引出待办，情绪更顺。'},
+
+ {tone:'优先级聚焦',fit:'减负/防遗漏',
+  hi:()=>`先处理这 3 件，${U.name}`,
+  sub:()=>`<span class="rose">1 个 L1</span> + <span class="amber">2 个今日到期</span>，建议优先；其余稍后`,
+  note:'直接给"先做什么"，把焦虑收敛成 3 件事。'},
+
+ {tone:'氛围感',fit:'轻松开场',
+  hi:()=>`☀️ 晴 · 下午好`,
+  sub:()=>`适合静下心啃硬骨头的下午，${U.name}`,
+  note:'天气/氛围引入，弱化"被任务追着跑"的压迫感。'},
+
+ {tone:'问句引导',fit:'对话感',
+  hi:()=>`今天先从哪件开始，${U.name}？`,
+  sub:()=>`已按紧急度排好序，点开第一件即可`,
+  note:'用提问把用户拉进"主动选择"，而非被动接收。'},
+
+ {tone:'进度激励',fit:'游戏化',
+  hi:()=>`${U.name}，今日完成 <span class="b">0 / 7</span>`,
+  sub:()=>`每点掉一件，离收工更近一步`,
+  custom:(s)=>s+`<div class="progress"><i style="width:6%"></i></div>`,
+  note:'引入"今日完成度"进度条，制造推进的爽感。'},
+
+ {tone:'专业幽默',fit:'工程师梗',
+  hi:()=>`Debug 人生，从今早开始 😎`,
+  sub:()=>`${U.name}，<span class="b">7 个</span>待复现、<span class="b">1 个</span>待 root cause`,
+  note:'圈内梗拉近距离，注意正式场合可能略皮。'},
+
+ {tone:'主管关怀',fit:'被派单者',
+  hi:()=>`辛苦了，${U.name}`,
+  sub:()=>`今天派给你的新单有 <span class="b">7 个</span>，按需接受即可，别硬扛`,
+  note:'站在"被指派"视角给到体谅，缓解派单压力。'},
+
+ {tone:'极简署名',fit:'克制/高级感',
+  hi:()=>`${U.name} 的工作台`,
+  sub:()=>`<span class="sig">${U.dept} · 今日待办已就绪</span>`,
+  note:'几乎不"问候"，用署名式标题营造专属与沉稳。'},
+
+ {tone:'紧迫提醒',fit:'防逾期',
+  hi:()=>`${U.name}，<span class="rose">4 项今日到期</span> ⏰`,
+  sub:()=>`趁早清掉，别让它们明天变红`,
+  note:'把"今日到期"前置成主标，强力防漏。慎用于天天紧迫的人。'},
+
+ {tone:'正能量短句',fit:'通用百搭',
+  hi:()=>`稳稳推进，把握节奏 ✦`,
+  sub:()=>`下午好，${U.name}，今天也一件件来`,
+  note:'积极但不浮夸，几乎适配所有人。'},
+
+ {tone:'数字卡',fit:'视觉强',
+  hi:()=>`下午好，${U.name}`,
+  custom:(s,h)=>`<div class="row"><div class="bignum">7</div><div><div class="hi" style="font-size:18px">${h}</div><div class="sub">件任务待你处理 · 4 件今日到期</div></div></div>`,
+  note:'把核心数字放大成视觉主角，标题退为辅助。'},
+
+ {tone:'行业语境',fit:'使命感+幽默',
+  hi:()=>`良率不会自己回来 😉`,
+  sub:()=>`${U.name}，今天有 <span class="b">8 个失效</span>在等你定位`,
+  note:'强行业代入，半玩笑半励志，团队文化契合时很赞。'},
+
+ {tone:'里程碑冲刺',fit:'阶段目标',
+  hi:()=>`再 3 项就破百，${U.name} 🎯`,
+  sub:()=>`本月已完成 <span class="emer">97 项</span>，今天冲一冲`,
+  note:'用临近的里程碑制造冲刺动力。'},
+
+ {tone:'轻松口语',fit:'年轻团队',
+  hi:()=>`嗨 ${U.name}，今天也加油 💪`,
+  sub:()=>`需要你拍板的有 <span class="b">7 件</span>，先挑顺手的`,
+  note:'口语化、放松，适合氛围轻快的团队。'},
+
+ {tone:'沉浸聚焦',fit:'专注模式',
+  hi:()=>`深呼吸，开始吧`,
+  sub:()=>`下午好，${U.name} · 已为你过滤掉噪音，只留要紧的`,
+  note:'强调"已帮你降噪"，给到掌控与专注感。'},
+
+ {tone:'头像问候',fit:'亲切+身份',
+  hi:()=>`下午好，${U.name}`,
+  custom:(s,h)=>`<div class="row"><div class="ava">${U.avatar}</div><div><div class="hi" style="font-size:19px">${h}</div><div class="sub">7 项待处理 · 4 项今日到期，按紧急度已排序</div></div></div>`,
+  note:'加头像增加亲切与"这是你的空间"的归属感。'},
+
+ {tone:'收工倒计时',fit:'节奏掌控',
+  hi:()=>`距离收工还有 <span class="b">6 小时</span>，${U.name}`,
+  sub:()=>`7 件待办，节奏刚好，先急后缓`,
+  note:'用"还剩多久"建立时间锚点，帮用户规划而非被任务追。'},
+
+ {tone:'团队归属',fit:'集体感',
+  hi:()=>`下午好，${U.name}`,
+  sub:()=>`PTE 今天共 <span class="b">32 个</span>在办，你负责其中 <span class="blue">7 项</span>`,
+  note:'把个人待办放进部门大盘，强化"我们在一起干"的归属。'},
+
+ {tone:'专注指数',fit:'氛围+实用',
+  hi:()=>`今天多云 · 专注指数 ★★★★`,
+  sub:()=>`${U.name}，适合一鼓作气清掉 <span class="b">4 项</span>临期`,
+  note:'把天气转译成"专注指数"，氛围又不失行动指引。'},
+
+ {tone:'格言开场',fit:'沉稳/专业',
+  hi:()=>`「先定位，再下结论。」`,
+  sub:()=>`下午好，${U.name}，今天有 <span class="b">8 个</span>失效待定位`,
+  note:'用一句方法论格言开场，契合失效分析的严谨气质。'},
+
+ {tone:'连续打卡',fit:'习惯养成',
+  hi:()=>`已连续 <span class="amber">12 天</span>清零待办 🔥`,
+  sub:()=>`别断在今天，${U.name}，还差 <span class="b">7 件</span>`,
+  note:'用连续天数制造"不想断签"的坚持动力。'},
+
+ {tone:'健康关怀',fit:'人情味',
+  hi:()=>`记得喝口水，${U.name} ☕`,
+  sub:()=>`先处理完这 <span class="rose">3 件急的</span>，再歇一会儿`,
+  note:'关心状态再谈任务，柔和、有温度。'},
+
+ {tone:'AI 助理播报',fit:'智能感',
+  hi:()=>`✦ EA 助理为你梳理好了`,
+  sub:()=>`今日 <span class="b">7 项</span>待办、<span class="rose">4 项临期</span>，已按紧急度排序，${U.name}`,
+  note:'以"助理已帮你梳理"的口吻，凸显平台的智能与体贴。'},
+
+ {tone:'终端极客风',fit:'技术团队',
+  hi:()=>`&gt; welcome back, ${U.name}_`,
+  sub:()=>`<span style="font-family:ui-monospace,Menlo,monospace;color:#475569">tasks: <b>7</b> pending · <b>4</b> due today · <b>21</b> running</span>`,
+  note:'命令行风格，工程师缘满满；正式汇报场景慎用。'},
+
+ {tone:'周几语境',fit:'一周节奏',
+  hi:()=>`周一开局，先轻后重`,
+  sub:()=>`下午好，${U.name}，挑 2 件顺手的热身，再啃硬的`,
+  note:'结合星期给节奏建议（周一缓启动/周五收尾），更懂人。'},
+
+ {tone:'挑战清零',fit:'目标感强',
+  hi:()=>`敢不敢今天清零？${U.name} ✅`,
+  sub:()=>`<span class="b">7 件</span>待办，向"全清"发起挑战`,
+  note:'用挑战口吻激发胜负欲，适合目标驱动型用户。'},
+];
+
+const grid=document.getElementById('grid');
+G.forEach((g,i)=>{
+  const h=g.hi(); const sub=g.sub?g.sub():'';
+  let inner;
+  if(g.custom){ inner=g.custom(`<div class="hi">${h}</div>`+(sub?`<div class="sub">${sub}</div>`:''), h); }
+  else { inner=`<div class="hi">${h}</div>`+(sub?`<div class="sub">${sub}</div>`:''); }
+  const el=document.createElement('div');el.className='card';
+  el.innerHTML=`<div class="cap"><div class="no">${i+1}</div><span class="tone">${g.tone}</span><span class="fit">适合：${g.fit}</span></div>
+    <div class="stage">${inner}</div>
+    <div class="note">${g.note}</div>`;
+  grid.appendChild(el);
+});
+
+/* ===== 游戏台词彩蛋池 ===== */
+const EGGS=[
+ {src:'《绝地求生》PUBG', line:'大吉大利，今天吃鸡 🐔', sub:'张伟，先拿下今天这 7 个目标', note:'国民级梗，几乎人人秒懂。'},
+ {src:'《Undertale》传说之下', line:'Stay determined. 保持决心 ✊', sub:'7 件待办，一件一件来，你可以的', note:'温暖治愈系，鼓励味十足。'},
+ {src:'《黑暗之魂》Dark Souls', line:'赞美太阳！\\[T]/', sub:'每一次"死亡"复盘，都让你更强，张伟', note:'失效分析＝一次次 death 后变强，魂系梗绝配。'},
+ {src:'《只狼》Sekiro', line:'犹豫，就会败北。', sub:'别犹豫，先开第一件最急的', note:'一心名台词，催动执行力。'},
+ {src:'《街头霸王》', line:'Round 1 — Fight! 🥊', sub:'今日 7 个对手已就位，张伟', note:'开场即燃，仪式感拉满。'},
+ {src:'《真人快打》Mortal Kombat', line:'Flawless Victory 完美胜利', sub:'把这 4 个临期，完美解决掉', note:'追求"零失误闭环"时很燃。'},
+ {src:'《超级马力欧》', line:'Here we go! 🍄', sub:'又是闯关的一天，来吧张伟', note:'轻快无厘头，老少咸宜。'},
+ {src:'Dota / 英雄联盟', line:'First Blood! 拿下今天第一杀', sub:'先点掉最急的一件，开个好头', note:'MOBA 玩家专属电流。'},
+ {src:'电竞通用', line:'GL & HF — 祝你好运，玩得开心 🎮', sub:'7 件待办，节奏你自己定', note:'赛前问候，松弛又友好。'},
+ {src:'Xbox 成就系统', line:'🏆 Achievement Unlocked', sub:'成就解锁：又是元气满满的一天', note:'每天登录都像解锁成就。'},
+ {src:'RPG 通用', line:'⬆ LEVEL UP! 你升级了', sub:'清掉这 7 件，经验值到手', note:'把待办变成"刷经验"。'},
+ {src:'《塞尔达传说》', line:"It's dangerous to go alone! Take this. 🗡️", sub:'这儿有 7 个任务和一套排序，带上', note:'初代名场面，"带上装备"很贴。'},
+ {src:'《暗黑破坏神》凯恩', line:'Stay a while and listen… 坐下，听我说', sub:'今天的任务我都给你理好了，张伟', note:'老爷子招牌口吻，娓娓道来。'},
+ {src:'《艾尔登法环》', line:'去成为艾尔登之王吧，褪色者 👑', sub:'今日 7 个"碎片"待收集', note:'史诗感拉满的褪色者梗。'},
+
+ {ic:'🦇',src:'《蝙蝠侠：黑暗骑士》', line:'我们为何跌倒？为了学会站起来。', sub:'每一个失效，都是一次站起来的机会，张伟', note:'失效分析的精神图腾，强烈推荐。'},
+ {ic:'🔍',src:'《名侦探柯南》', line:'真相，只有一个！', sub:'今天有 8 个根因等你锁定', note:'Root cause = 真相，破案感拉满。'},
+ {ic:'💪',src:'尼采', line:'那些杀不死我的，终将使我更强大。', sub:'今天这 7 件，攻下就是经验', note:'抗挫名言，和"复盘变强"完美呼应。'},
+ {ic:'🏀',src:'《灌篮高手》安西教练', line:'现在放弃的话，比赛就结束了。', sub:'再坚持一下，张伟，还有 7 件', note:'国民级励志台词，几乎无人不晓。'},
+ {ic:'🍥',src:'《火影忍者》漩涡鸣人', line:'说到做到，绝不食言——这就是我的忍道！', sub:'答应过的任务，今天兑现它', note:'热血少年漫，承诺与坚持。'},
+ {ic:'☠️',src:'《海贼王》蒙奇·D·路飞', line:'我可是要成为海贼王的男人！', sub:'你的"伟大航路"，从今天这 7 件开始', note:'梦想宣言，气势满分。'},
+ {ic:'⚔️',src:'《进击的巨人》', line:'献出心脏！', sub:'今天也全力以赴，张伟', note:'战吼式激励，短促有力。'},
+ {ic:'🎬',src:'《肖申克的救赎》', line:'Hope is a good thing — 希望是好东西。', sub:'也许是最好的东西，别放弃今天的目标', note:'影史励志金句，温暖坚定。'},
+ {ic:'🎬',src:'《当幸福来敲门》', line:'有梦想，就要去守护它。', sub:'今天的每一件小事，都在靠近它', note:'平凡奋斗的力量。'},
+ {ic:'🎬',src:'《死亡诗社》', line:'Carpe Diem. 把握今天 🌅', sub:'别等明天，张伟，从第一件开始', note:'及时行动的经典号召。'},
+ {ic:'🌌',src:'《星球大战》', line:'May the Force be with you. 愿原力与你同在 ✨', sub:'今天的 7 个挑战，原力护体', note:'跨世代影迷暗号。'},
+ {ic:'🧙',src:'《指环王》甘道夫', line:'我们要做的，只是决定如何利用拥有的时间。', sub:'把今天的时间，用在最要紧的 3 件上', note:'关于时间与选择的智慧。'},
+ {ic:'🐼',src:'《功夫熊猫》龟仙人', line:'昨天是历史，明天是谜，而今天是礼物。', sub:'拆开今天这份礼物吧，张伟 🎁', note:'温柔治愈，活在当下。'},
+ {ic:'🎖️',src:'《士兵突击》许三多', line:'不抛弃，不放弃！', sub:'再难的 Case，也一件件啃下来', note:'国产剧国民励志，质朴有力。'},
+ {ic:'🐟',src:'周星驰《少林足球》', line:'做人如果没有梦想，跟咸鱼有什么分别？', sub:'今天，做条有梦想的咸鱼也行 😄', note:'无厘头又戳心，轻松一笑。'},
+ {ic:'💬',src:'乔布斯', line:'Stay hungry, stay foolish. 求知若饥，虚心若愚。', sub:'对每个失效，保持好奇与谦逊', note:'极客信仰，工程师共鸣。'},
+ {ic:'🏀',src:'科比·布莱恩特', line:'你见过凌晨四点的洛杉矶吗？', sub:'曼巴精神，今天也稳稳推进', note:'体育励志顶流，致敬热爱。'},
+ {ic:'🐱',src:'哆啦A梦', line:'只要努力，没有什么是做不到的。', sub:'今天的 7 件，都在能力范围内', note:'童年回忆杀，简单坚定。'},
+];
+const efSrc=document.getElementById('efSrc'),efLine=document.getElementById('efLine'),efSub=document.getElementById('efSub');
+function showEgg(e){efSrc.textContent='来源：'+e.src;efLine.innerHTML=e.line;efSub.textContent=e.sub;}
+let _last=-1;
+function rollEgg(){let i;do{i=Math.floor(Math.random()*EGGS.length);}while(i===_last&&EGGS.length>1);_last=i;showEgg(EGGS[i]);}
+const eggGrid=document.getElementById('eggGrid');
+EGGS.forEach(e=>{const el=document.createElement('div');el.className='egg-card';el.innerHTML=`<div class="src">${e.ic||'🎮'} <b>${e.src}</b></div><div class="line">${e.line}</div><div class="ls">${e.sub}</div><div class="note">${e.note}</div>`;eggGrid.appendChild(el);});
+showEgg(EGGS[0]);
+</script>
+</body>
+</html>

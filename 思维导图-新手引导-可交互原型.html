@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440" />
+<title>思维导图 · 新手引导 · EA 真实导图原型</title>
+<style>
+  :root{
+    --blue:#0052D9; --blue-d:#003FA8; --blue-l:#E8F0FE;
+    --violet:#8B5CF6; --violet-5:#7C3AED;
+    --amber-50:#FFFBEB; --amber-100:#FEF3C7; --amber-200:#FDE68A; --amber-300:#FCD34D; --amber-600:#D97706; --amber-700:#B45309;
+    --slate-50:#F8FAFC; --slate-100:#F1F5F9; --slate-200:#E2E8F0; --slate-300:#CBD5E1;
+    --slate-400:#94A3B8; --slate-500:#64748B; --slate-600:#475569; --slate-700:#334155; --slate-800:#1E293B; --slate-900:#0F172A;
+    --emerald-50:#ECFDF5; --emerald-200:#A7F3D0; --emerald-600:#059669;
+    --blue-50:#EFF6FF; --blue-200:#BFDBFE; --blue-600:#2563EB;
+    --rose-500:#F43F5E; --orange-50:#FFF7ED; --orange-200:#FED7AA; --orange-500:#F97316; --orange-700:#C2410C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#EEF2F7;color:var(--slate-900);
+    -webkit-font-smoothing:antialiased;height:100%;display:flex;overflow:hidden;font-size:13px;}
+  button{font-family:inherit;}
+  svg.i{display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* rail */
+  .rail{width:250px;flex:none;background:#0F172A;color:#fff;height:100%;display:flex;flex-direction:column;}
+  .rail .top{padding:17px 18px 13px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .rail .eyebrow{font-size:11px;color:#7DA2F0;font-weight:600;letter-spacing:.03em;}
+  .rail h1{font-size:15.5px;margin:6px 0 3px;}
+  .rail .top p{font-size:11px;color:#94A3B8;line-height:1.6;margin:0;}
+  .rail .list{flex:1;overflow:auto;padding:8px;}
+  .cbtn{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:transparent;border:none;color:#CBD5E1;
+    padding:10px 11px;border-radius:10px;cursor:pointer;margin-bottom:2px;transition:.15s;}
+  .cbtn:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .cbtn.active{background:linear-gradient(135deg,var(--blue),#00A4FF);color:#fff;box-shadow:0 8px 20px -10px var(--blue);}
+  .cbtn .num{width:24px;height:24px;flex:none;border-radius:7px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  .cbtn.active .num{background:rgba(255,255,255,.25);}
+  .cbtn .nm{font-size:13px;font-weight:600;line-height:1.3;}
+  .cbtn .en{font-size:9px;color:#94A3B8;letter-spacing:.03em;text-transform:uppercase;margin-top:2px;}
+  .cbtn.active .en{color:rgba(255,255,255,.75);}
+  .rail .foot{padding:11px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:#64748B;line-height:1.6;}
+
+  /* main */
+  .main{flex:1;display:flex;flex-direction:column;height:100%;min-width:0;}
+  .desc{padding:12px 22px;background:#fff;border-bottom:1px solid var(--slate-200);display:flex;align-items:center;gap:14px;}
+  .desc .badge{font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--blue),#00A4FF);padding:5px 11px;border-radius:8px;flex:none;}
+  .desc .txt{font-size:12.5px;color:var(--slate-600);line-height:1.5;}
+  .desc .txt b{color:var(--slate-900);}
+  .desc .reset{margin-left:auto;flex:none;font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-l);border:none;padding:7px 14px;border-radius:8px;cursor:pointer;}
+  .desc .reset:hover{background:#d9e6fd;}
+
+  /* stage = React Flow canvas */
+  #stage{position:relative;flex:1;overflow:hidden;background:#F6F8FB;
+    background-image:radial-gradient(#d3dbe6 1px,transparent 1px);background-size:20px 20px;}
+  #world{position:absolute;left:0;top:0;transform-origin:0 0;}
+  #edges{position:absolute;left:0;top:0;width:10px;height:10px;pointer-events:none;overflow:visible;}
+  #edges path{fill:none;stroke:#94A3B8;stroke-width:2;}
+  #edges path.marked{stroke:var(--violet);stroke-width:2.4;}
+  #edges path.dim{opacity:.28;}
+  #edges path.ghostwire{stroke-dasharray:5 4;stroke:#c9b8f2;}
+
+  /* ---- generic node wrapper ---- */
+  .mnode{position:absolute;user-select:none;}
+  .mnode.dim{opacity:.4;}
+
+  /* handle dots (react-flow style) */
+  .hdl{position:absolute;width:8px;height:8px;border-radius:50%;background:#94A3B8;top:50%;transform:translateY(-50%);z-index:1;}
+  .hdl.l{left:-4px;} .hdl.r{right:-4px;}
+
+  /* case node */
+  .n-case{width:280px;background:#fff;border:2px solid var(--slate-200);border-radius:12px;padding:16px;
+    box-shadow:0 10px 24px -12px rgba(15,23,42,.28);}
+  .n-case .row1{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+  .n-case .lvl{padding:1px 8px;border-radius:5px;font-size:11px;border:1px solid #FCA5A5;background:#FEF2F2;color:#DC2626;}
+  .n-case .code{font-size:11px;color:var(--slate-400);font-family:ui-monospace,Menlo,monospace;}
+  .n-case h4{font-size:14px;font-weight:500;color:var(--slate-900);line-height:1.4;margin:0 0 8px;}
+  .n-case .meta{font-size:11px;color:var(--slate-500);display:flex;flex-direction:column;gap:6px;}
+  .n-case .meta div{display:flex;align-items:center;gap:6px;}
+
+  /* thought node */
+  .n-th{width:400px;position:relative;}
+  .n-th .card{background:rgba(255,251,235,.7);border:1px solid var(--amber-300);border-radius:12px;padding:14px;transition:.18s;position:relative;}
+  .n-th.marked .card{border:2px solid #C4B5FD;}
+  .n-th.markroot .card{border:2px solid var(--violet);box-shadow:0 0 0 3px rgba(196,181,253,.5);}
+  .n-th .card:hover{box-shadow:0 8px 18px -8px rgba(180,120,20,.35);}
+  .n-th .lab{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+  .n-th .lab .t{font-size:11px;color:var(--amber-700);font-weight:600;letter-spacing:.02em;}
+  .n-th .cat{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:5px;font-size:10px;background:var(--amber-100);color:var(--amber-700);border:1px solid var(--amber-200);}
+  .n-th .body{font-size:13px;color:var(--slate-800);line-height:1.6;font-weight:500;}
+  .n-th .body.empty{font-style:italic;color:#B45309;font-weight:500;cursor:pointer;}
+  .fillblank .bk{display:inline-block;min-width:58px;max-width:160px;border:none;border-bottom:1.5px dashed var(--amber-300);background:var(--amber-50);color:var(--slate-900);font-size:13px;text-align:center;padding:1px 5px;margin:0 3px;outline:none;border-radius:4px 4px 0 0;}
+  .fillblank .bk:focus{border-bottom-color:var(--amber-600);background:var(--amber-100);}
+  .fillblank .bk::placeholder{color:var(--slate-400);font-size:11px;}
+
+  /* action node */
+  .n-act{width:256px;position:relative;}
+  .n-act .card{background:#fff;border:1px solid var(--slate-200);border-radius:12px;overflow:hidden;box-shadow:0 2px 6px -3px rgba(15,23,42,.18);transition:.18s;position:relative;}
+  .n-act.marked .card{border:2px solid #C4B5FD;}
+  .n-act.markroot .card{border:2px solid var(--violet);box-shadow:0 0 0 3px rgba(196,181,253,.5);}
+  .n-act .card:hover{box-shadow:0 12px 26px -12px rgba(15,23,42,.4);}
+  .n-act .ubar{position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .n-act .inner{padding:11px 12px 11px 16px;}
+  .n-act .statusrow{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .n-act .title{font-size:13px;font-weight:600;color:var(--slate-900);line-height:1.35;cursor:pointer;}
+  .n-act .title:hover{color:var(--blue);}
+  .n-act .kv{margin-top:7px;display:flex;align-items:flex-start;gap:6px;}
+  .n-act .kv .k{flex:none;width:28px;font-size:10px;color:var(--slate-400);margin-top:1px;}
+  .n-act .kv .v{flex:1;font-size:11px;color:var(--slate-600);line-height:1.4;}
+  .n-act .valid{margin-top:6px;display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:5px;font-size:10px;border:1px solid var(--emerald-200);background:var(--emerald-50);color:var(--emerald-600);}
+
+  /* status badge */
+  .sb{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;flex:none;}
+  .sb.s-进行中{background:var(--blue-50);color:var(--blue-600);}
+  .sb.s-已完成{background:var(--emerald-50);color:var(--emerald-600);}
+  .sb.s-待开始,.sb.s-待接受,.sb.s-已中止{background:var(--slate-100);color:var(--slate-500);}
+  .st-label{font-size:10px;color:var(--slate-500);}
+
+  /* hover toolbar (shared) */
+  .tools{position:absolute;top:8px;right:8px;z-index:20;display:flex;align-items:center;gap:2px;opacity:0;transition:.15s;}
+  .mnode:hover .tools,.mnode.force-tools .tools{opacity:1;}
+  .tbtn{width:24px;height:24px;border-radius:50%;border:none;background:transparent;color:var(--slate-500);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .tbtn:hover{background:rgba(15,23,42,.06);color:var(--blue);}
+  .tbtn.on{background:var(--violet-5);color:#fff;}
+  .tbtn.add{background:var(--blue);color:#fff;box-shadow:0 2px 6px -2px var(--blue);}
+  .tbtn.add:hover{background:var(--blue-d);color:#fff;}
+
+  /* fold btn */
+  .fold{position:absolute;top:50%;right:-12px;transform:translateY(-50%);z-index:25;height:22px;min-width:22px;padding:0 5px;border-radius:11px;
+    background:#fff;border:1px solid var(--slate-200);box-shadow:0 2px 5px -2px rgba(15,23,42,.3);font-size:10px;color:var(--slate-500);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .fold:hover{color:var(--blue);border-color:rgba(0,82,217,.4);}
+
+  /* add-thought node */
+  .n-add button{width:48px;height:48px;border-radius:50%;border:2px dashed var(--slate-300);background:#fff;color:var(--slate-400);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px -3px rgba(15,23,42,.2);transition:.15s;}
+  .n-add button:hover{border-color:var(--blue);color:var(--blue);background:rgba(0,82,217,.05);}
+
+  /* ghost (template) */
+  .mnode.ghost .card,.mnode.ghost .n-case{opacity:.72;border-style:dashed;}
+
+  /* ---- canvas chrome ---- */
+  .mm-toolbar{position:absolute;top:12px;left:12px;z-index:12;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .seg{display:inline-flex;align-items:center;background:rgba(255,255,255,.95);border:1px solid var(--slate-200);border-radius:9px;padding:2px;box-shadow:0 2px 6px -3px rgba(15,23,42,.2);}
+  .seg button{height:28px;padding:0 10px;border:none;background:transparent;border-radius:7px;font-size:12px;color:var(--slate-600);cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+  .seg button.on{background:var(--blue);color:#fff;box-shadow:0 2px 5px -2px var(--blue);}
+  .seg .sep{width:1px;height:16px;background:var(--slate-200);margin:0 2px;}
+  .mm-toolbar .pill{height:32px;padding:0 11px;border-radius:9px;background:rgba(255,255,255,.95);border:1px solid var(--slate-200);
+    box-shadow:0 2px 6px -3px rgba(15,23,42,.2);font-size:12px;color:var(--slate-600);cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+  .mm-toolbar .pill:hover{color:var(--blue);}
+  .fs{position:absolute;top:12px;right:12px;z-index:12;width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.9);border:1px solid var(--slate-200);
+    box-shadow:0 2px 6px -3px rgba(15,23,42,.2);color:var(--slate-600);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .fs:hover{color:var(--blue);}
+
+  .rf-controls{position:absolute;left:14px;bottom:14px;z-index:12;display:flex;flex-direction:column;background:#fff;border-radius:8px;
+    box-shadow:0 4px 14px -6px rgba(15,23,42,.3);overflow:hidden;border:1px solid var(--slate-200);}
+  .rf-controls button{width:30px;height:30px;border:none;background:#fff;border-bottom:1px solid var(--slate-100);color:var(--slate-500);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .rf-controls button:last-child{border-bottom:none;}
+  .rf-controls button:hover{background:var(--slate-50);color:var(--blue);}
+  .rf-minimap{position:absolute;right:14px;bottom:14px;z-index:12;width:180px;height:120px;background:rgba(255,255,255,.9);border:1px solid var(--slate-200);border-radius:6px;box-shadow:0 4px 14px -6px rgba(15,23,42,.3);overflow:hidden;}
+  .rf-minimap .mm-n{position:absolute;border-radius:2px;}
+  .legend{position:absolute;left:56px;bottom:16px;z-index:12;display:none;align-items:center;gap:10px;background:rgba(255,255,255,.95);border:1px solid var(--slate-200);border-radius:9px;padding:6px 12px;font-size:11px;color:var(--slate-500);box-shadow:0 2px 6px -3px rgba(15,23,42,.2);}
+  .legend.show{display:flex;}
+  .legend .u{display:inline-flex;align-items:center;gap:4px;}
+  .legend .u i{width:2px;height:12px;display:inline-block;}
+
+  /* toast */
+  .toast{position:absolute;left:50%;bottom:70px;transform:translateX(-50%) translateY(18px);background:var(--slate-900);color:#fff;font-size:12.5px;
+    padding:10px 16px;border-radius:10px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);opacity:0;transition:.28s;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast b{color:var(--amber-200);}
+
+  /* overlays */
+  #overlay{position:absolute;inset:0;z-index:30;pointer-events:none;}
+  #overlay>*{pointer-events:auto;}
+  .layer{position:absolute;inset:0;}
+  .hidden{display:none !important;}
+
+  /* 1 wizard */
+  .scrim{position:absolute;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(1px);}
+  .wizard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);}
+  .wz-cap{padding:22px 24px 40px;color:#fff;position:relative;}
+  .wz-cap .x{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.18);border:none;color:#fff;cursor:pointer;font-size:14px;}
+  .wz-cap .s{font-size:12px;opacity:.9;font-weight:600;} .wz-cap .t{font-size:21px;font-weight:800;margin-top:6px;}
+  .wz-ic{width:56px;height:56px;border-radius:16px;background:#fff;margin:-30px 24px 0;box-shadow:0 10px 24px -10px rgba(15,23,42,.3);display:flex;align-items:center;justify-content:center;border:1px solid var(--slate-200);}
+  .wz-ic span{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;}
+  .wz-body{padding:14px 24px 4px;font-size:14px;color:var(--slate-600);line-height:1.75;}
+  .wz-foot{display:flex;align-items:center;gap:12px;padding:18px 24px 22px;}
+  .wz-dots{display:flex;gap:6px;} .wz-dots i{height:6px;width:6px;border-radius:9px;background:var(--slate-200);transition:.2s;cursor:pointer;} .wz-dots i.on{width:22px;background:var(--blue);}
+  .wz-cnt{font-size:12px;color:var(--slate-400);} .wz-foot .sp{flex:1;}
+  .wz-btn{font-size:13px;font-weight:700;padding:9px 18px;border-radius:10px;border:none;cursor:pointer;}
+  .wz-btn.g{background:#fff;border:1px solid var(--slate-200);color:var(--slate-600);} .wz-btn.p{background:var(--blue);color:#fff;}
+
+  /* 2 spotlight */
+  .spot-svg{position:absolute;inset:0;width:100%;height:100%;}
+  .coach{position:absolute;width:250px;background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 20px 50px -14px rgba(0,0,0,.5);pointer-events:auto;}
+  .coach .t{font-size:14px;font-weight:800;margin-bottom:6px;} .coach .d{font-size:12.5px;color:var(--slate-600);line-height:1.65;}
+  .coach .row{display:flex;align-items:center;gap:10px;margin-top:14px;} .coach .cnt{font-size:11px;color:var(--slate-400);} .coach .sp{flex:1;}
+  .coach button{font-size:12px;font-weight:700;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;}
+  .coach .skip{background:transparent;color:var(--slate-400);} .coach .nx{background:var(--blue);color:#fff;}
+
+  /* 3 empty */
+  .empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;}
+  .empty .art{width:92px;height:92px;border-radius:26px;background:linear-gradient(135deg,var(--blue-l),#fff);border:2px dashed #b9cdf6;display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 18px;}
+  .empty h2{font-size:18px;margin:0 0 8px;} .empty p{font-size:13px;color:var(--slate-600);margin:0 auto 20px;max-width:300px;line-height:1.7;}
+  .empty .cta{display:flex;gap:12px;justify-content:center;}
+  .empty .cta button{font-size:13px;font-weight:700;padding:11px 20px;border-radius:11px;cursor:pointer;border:none;}
+  .empty .cta .pri{background:var(--blue);color:#fff;box-shadow:0 10px 24px -10px var(--blue);} .empty .cta .sec{background:#fff;border:1px solid var(--slate-200);color:var(--slate-600);}
+
+  /* 4 template badge */
+  .tpl-badge{position:absolute;left:50%;top:16px;transform:translateX(-50%);background:#fff;border:1px solid var(--slate-200);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 26px -12px rgba(15,23,42,.3);}
+  .tpl-badge .lab{font-size:12.5px;color:var(--slate-600);} .tpl-badge .lab b{color:var(--violet-5);}
+  .tpl-badge button{font-size:12px;font-weight:700;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;}
+  .tpl-badge .adopt{background:var(--violet-5);color:#fff;} .tpl-badge .clear{background:var(--slate-100);color:var(--slate-600);}
+
+  /* 5 hotspots */
+  .hotspot{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 0 5px rgba(0,82,217,.22);animation:pulse 1.9s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 4px rgba(0,82,217,.3);}70%{box-shadow:0 0 0 14px rgba(0,82,217,0);}100%{box-shadow:0 0 0 4px rgba(0,82,217,0);}}
+  .hs-pop{position:absolute;width:190px;background:var(--slate-900);color:#fff;font-size:11.5px;line-height:1.6;padding:10px 12px;border-radius:10px;box-shadow:0 14px 34px -12px rgba(0,0,0,.5);}
+  .hs-pop b{color:var(--amber-200);}
+
+  /* 7 checklist */
+  .checklist{position:absolute;right:16px;top:56px;width:230px;background:#fff;border-radius:16px;box-shadow:0 18px 44px -16px rgba(15,23,42,.4);padding:18px;}
+  .checklist .h{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .checklist .bar{height:6px;border-radius:9px;background:var(--slate-200);margin:12px 0 14px;overflow:hidden;}
+  .checklist .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),#00A4FF);transition:.4s;}
+  .cli{display:flex;align-items:center;gap:11px;padding:8px 0;font-size:12.5px;}
+  .cli .box{width:20px;height:20px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--slate-200);color:transparent;transition:.2s;}
+  .cli.done .box{background:var(--emerald-600);border-color:var(--emerald-600);color:#fff;} .cli.done span{color:var(--slate-400);text-decoration:line-through;}
+  .cli.now .box{border-color:var(--blue);background:var(--blue-l);} .cli.now span{color:var(--slate-900);font-weight:600;}
+  .checklist .done-all{font-size:12px;color:var(--emerald-600);font-weight:700;text-align:center;padding-top:8px;display:none;}
+
+  /* 8 hover hints */
+  .hint-tip{position:absolute;width:210px;background:#fff;border:1px solid var(--slate-200);border-radius:11px;padding:11px 13px;box-shadow:0 14px 34px -12px rgba(15,23,42,.4);pointer-events:none;}
+  .hint-tip .t{font-size:12px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:6px;} .hint-tip .d{font-size:11px;color:var(--slate-600);line-height:1.6;}
+
+  /* 9 sandbox */
+  .sand-ban{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#FEF3C7,#FDE68A);padding:11px 18px;font-size:13px;color:#92400E;font-weight:600;}
+  .sand-ban .exit{margin-left:auto;background:#fff;border:1px solid var(--amber-300);color:var(--amber-700);font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+  .sand-coach{position:absolute;width:230px;background:var(--slate-900);color:#fff;border-radius:12px;padding:13px 15px;box-shadow:0 16px 40px -12px rgba(0,0,0,.55);}
+  .sand-coach .t{font-size:13px;font-weight:800;margin-bottom:5px;} .sand-coach .d{font-size:11.5px;color:#CBD5E1;line-height:1.6;} .sand-coach b{color:var(--amber-200);}
+  .sand-coach:after{content:"";position:absolute;left:-8px;top:22px;border:8px solid transparent;border-right-color:var(--slate-900);}
+
+  /* 10 side panel */
+  .sidepanel{position:absolute;left:0;top:0;bottom:0;width:230px;background:#fff;border-right:1px solid var(--slate-200);padding:20px 18px;display:flex;flex-direction:column;box-shadow:8px 0 26px -16px rgba(15,23,42,.3);}
+  .sidepanel .ttl{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;} .sidepanel .sub{font-size:11.5px;color:var(--slate-400);margin:4px 0 16px;}
+  .spstep{display:flex;gap:11px;margin-bottom:14px;cursor:pointer;padding:9px;border-radius:11px;transition:.15s;} .spstep:hover{background:var(--slate-50);} .spstep.on{background:var(--blue-l);}
+  .spstep .n{width:24px;height:24px;border-radius:50%;flex:none;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;background:var(--slate-200);color:var(--slate-400);} .spstep.on .n{background:var(--blue);color:#fff;}
+  .spstep .st{font-size:12.5px;font-weight:700;color:var(--slate-600);} .spstep.on .st{color:var(--blue);} .spstep .sd{font-size:11px;color:var(--slate-400);line-height:1.55;margin-top:3px;}
+  .sidepanel .go{margin-top:auto;background:var(--blue);color:#fff;border:none;font-size:13px;font-weight:700;padding:11px;border-radius:11px;cursor:pointer;}
+  .ring{position:absolute;border:2.5px solid var(--blue);border-radius:14px;z-index:19;pointer-events:none;box-shadow:0 0 0 4000px rgba(15,23,42,.04);transition:.28s;}
+</style>
+</head>
+<body>
+  <div class="main">
+    <div class="desc">
+      <span class="badge">方案 2</span>
+      <span class="txt" id="descTxt"></span>
+      <button class="reset" id="resetBtn">↺ 重新巡览</button>
+    </div>
+
+    <div id="stage">
+      <!-- toolbar (EA) -->
+      <div class="mm-toolbar" data-tour="toolbar">
+        <div class="seg" id="viewSeg">
+          <button data-v="all" class="on"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>全局视图</button>
+          <button data-v="incomplete"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></svg>只看未完成</button>
+          <button data-v="valid"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg>只看有效路径</button>
+          <span class="sep"></span>
+          <button data-v="mine" id="mineBtn"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>只看我的</button>
+        </div>
+        <button class="pill" id="dirBtn"><svg class="i" width="13" height="13" viewBox="0 0 24 24"><path d="M8 18 4 22 0 18M4 22V2"/></svg>竖向</button>
+        <button class="pill" id="foldBtn">折叠已完成</button>
+      </div>
+      <button class="fs" title="全屏"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+
+      <div id="world"><svg id="edges"><g id="edgeG"></g></svg></div>
+
+      <!-- controls -->
+      <div class="rf-controls" data-tour="ctrls">
+        <button id="zoomIn" title="放大">＋</button>
+        <button id="zoomOut" title="缩小">－</button>
+        <button id="fit" title="适配全景">⤢</button>
+        <button id="legendBtn" title="图例"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.59a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1"/></svg></button>
+      </div>
+      <div class="rf-minimap" data-tour="minimap" id="minimap"></div>
+      <div class="legend" id="legend">
+        <span style="color:var(--slate-400)">紧急度</span>
+        <span class="u"><i style="background:#FF3B30"></i>非常紧急</span>
+        <span class="u"><i style="background:#FF9500"></i>紧急</span>
+        <span class="u"><i style="background:#38BDF8"></i>一般</span>
+        <span class="u"><i style="background:#94A3B8"></i>不紧急</span>
+      </div>
+
+      <div class="empty hidden" id="emptyState">
+        <div class="art">🌱</div>
+        <h2>还没有排查思路</h2>
+        <p>围绕这个 Case，从一个「怀疑方向」开始，把根因一层层查清。</p>
+        <div class="cta">
+          <button class="pri" id="emptyNew">＋ 新建第一个思路</button>
+          <button class="sec" id="emptyTpl">从模板开始</button>
+        </div>
+      </div>
+
+      <div id="overlay"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  const stage=document.getElementById('stage'), world=document.getElementById('world'),
+    edgeG=document.getElementById('edgeG'), overlay=document.getElementById('overlay'),
+    emptyState=document.getElementById('emptyState'), minimap=document.getElementById('minimap'),
+    toastEl=document.getElementById('toast'), legend=document.getElementById('legend');
+
+  const W={case:280,thought:400,action:256,add:48};
+  const H={case:150,thought:88,action:100,add:48};
+  let nodes=[], seq=1, active=null, tx=0, ty=0, scale=.85, viewMode='all', onlyMine=false, markRoot=null;
+
+  // svg icon helper
+  function ic(name,sz=12){
+    const P={
+      plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      pencil:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>',
+      copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+      paste:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+      trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+      user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      building:'<rect x="6" y="2" width="12" height="20" rx="1"/><path d="M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/>',
+      tag:'<path d="M20.59 13.41 13.42 20.59a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1"/>',
+      thumb:'<path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>',
+      msg:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+      cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+      link:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
+      circledot:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>',
+      checkcheck:'<path d="M18 6 7 17l-5-5M22 10l-7.5 7.5L13 16"/>',
+      circle:'<circle cx="12" cy="12" r="10"/>',
+      clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+      check:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>',
+    };
+    return `<svg class="i" width="${sz}" height="${sz}" viewBox="0 0 24 24">${P[name]||''}</svg>`;
+  }
+
+  /* ---------- transform ---------- */
+  function applyT(){ world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; }
+  function toWorld(cx,cy){ const s=stage.getBoundingClientRect(); return {x:(cx-s.left-tx)/scale,y:(cy-s.top-ty)/scale}; }
+
+  /* ---------- data ---------- */
+  function add(kind,parentId,data){ const n={id:seq++,kind,parentId:parentId||null,marked:false,x:0,y:0,h:H[kind],ghost:false,
+    title:'',category:'',status:'待开始',urgency:'一般',owner:'',dept:'',dueDate:'',expectation:'',conclusion:'',validity:'',likes:0,comments:0,...(data||{})}; nodes.push(n); return n; }
+  function kids(id){ return nodes.filter(n=>n.parentId===id); }
+  function root(){ return nodes.find(n=>n.kind==='case'); }
+  function del(id){ const rm=new Set(); (function collect(i){rm.add(i);kids(i).forEach(c=>collect(c.id));})(id); nodes=nodes.filter(n=>!rm.has(n.id)); layout(); render(); }
+  function depthOf(n){ let d=0,p=n; while(p&&p.parentId){ p=nodes.find(x=>x.id===p.parentId); d++; } return d; }
+
+  /* ---------- seed real EA tree ---------- */
+  function seed(ghost){
+    nodes=[]; seq=1; markRoot=null;
+    const c=add('case',null,{title:'DDR4 模组随机 FAIL，客户端 RMA 上升',code:'EA-2406-018',level:'A级',owner:'王工',dept:'PTE'});
+    const t1=add('thought',c.id,{title:'怀疑：回流焊空洞导致虚焊',category:'工艺'});
+    const t2=add('thought',c.id,{title:'怀疑：测试程式 marginal，温漂下误判',category:'测试程式'});
+    const a1=add('action',t1.id,{title:'X-Ray 复检 20 片焊点空洞率',status:'进行中',urgency:'紧急',owner:'张工',dept:'PTE',dueDate:'2026-07-15',expectation:'空洞率 <10% 视为排除'});
+    const a2=add('action',t1.id,{title:'调回流焊温区曲线记录',status:'已完成',urgency:'一般',owner:'李工',dept:'PIE',dueDate:'2026-07-12',conclusion:'温区正常，焊接非主因',validity:'部分有效'});
+    const a3=add('action',t2.id,{title:'-40~85℃ 温循下重测 program',status:'待接受',urgency:'非常紧急',owner:'陈工',dept:'TE',dueDate:'2026-07-16',expectation:'定位是否为 timing margin 不足'});
+    const t3=add('thought',a1.id,{title:'子思路：印刷偏移致焊膏不足',category:'工艺'});
+    if(ghost) nodes.forEach(n=>n.ghost=true);
+    else add('add',c.id,{});
+    layout(); render(); fitView();
+  }
+
+  /* ---------- layout (LR tidy) ---------- */
+  function colW(d){ return d===0?W.case:(d%2===1?W.thought:W.action); }
+  function colX(d){ let x=40; for(let i=0;i<d;i++){ x += colW(i)+80; } return x; }
+  function layout(){
+    const r=root(); if(!r) return;
+    let cursor=40;
+    (function place(n){
+      n.x = colX(depthOf(n));
+      const ch=kids(n.id);
+      if(!ch.length){ n.y=cursor; cursor += (n.h||H[n.kind]) + 30; }
+      else { ch.forEach(place); n.y=(ch[0].y+ch[ch.length-1].y)/2; }
+    })(r);
+  }
+
+  /* ---------- filter (view modes) ---------- */
+  function visible(n){
+    if(n.kind==='case'||n.kind==='add') return true;
+    if(onlyMine && n.kind==='action' && n.owner!=='张工') return false;
+    if(viewMode==='incomplete' && n.kind==='action' && (n.status==='已完成'||n.status==='已中止'||n.status==='已拒绝')) return false;
+    if(viewMode==='valid' && n.kind==='action' && n.status==='已完成' && n.validity==='无效') return false;
+    return true;
+  }
+  function markedSet(){
+    if(!markRoot) return null;
+    const s=new Set(); (function w(i){s.add(i);kids(i).forEach(c=>w(c.id));})(markRoot);
+    // include ancestors
+    let p=nodes.find(n=>n.id===markRoot); while(p&&p.parentId){ s.add(p.parentId); p=nodes.find(n=>n.id===p.parentId); }
+    return s;
+  }
+
+  /* ---------- render ---------- */
+  function statusBadge(s){
+    const map={进行中:'circledot',已完成:'checkcheck',待接受:'clock',待开始:'circle',已中止:'circle'};
+    return `<span class="sb s-${s}">${ic(map[s]||'circle',11)}</span><span class="st-label">${s}</span>`;
+  }
+  const URG={'非常紧急':'#FF3B30','紧急':'#FF9500','一般':'#38BDF8','不紧急':'#94A3B8'};
+  const ACTIVE=new Set(['待开始','待接受','进行中']);
+
+  function nodeEl(n){
+    const el=document.createElement('div'); el.className='mnode'; el.dataset.id=n.id; el.dataset.kind=n.kind;
+    el.style.left=n.x+'px'; el.style.top=n.y+'px';
+    if(n.ghost) el.classList.add('ghost');
+    const mset=markedSet();
+    if(mset && !mset.has(n.id) && n.kind!=='case') el.classList.add('dim');
+    if(n.marked) el.classList.add(n.id===markRoot?'markroot':'marked');
+
+    if(n.kind==='case'){
+      el.innerHTML=`<div class="hdl r"></div><div class="n-case">
+        <div class="row1"><span class="lvl">${n.level}</span><span class="code">${n.code}</span></div>
+        <h4>${n.title}</h4>
+        <div class="meta"><div>${ic('user',12)}Owner：${n.owner}</div><div>${ic('building',12)}2 部门</div></div></div>`;
+    } else if(n.kind==='add'){
+      el.className+=' n-add'; el.dataset.tour='add-idea';
+      el.innerHTML=`<div class="hdl l"></div><button title="添加新思路">${ic('plus',20)}</button>`;
+      el.querySelector('button').onclick=()=>addThoughtToCase();
+      return el;
+    } else if(n.kind==='thought'){
+      const empty=!n.title.trim();
+      el.className+=' n-th';
+      el.innerHTML=`<div class="hdl l"></div><div class="hdl r"></div>
+        ${kids(n.id).length?`<button class="fold" title="折叠子节点">－</button>`:''}
+        <div class="card">
+          <div class="tools">
+            <button class="tbtn" data-a="edit" title="编辑">${ic('pencil')}</button>
+            <button class="tbtn ${n.id===markRoot?'on':''}" data-a="mark" title="标记整条线">${ic('flag')}</button>
+            <button class="tbtn" data-a="copy" title="复制此节点及子树">${ic('copy')}</button>
+            <button class="tbtn" data-a="del" title="删除">${ic('trash')}</button>
+            <button class="tbtn add" data-a="add" title="添加执行任务">${ic('plus',13)}</button>
+          </div>
+          <div class="lab"><span class="t">思路 / 怀疑方向</span>${n.category?`<span class="cat">${ic('tag',9)}${n.category}</span>`:''}</div>
+          ${empty?`<div class="body empty" data-a="edit"></div>`:`<div class="body">${n.title}</div>`}
+        </div>`;
+    } else if(n.kind==='action'){
+      el.className+=' n-act';
+      let content='';
+      if((n.status==='待接受'||n.status==='进行中')&&n.expectation)
+        content=`<div class="kv"><span class="k">预期</span><span class="v">${n.expectation}</span></div>`;
+      if(n.status==='已完成'&&(n.conclusion||n.validity))
+        content=`<div class="kv"><span class="k">结论</span><span class="v">${n.conclusion||''}${n.validity?`<br><span class="valid">${ic('check',11)} 结论${n.validity} ${ic('link',10)}</span>`:''}</span></div>`;
+      el.innerHTML=`<div class="hdl l"></div><div class="hdl r"></div>
+        ${kids(n.id).length?`<button class="fold" title="折叠子节点">－</button>`:''}
+        <div class="card">
+          ${ACTIVE.has(n.status)?`<div class="ubar" style="background:${URG[n.urgency]}"></div>`:''}
+          <div class="inner">
+            <div class="tools">
+              <button class="tbtn" data-a="edit" title="编辑">${ic('pencil')}</button>
+              <button class="tbtn ${n.id===markRoot?'on':''}" data-a="mark" title="标记整条线">${ic('flag')}</button>
+              <button class="tbtn" data-a="copy" title="复制此节点及子树">${ic('copy')}</button>
+              <button class="tbtn" data-a="del" title="删除">${ic('trash')}</button>
+              <button class="tbtn add" data-a="add" title="基于此动作添加思路">${ic('plus',13)}</button>
+            </div>
+            <div class="statusrow">${statusBadge(n.status)}</div>
+            <div class="title" data-a="open">${n.title}</div>
+            ${content}
+          </div>
+        </div>`;
+    }
+    // wire actions
+    el.querySelectorAll('[data-a]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();onAction(b.dataset.a,n);}));
+    const fold=el.querySelector('.fold'); if(fold) fold.onclick=e=>{e.stopPropagation();toast('折叠/展开子节点');};
+    // drag by card
+    const card=el.querySelector('.card')||el.querySelector('.n-case');
+    if(card) card.addEventListener('pointerdown',e=>{ if(e.target.closest('[data-a]')||e.target.closest('.fold')) return; startDrag(e,n); });
+    // hover hints (concept 8)
+    el.addEventListener('pointerenter',()=>{ if(active===8) showHint(n,el); });
+    el.addEventListener('pointerleave',()=>{ if(active===8) hideHint(); });
+    return el;
+  }
+
+  function drawEdges(){
+    const mset=markedSet();
+    let d='';
+    nodes.forEach(n=>{
+      if(!n.parentId) return;
+      const p=nodes.find(x=>x.id===n.parentId); if(!p) return;
+      const ph=p.h||H[p.kind], nh=n.h||H[n.kind];
+      const x1=p.x+W[p.kind], y1=p.y+ph/2, x2=n.x, y2=n.y+nh/2, mx=(x1+x2)/2;
+      let cls=n.ghost?'ghostwire':'';
+      if(mset){ cls+= (mset.has(n.id)?' marked':' dim'); }
+      d+=`<path class="${cls}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;
+    });
+    edgeG.innerHTML=d;
+  }
+  function render(){
+    world.querySelectorAll('.mnode').forEach(e=>e.remove());
+    drawEdges();
+    nodes.filter(visible).forEach(n=> world.appendChild(nodeEl(n)));
+    // measure heights for next layout accuracy
+    world.querySelectorAll('.mnode').forEach(el=>{ const n=nodes.find(x=>x.id==el.dataset.id); if(n) n.h=el.offsetHeight; });
+    drawEdges();
+    drawMinimap();
+  }
+  function drawMinimap(){
+    minimap.innerHTML=''; const vis=nodes.filter(visible); if(!vis.length) return;
+    let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;
+    vis.forEach(n=>{a=Math.min(a,n.x);b=Math.min(b,n.y);c=Math.max(c,n.x+W[n.kind]);d=Math.max(d,n.y+(n.h||H[n.kind]));});
+    const pad=30;a-=pad;b-=pad;c+=pad;d+=pad; const s=Math.min(180/(c-a),120/(d-b));
+    vis.forEach(n=>{const el=document.createElement('div');el.className='mm-n';
+      el.style.left=(n.x-a)*s+'px';el.style.top=(n.y-b)*s+'px';el.style.width=Math.max(4,W[n.kind]*s)+'px';el.style.height=Math.max(3,(n.h||H[n.kind])*s)+'px';
+      el.style.background=n.kind==='thought'?'#FCD34D':(n.kind==='case'?'#94A3B8':(n.marked?'#8B5CF6':'#CBD5E1'));
+      minimap.appendChild(el);});
+  }
+
+  /* ---------- actions ---------- */
+  function onAction(a,n){
+    if(a==='add'){
+      if(n.kind==='thought'){ const c=add('action',n.id,{title:'新执行任务（待编辑）',status:'待开始',urgency:'一般',owner:'待指派'}); layout();render();fitView(); if(active===9){ document.querySelectorAll('.sand-coach').forEach(x=>x.remove()); toast('🎉 成功！你已学会「hover 思路卡 → 点蓝色 ＋」挂任务'); } else if(!guide){ toast('已挂上一个执行任务'); } check('task'); openEdit(c); guideOn('addTask',c); }
+      else if(n.kind==='action'){ const c=add('thought',n.id,{title:'',category:''}); layout();render();toast('已基于此动作派生一个子思路');check('sub'); openEdit(c); }
+    } else if(a==='mark'){
+      if(markRoot===n.id){ markRoot=null; unmarkAll(); } else { markRoot=n.id; markPath(n.id); toast('已标记整条线（其余淡出）'); check('key'); }
+      render();
+    } else if(a==='edit'){ openEdit(n); }
+    else if(a==='copy'){ toast('已复制此节点及子树（可在父节点粘贴）'); }
+    else if(a==='del'){ if(confirm('删除该节点及其所有子节点？')){ del(n.id); toast('已删除'); } }
+    else if(a==='open'){ toast('打开任务 Workspace（原型略）'); }
+  }
+  function markPath(id){ nodes.forEach(n=>n.marked=false); const s=new Set(); (function w(i){s.add(i);kids(i).forEach(c=>w(c.id));})(id); s.forEach(i=>{const n=nodes.find(x=>x.id===i); if(n)n.marked=true;}); }
+  function unmarkAll(){ nodes.forEach(n=>n.marked=false); }
+  function addThoughtToCase(){ const c=add('thought',root().id,{title:'',category:''}); layout();render();fitView();check('idea'); openEdit(c); guideOn('addThought',c); }
+
+  /* ---------- inline edit (faithful) ---------- */
+  let editorEl=null;
+  function openEdit(n){
+    closeEdit();
+    const el=world.querySelector(`.mnode[data-id="${n.id}"]`); if(!el) return;
+    editorEl=document.createElement('div'); editorEl.className='mnode'; editorEl.id='nodeEditor'; editorEl.style.left=n.x+'px'; editorEl.style.top=n.y+'px'; editorEl.style.zIndex=50;
+    if(n.kind==='thought'){
+      const b=parseTemplate(n.title);
+      editorEl.innerHTML=`<div style="width:400px;background:#fff;border:2px solid var(--amber-300);border-radius:12px;padding:14px;box-shadow:0 16px 40px -14px rgba(180,120,20,.5)">
+        <div style="font-size:12px;color:var(--amber-700);margin-bottom:8px;font-weight:600">编辑思路 / 怀疑方向</div>
+        <input id="ecat" placeholder="分类标签（工艺 / 测试程式 / 设计，可留空）" value="${n.category||''}" style="width:100%;height:30px;padding:0 8px;margin-bottom:10px;border:1px solid var(--amber-300);border-radius:6px;font-size:12px;outline:none">
+        <div class="fillblank" style="font-size:13px;line-height:2.3;color:var(--slate-700)">看到<input class="bk" id="b1" value="${b[0]}" placeholder="什么现象">失效现象，怀疑和<input class="bk" id="b2" value="${b[1]}" placeholder="什么/哪个环节">有关/导致，曾经<input class="bk" id="b3" value="${b[2]}" placeholder="有无">相似 case，假设是<input class="bk" id="b4" value="${b[3]}" placeholder="什么">原因。</div>
+        <div style="margin-top:8px;font-size:10px;color:rgba(180,83,9,.85)">把每个空填上，即可组成一条结构化的怀疑方向（至少填前两空）</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="esave" style="flex:1;height:30px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-size:12px;cursor:pointer">确认</button>
+          <button id="ecancel" style="flex:1;height:30px;border:1px solid var(--slate-200);border-radius:7px;background:#fff;color:var(--slate-600);font-size:12px;cursor:pointer">取消</button>
+        </div></div>`;
+      world.appendChild(editorEl);
+      const gv=id=>editorEl.querySelector(id).value.trim();
+      editorEl.querySelector('#b1').focus();
+      editorEl.querySelector('#esave').onclick=()=>{
+        const b1=gv('#b1'),b2=gv('#b2'),b3=gv('#b3'),b4=gv('#b4');
+        if(guide && GUIDE[guide.i].key==='fillThought' && !(b1&&b2)){ toast('至少填写「失效现象」和「怀疑对象」两个空'); return; }
+        const any=b1||b2||b3||b4;
+        n.title = any ? composeTemplate([b1,b2,b3,b4]) : '';
+        n.category=gv('#ecat'); closeEdit(); layout();render();
+        if(n.title){ toast('思路已保存'); guideOn('fillThought',n); }
+      };
+      editorEl.querySelector('#ecancel').onclick=()=>{
+        if(guide && GUIDE[guide.i].key==='fillThought'){ toast('填好空后点确认，或点右侧「跳过引导」'); return; }
+        if(!n.title.trim()){ del(n.id);} closeEdit();
+      };
+    } else {
+      editorEl.innerHTML=`<div style="width:280px;background:#fff;border:2px solid var(--blue);border-radius:12px;padding:14px;box-shadow:0 16px 40px -14px rgba(0,82,217,.4)">
+        ${efield('任务名称','etitle',n.title,'符合预期怎么做 + 不符合怎么做')}
+        ${efield('预期','eexp',n.expectation,'预期')}
+        <div style="margin-bottom:8px"><label style="font-size:12px;color:var(--slate-500);display:block;margin-bottom:4px">状态</label>
+          <select id="estatus" style="width:100%;height:32px;padding:0 6px;border:1px solid var(--slate-200);border-radius:6px;font-size:13px;outline:none">
+            ${['待开始','待接受','进行中','已完成'].map(s=>`<option ${n.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div id="conclWrap" style="margin-bottom:8px;display:${n.status==='已完成'?'block':'none'}">
+          ${efield('结论','econcl',n.conclusion,'本步结论')}
+          <label style="font-size:12px;color:var(--slate-500);display:block;margin-bottom:4px">有效性</label>
+          <select id="evalid" style="width:100%;height:32px;padding:0 6px;border:1px solid var(--slate-200);border-radius:6px;font-size:13px;outline:none">
+            ${['','有效','部分有效','无效'].map(s=>`<option ${n.validity===s?'selected':''}>${s||'（选择）'}</option>`).join('')}</select></div>
+        ${efield('负责人','eowner',n.owner,'负责人')}
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button id="esave" style="flex:1;height:30px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-size:12px;cursor:pointer">确认</button>
+          <button id="ecancel" style="flex:1;height:30px;border:1px solid var(--slate-200);border-radius:7px;background:#fff;color:var(--slate-600);font-size:12px;cursor:pointer">取消</button>
+        </div></div>`;
+      world.appendChild(editorEl);
+      const st=editorEl.querySelector('#estatus');
+      st.onchange=()=>{ editorEl.querySelector('#conclWrap').style.display= st.value==='已完成'?'block':'none'; };
+      editorEl.querySelector('#etitle').focus();
+      editorEl.querySelector('#esave').onclick=()=>{
+        n.title=editorEl.querySelector('#etitle').value.trim()||n.title;
+        n.expectation=editorEl.querySelector('#eexp').value.trim();
+        n.status=st.value; n.owner=editorEl.querySelector('#eowner').value.trim()||n.owner;
+        if(n.status==='已完成'){ n.conclusion=editorEl.querySelector('#econcl').value.trim(); const v=editorEl.querySelector('#evalid').value; n.validity=v.startsWith('（')?'':v; if(n.conclusion) check('concl'); }
+        closeEdit(); layout();render(); toast('任务已保存'); guideOn('fillTask',n);
+      };
+      editorEl.querySelector('#ecancel').onclick=()=>{ const wasG = guide && GUIDE[guide.i].key==='fillTask'; if(n.title==='新执行任务（待编辑）'){ del(n.id);} closeEdit(); if(wasG){ guide.i=GUIDE.findIndex(s=>s.key==='addTask'); renderGuide(); } };
+    }
+  }
+  function efield(label,id,val,ph){ return `<div style="margin-bottom:8px"><label style="font-size:12px;color:var(--slate-500);display:block;margin-bottom:4px">${label}</label>
+    <input id="${id}" value="${val||''}" placeholder="${ph}" style="width:100%;height:32px;padding:0 8px;border:1px solid var(--slate-200);border-radius:6px;font-size:13px;outline:none"></div>`; }
+  function closeEdit(){ if(editorEl){editorEl.remove();editorEl=null;} }
+  function composeTemplate(b){ return `看到${b[0]}失效现象，怀疑和${b[1]}有关/导致，曾经${b[2]}相似case，假设是${b[3]}原因。`; }
+  function parseTemplate(title){ if(!title) return ['','','','']; const m=title.match(/^看到(.*)失效现象，怀疑和(.*)有关\/导致，曾经(.*)相似case，假设是(.*)原因。?$/); if(m) return [m[1],m[2],m[3],m[4]]; return [title,'','','']; }
+
+  /* ---------- drag ---------- */
+  function startDrag(e,n){
+    if(active===1||active===2) return;
+    e.preventDefault(); closeEdit();
+    const sx=e.clientX,sy=e.clientY,ox=n.x,oy=n.y;
+    const el=world.querySelector(`.mnode[data-id="${n.id}"]`);
+    function mv(ev){ n.x=ox+(ev.clientX-sx)/scale; n.y=oy+(ev.clientY-sy)/scale; el.style.left=n.x+'px'; el.style.top=n.y+'px'; drawEdges(); drawMinimap(); }
+    function up(){ window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); }
+    window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+  }
+
+  /* ---------- zoom / pan ---------- */
+  document.getElementById('zoomIn').onclick=()=>{scale=Math.min(1.5,scale+.12);applyT();};
+  document.getElementById('zoomOut').onclick=()=>{scale=Math.max(.4,scale-.12);applyT();};
+  document.getElementById('fit').onclick=fitView;
+  document.getElementById('legendBtn').onclick=()=>legend.classList.toggle('show');
+  function fitView(){
+    const vis=nodes.filter(visible); if(!vis.length){tx=0;ty=0;scale=.85;applyT();return;}
+    let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;
+    vis.forEach(n=>{a=Math.min(a,n.x);b=Math.min(b,n.y);c=Math.max(c,n.x+W[n.kind]);d=Math.max(d,n.y+(n.h||H[n.kind]));});
+    const sw=stage.clientWidth,sh=stage.clientHeight,pad=90;
+    scale=Math.max(.45,Math.min(1.1,(sw-pad*2)/(c-a),(sh-pad*2)/(d-b)));
+    tx=(sw-(c-a)*scale)/2 - a*scale; ty=(sh-(d-b)*scale)/2 - b*scale; applyT();
+  }
+  stage.addEventListener('pointerdown',e=>{
+    if(e.target!==stage&&e.target!==world&&e.target.id!=='edges') return;
+    if(active===1||active===2) return; closeEdit();
+    const sx=e.clientX,sy=e.clientY,otx=tx,oty=ty;
+    function mv(ev){tx=otx+(ev.clientX-sx);ty=oty+(ev.clientY-sy);applyT();}
+    function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);}
+    window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);
+  });
+
+  /* ---------- toolbar ---------- */
+  document.querySelectorAll('#viewSeg [data-v]').forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    if(v==='mine'){ onlyMine=!onlyMine; b.classList.toggle('on',onlyMine); }
+    else { viewMode=v; document.querySelectorAll('#viewSeg [data-v]').forEach(x=>{ if(x.dataset.v!=='mine') x.classList.toggle('on',x.dataset.v===v); }); }
+    render(); fitView();
+  });
+  document.getElementById('dirBtn').onclick=()=>toast('切换横向 / 竖向布局（原型示意）');
+  document.getElementById('foldBtn').onclick=()=>toast('折叠已完成 / 死路分支（原型示意）');
+  document.querySelector('.fs').onclick=()=>toast('全屏 / 退出全屏');
+
+  /* ---------- toast ---------- */
+  let tT=null; function toast(m){ toastEl.innerHTML=m; toastEl.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>toastEl.classList.remove('show'),1900); }
+
+  /* =============== concepts =============== */
+  const CONCEPTS=[
+    {id:1,nm:'分步弹窗向导',en:'Step Modal',desc:'进入导图即弹出居中卡片，<b>4 步</b>讲清「建思路→挂任务→派生子树→填结论」，圆点翻页、可跳过。'},
+    {id:2,nm:'分步引导建树',en:'Guided Build',desc:'初始即有 Case 根节点 + 一张<b>处于编辑态的思路卡</b>（填空式）。引导你：填好怀疑方向 → 挂一个执行任务 → 填写，走通第一条排查线。'},
+    {id:3,nm:'空状态引导卡',en:'Empty State',desc:'导图只剩 Case 根、无思路时，中央放插画 + 两个大按钮。点<b>新建第一个思路</b>立刻长出真节点。'},
+    {id:4,nm:'示例模板预置',en:'Template',desc:'进入即摆一棵半透明<b>样板怀疑树</b>（Case→思路→任务）。点「采用模板」一键变真节点。'},
+    {id:5,nm:'画布热点气泡',en:'Hotspots',desc:'在<b>添加新思路 / 思路卡蓝色＋ / 缩放控件</b>上放脉冲 ①②③，点开展开说明，不打断操作。'},
+    {id:7,nm:'清单式进度引导',en:'Checklist',desc:'右侧上手清单，你在<b>真导图</b>里每完成一项（建思路 / 挂任务 / 派生 / 填结论 / 标记）自动打勾。'},
+    {id:8,nm:'悬浮提示',en:'Hover Hints',desc:'把鼠标移到<b>思路卡 / 任务卡 / 控件</b>上，即时浮出「这是什么、能干什么」。零门槛通用补充层。'},
+    {id:9,nm:'「试一试」沙盒',en:'Sandbox',desc:'练习模式不影响真实 Case。跟着气泡：<b>hover 思路卡 → 点蓝色＋</b> 挂一个执行任务，体验真实建树。'},
+    {id:10,nm:'侧边栏情境讲解',en:'Side Panel',desc:'左栏「跟我做」三步走，点每步<b>高亮画布对应真节点</b>（Case→思路→任务）并讲解，不遮挡操作。'},
+  ];
+
+  function clearOverlay(){ overlay.innerHTML=''; document.querySelectorAll('.ring').forEach(r=>r.remove()); }
+  function activate(id){
+    active=id; clearOverlay(); hideHint(); closeEdit();
+    document.querySelectorAll('.cbtn').forEach(b=>b.classList.toggle('active',+b.dataset.id===id));
+    const c=CONCEPTS.find(x=>x.id===id);
+    document.getElementById('descTxt').innerHTML=c.desc;
+    emptyState.classList.add('hidden');
+    document.querySelectorAll('.mnode.force-tools').forEach(e=>e.classList.remove('force-tools'));
+
+    if(id===3){ nodes=[];seq=1; add('case',null,{title:'DDR4 模组随机 FAIL，客户端 RMA 上升',code:'EA-2406-018',level:'A级',owner:'王工',dept:'PTE'}); const c=root(); add('add',c.id,{}); layout();render();fitView(); emptyState.classList.remove('hidden'); return; }
+    if(id===4){ seed(true); templateOverlay(); return; }
+    if(id===9){ sandbox(); return; }
+    if(id===2){ startGuide(); return; }
+    seed(false);
+    if(id===1) wizard();
+    if(id===5) hotspots();
+    if(id===7) checklistSetup();
+    if(id===8) toast('把鼠标移到思路卡 / 任务卡 / 左下控件上试试');
+    if(id===10) sidePanel();
+  }
+
+  /* ---- 1 wizard ---- */
+  const WZ=[
+    {s:'第 1 步 · 从「思路」开始',t:'新建一个怀疑方向',ic:'🌿',c:'#F59E0B',d:'点画布上「添加新思路」按钮（或思路卡），按结构写下：看到__失效现象，怀疑和__有关/导致，曾经__相似case，假设是__原因。每个方向独立一张琥珀色卡。'},
+    {s:'第 2 步 · 挂上执行任务',t:'给思路添加要做的事',ic:'✅',c:'#0052D9',d:'鼠标移到思路卡，点右上蓝色 ＋，新建执行任务并填负责人、期望完成时间、紧急程度。'},
+    {s:'第 3 步 · 层层深入',t:'派生子思路 / 子任务',ic:'🌲',c:'#8B5CF6',d:'在执行任务卡上继续点 ＋，可基于该动作再生出怀疑方向，形成一棵怀疑树。'},
+    {s:'第 4 步 · 填写与整理',t:'把卡片填完整',ic:'✍️',c:'#10B981',d:'任务完成后填结论 + 有效性；🚩 标记整条重点线（其余淡出），拖动节点自由排布。'},
+  ];
+  function wizard(){
+    let i=0;
+    function draw(){ const st=WZ[i],last=i===WZ.length-1;
+      overlay.innerHTML=`<div class="layer"><div class="scrim"></div><div class="wizard">
+        <div class="wz-cap" style="background:linear-gradient(135deg,${st.c},#00000022)"><button class="x" id="wzX">✕</button><div class="s">${st.s}</div><div class="t">${st.t}</div></div>
+        <div class="wz-ic"><span style="background:${st.c}">${st.ic}</span></div>
+        <div class="wz-body">${st.d}</div>
+        <div class="wz-foot"><div class="wz-dots">${WZ.map((_,k)=>`<i class="${k===i?'on':''}" data-k="${k}"></i>`).join('')}</div>
+          <span class="wz-cnt">${i+1} / ${WZ.length}</span><div class="sp"></div>
+          ${i>0?'<button class="wz-btn g" id="wzPrev">上一步</button>':''}
+          <button class="wz-btn p" id="wzNext">${last?'开始使用':'下一步 →'}</button></div></div></div>`;
+      overlay.querySelector('#wzX').onclick=()=>{overlay.innerHTML='';toast('已跳过引导，可随时从左侧重开');};
+      overlay.querySelector('#wzNext').onclick=()=>{ if(last){overlay.innerHTML='';toast('开始搭建你的怀疑树吧');}else{i++;draw();} };
+      const pv=overlay.querySelector('#wzPrev'); if(pv) pv.onclick=()=>{i--;draw();};
+      overlay.querySelectorAll('.wz-dots i').forEach(x=>x.onclick=()=>{i=+x.dataset.k;draw();});
+    } draw();
+  }
+
+  /* ---- 方案2：从零开始 · 分步引导建一个思路 + 一个任务（动作驱动） ---- */
+  let guide=null;
+  const GUIDE=[
+    { key:'fillThought', t:'第 1 / 3 步 · 写下怀疑方向',
+      d:'把句子里的每个空填上：看到__失效现象，怀疑和__有关/导致，曾经__相似case，假设是__原因，然后点「确认」。',
+      target:()=>document.getElementById('nodeEditor') },
+    { key:'addTask', t:'第 2 / 3 步 · 挂执行任务', forceThought:true,
+      d:'鼠标移到刚填好的思路卡，点它右上角的蓝色 ＋，给这个方向添加一个要做的执行任务。',
+      target:()=>document.querySelector(`.mnode[data-id="${guide.thoughtId}"] .tbtn.add`) },
+    { key:'fillTask', t:'第 3 / 3 步 · 填写任务',
+      d:'填写任务名称、负责人、期望完成时间等，然后点「确认」。',
+      target:()=>document.getElementById('nodeEditor') },
+    { key:'done', done:true, t:'🎉 您已经完成了第一个思路的建立！',
+      d:'你已经建好「思路 → 执行任务」。接下来用同样的方式：hover 卡片点 ＋，继续添加更多怀疑方向与任务，把根因一层层查清。',
+      target:()=>null },
+  ];
+  function startGuide(){
+    active=2; closeEdit(); document.querySelectorAll('.ring').forEach(r=>r.remove());
+    nodes=[]; seq=1; markRoot=null;
+    const c=add('case',null,{title:'DDR4 模组随机 FAIL，客户端 RMA 上升',code:'EA-2406-018',level:'A级',owner:'王工',dept:'PTE'});
+    const t=add('thought',c.id,{title:'',category:''});
+    layout(); render(); fitView();
+    guide={i:0,thoughtId:t.id};
+    overlay.innerHTML=`<div class="layer" style="pointer-events:none"><svg class="spot-svg"><defs><mask id="spotmask"><rect x="0" y="0" width="100%" height="100%" fill="white"/><rect id="hole" rx="12" fill="black"/></mask></defs><rect x="0" y="0" width="100%" height="100%" fill="rgba(15,23,42,.32)" mask="url(#spotmask)"/></svg><div class="coach" id="coach"></div></div>`;
+    openEdit(t);
+    renderGuide();
+  }
+  function renderGuide(){
+    if(!guide) return;
+    const st=GUIDE[guide.i], sr=stage.getBoundingClientRect();
+    document.querySelectorAll('.mnode.force-tools').forEach(e=>e.classList.remove('force-tools'));
+    if(st.forceThought && guide.thoughtId){ const fe=world.querySelector(`.mnode[data-id="${guide.thoughtId}"]`); if(fe) fe.classList.add('force-tools'); }
+    const el=st.target(); const hole=document.getElementById('hole'); const coach=document.getElementById('coach');
+    if(!el){
+      hole.setAttribute('x',-200);hole.setAttribute('y',-200);hole.setAttribute('width',0);hole.setAttribute('height',0);
+      coach.style.left=(sr.width/2-125)+'px'; coach.style.top=(sr.height/2-95)+'px';
+    } else {
+      const r=el.getBoundingClientRect(), pad=8, hx=r.left-sr.left-pad, hy=r.top-sr.top-pad, hw=r.width+pad*2, hh=r.height+pad*2;
+      hole.setAttribute('x',hx);hole.setAttribute('y',hy);hole.setAttribute('width',hw);hole.setAttribute('height',hh);
+      let cx=hx+hw+16, cy=hy; if(cx+250>sr.width)cx=hx-266; if(cx<8)cx=8; cy=Math.min(Math.max(8,hy),sr.height-180);
+      coach.style.left=cx+'px'; coach.style.top=cy+'px';
+    }
+    coach.innerHTML=`<div class="t">${st.t}</div><div class="d">${st.d}</div>
+      <div class="row">${st.done?'':'<span class="cnt">👆 请按高亮处操作</span>'}<div class="sp"></div>
+      ${st.done?'<button class="nx" id="gDone">完成</button>':'<button class="skip" id="gSkip">跳过引导</button>'}</div>`;
+    const sk=document.getElementById('gSkip'); if(sk) sk.onclick=endGuide;
+    const dn=document.getElementById('gDone'); if(dn) dn.onclick=endGuide;
+  }
+  function guideOn(key,node){
+    if(!guide) return; if(GUIDE[guide.i].key!==key) return;
+    if(key==='addThought') guide.thoughtId=node.id;
+    guide.i++; renderGuide();
+  }
+  function endGuide(){ guide=null; overlay.innerHTML=''; document.querySelectorAll('.mnode.force-tools').forEach(e=>e.classList.remove('force-tools')); toast('引导结束，可点「重新巡览」重来'); }
+
+  /* ---- 4 template ---- */
+  function templateOverlay(){
+    overlay.innerHTML=`<div class="tpl-badge"><span class="lab">✦ 这是一棵<b>可编辑示例模板</b>，改成你的内容即可</span><button class="adopt" id="tplAdopt">采用模板</button><button class="clear" id="tplClear">清空重来</button></div>`;
+    overlay.querySelector('#tplAdopt').onclick=()=>{ nodes.forEach(n=>n.ghost=false); render(); overlay.innerHTML=''; toast('已采用模板，所有节点变为可编辑'); };
+    overlay.querySelector('#tplClear').onclick=()=>{ activate(3); document.getElementById('descBadge').textContent=4; document.getElementById('descTxt').innerHTML=CONCEPTS.find(c=>c.id===4).desc; active=4; };
+  }
+
+  /* ---- 5 hotspots ---- */
+  function hotspots(){
+    const firstTh=nodes.find(n=>n.kind==='thought');
+    const fe=world.querySelector(`.mnode[data-id="${firstTh.id}"]`); if(fe) fe.classList.add('force-tools');
+    const spots=[
+      {sel:'[data-tour=add-idea]',t:'添加新思路',d:'从这里开出第一个<b>怀疑方向</b>。'},
+      {get sel(){return `.mnode[data-id="${firstTh.id}"] .tbtn.add`;},t:'挂执行任务',d:'点思路卡右上蓝色 <b>＋</b> 添加要做的事。'},
+      {sel:'[data-tour=ctrls]',t:'缩放工具',d:'放大 / 缩小 / <b>适配全景</b>。'},
+    ];
+    overlay.innerHTML='<div class="layer" style="pointer-events:none"></div>';
+    const layer=overlay.querySelector('.layer'); const sr=stage.getBoundingClientRect();
+    spots.forEach((sp,idx)=>{ const el=document.querySelector(sp.sel); if(!el) return; const r=el.getBoundingClientRect();
+      const dot=document.createElement('div'); dot.className='hotspot'; dot.style.pointerEvents='auto'; dot.textContent=idx+1;
+      dot.style.left=(r.left-sr.left+r.width-8)+'px'; dot.style.top=(r.top-sr.top-8)+'px';
+      let pop=null; dot.onclick=()=>{ if(pop){pop.remove();pop=null;return;} layer.querySelectorAll('.hs-pop').forEach(p=>p.remove());
+        pop=document.createElement('div'); pop.className='hs-pop'; pop.style.pointerEvents='auto'; pop.innerHTML=`<div style="font-weight:800;margin-bottom:4px">${sp.t}</div>${sp.d}`;
+        let px=r.left-sr.left+r.width+14,py=r.top-sr.top-8; if(px+190>sr.width)px=r.left-sr.left-204; pop.style.left=px+'px'; pop.style.top=py+'px'; layer.appendChild(pop); };
+      layer.appendChild(dot); });
+    toast('点画布上跳动的 ①②③ 看看');
+  }
+
+  /* ---- 7 checklist ---- */
+  const CHECK=[{k:'idea',t:'新建 1 个思路'},{k:'task',t:'挂 1 个执行任务'},{k:'sub',t:'派生一个子思路'},{k:'concl',t:'填写结论 + 有效性'},{k:'key',t:'标记整条重点线'}];
+  let cs={};
+  function checklistSetup(){ cs={}; drawChecklist(); toast('跟着右侧清单，在真导图里逐项完成'); }
+  function drawChecklist(){ if(active!==7) return; const done=CHECK.filter(c=>cs[c.k]).length; const todo=CHECK.find(c=>!cs[c.k]);
+    overlay.innerHTML=`<div class="checklist"><div class="h">🚀 上手清单</div><div class="bar"><i style="width:${done/CHECK.length*100}%"></i></div>
+      ${CHECK.map(c=>`<div class="cli ${cs[c.k]?'done':(todo&&todo.k===c.k?'now':'')}"><span class="box">${cs[c.k]?'✓':''}</span><span>${c.t}</span></div>`).join('')}
+      <div class="done-all" style="display:${done===CHECK.length?'block':'none'}">🎉 全部完成，你已上手！</div></div>`; }
+  function check(k){ if(active!==7) return; if(!cs[k]){ cs[k]=true; drawChecklist(); } }
+
+  /* ---- 8 hover hints ---- */
+  let hintEl=null;
+  const NH_={thought:{t:'思路 / 怀疑方向',d:'写「怀疑什么 + 为什么」。悬停出现 ＋派生任务 / 🚩标整条线 / 复制 / ✎编辑 / 删除。'},
+    action:{t:'执行任务卡',d:'左侧色条=紧急度，徽章=状态。进行中看预期、已完成看结论+有效性，可继续派生子思路。'},
+    case:{t:'Case 根节点',d:'整个失效调查的起点，悬停可看背景与影响，向右派生所有怀疑方向。'}};
+  const CH_={zoomIn:{t:'放大',d:'看清某个分支细节。'},zoomOut:{t:'缩小',d:'拉远纵览整棵树。'},fit:{t:'适配全景',d:'一键把所有节点框进视野。'},legendBtn:{t:'图例',d:'查看紧急度色条对照。'}};
+  function showHint(n,el){ hideHint(); const h=NH_[n.kind]; if(!h) return; const r=el.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+    hintEl=document.createElement('div'); hintEl.className='hint-tip';
+    const col=n.kind==='thought'?'#F59E0B':(n.kind==='action'?'#0052D9':'#94A3B8');
+    hintEl.innerHTML=`<div class="t"><span style="width:8px;height:8px;border-radius:50%;background:${col}"></span>${h.t}</div><div class="d">${h.d}</div>`;
+    let x=r.left-sr.left, y=r.top-sr.top+r.height+8; if(y+90>sr.height) y=r.top-sr.top-96; hintEl.style.left=x+'px'; hintEl.style.top=y+'px'; overlay.appendChild(hintEl); }
+  function hideHint(){ if(hintEl){hintEl.remove();hintEl=null;} }
+  ['zoomIn','zoomOut','fit','legendBtn'].forEach(id=>{ const b=document.getElementById(id);
+    b.addEventListener('pointerenter',()=>{ if(active!==8) return; hideHint(); const h=CH_[id],r=b.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+      hintEl=document.createElement('div'); hintEl.className='hint-tip'; hintEl.style.width='160px'; hintEl.innerHTML=`<div class="t">${h.t}</div><div class="d">${h.d}</div>`;
+      hintEl.style.left=(r.left-sr.left+r.width+10)+'px'; hintEl.style.top=(r.top-sr.top-8)+'px'; overlay.appendChild(hintEl); });
+    b.addEventListener('pointerleave',()=>{ if(active===8) hideHint(); }); });
+
+  /* ---- 9 sandbox ---- */
+  function sandbox(){
+    nodes=[];seq=1; markRoot=null;
+    const c=add('case',null,{title:'练习 Case：熟悉建树操作',code:'EA-DEMO-001',level:'B级',owner:'练习',dept:'PTE'});
+    add('thought',c.id,{title:'练习思路：试着给我挂个执行任务',category:'工艺'});
+    layout();render();fitView();
+    const th=nodes.find(n=>n.kind==='thought'); const fe=world.querySelector(`.mnode[data-id="${th.id}"]`); if(fe) fe.classList.add('force-tools');
+    positionSandCoach(th);
+    overlay.querySelector('#sandExit').onclick=()=>{ toast('已退出练习模式'); activate(1); };
+    toast('把鼠标移到思路卡，点右上蓝色 ＋ 试试');
+  }
+  function positionSandCoach(th){
+    const el=world.querySelector(`.mnode[data-id="${th.id}"]`); const sr=stage.getBoundingClientRect(); const r=el.getBoundingClientRect();
+    overlay.innerHTML=`<div class="sand-ban">🧪 练习模式 · 随便试，不影响真实 Case<button class="exit" id="sandExit">退出练习</button></div>
+      <div class="sand-coach" id="sandCoach"><div class="t">试一试：挂一个执行任务</div><div class="d">① hover 这张思路卡 → ② 点右上<b>蓝色 ＋</b> → ③ 填任务名称保存</div></div>`;
+    const coach=overlay.querySelector('#sandCoach'); coach.style.left=(r.left-sr.left+r.width+14)+'px'; coach.style.top=(r.top-sr.top+6)+'px';
+    overlay.querySelector('#sandExit').onclick=()=>{ toast('已退出练习模式'); activate(1); };
+  }
+  // hook: when a task added in sandbox
+  const _check=check;
+
+  /* ---- 10 side panel ---- */
+  function sidePanel(){
+    const c=root(), th=nodes.find(n=>n.kind==='thought'), ac=nodes.find(n=>n.kind==='action');
+    const SP=[{t:'建立怀疑方向',d:'怀疑什么 + 为什么怀疑，每个方向一张思路卡。',ids:[th.id]},
+      {t:'挂执行任务',d:'谁、何时、做什么。移到思路卡点蓝色 ＋。',ids:[ac.id]},
+      {t:'派生子树 + 填结论',d:'层层查清根因，完成后填结论 + 有效性。',ids:[th.id,ac.id]}];
+    let i=0;
+    function ringDraw(){ document.querySelectorAll('.ring').forEach(r=>r.remove()); const sr=stage.getBoundingClientRect();
+      SP[i].ids.forEach(id=>{ const el=world.querySelector(`.mnode[data-id="${id}"]`); if(!el) return; const r=el.getBoundingClientRect();
+        const ring=document.createElement('div'); ring.className='ring'; ring.style.left=(r.left-sr.left-6)+'px'; ring.style.top=(r.top-sr.top-6)+'px'; ring.style.width=(r.width+12)+'px'; ring.style.height=(r.height+12)+'px'; stage.appendChild(ring); }); }
+    function draw(){ overlay.innerHTML=`<div class="sidepanel"><div class="ttl">📘 跟我做</div><div class="sub">结构化排查 · 三步走</div>
+      ${SP.map((s,k)=>`<div class="spstep ${k===i?'on':''}" data-k="${k}"><span class="n">${k+1}</span><div><div class="st">${s.t}</div><div class="sd">${s.d}</div></div></div>`).join('')}
+      <button class="go" id="spGo">${i===SP.length-1?'完成引导':'下一步 →'}</button></div>`;
+      overlay.querySelectorAll('.spstep').forEach(s=>s.onclick=()=>{i=+s.dataset.k;draw();});
+      overlay.querySelector('#spGo').onclick=()=>{ if(i===SP.length-1){overlay.innerHTML='';document.querySelectorAll('.ring').forEach(r=>r.remove());toast('引导完成，动手试试吧');}else{i++;draw();} };
+      ringDraw();
+    } draw();
+  }
+
+  /* ---- empty buttons ---- */
+  document.getElementById('emptyNew').onclick=()=>{ addThoughtToCase(); emptyState.classList.add('hidden'); };
+  document.getElementById('emptyTpl').onclick=()=>{ active=4; activate(4); };
+
+  document.getElementById('resetBtn').onclick=()=>activate(active||2);
+
+  activate(2);
+})();
+</script>
+</body>
+</html>

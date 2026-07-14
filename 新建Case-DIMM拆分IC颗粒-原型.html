@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1440, initial-scale=1.0" />
+  <title>新建Case · DIMM拆分为IC/颗粒 原型</title>
+  <style>
+    :root {
+      --bg: #f4f7fc; --card: #fff; --line: #e2e8f0; --line-soft: #eef2f7;
+      --ink: #0f172a; --ink2: #334155; --muted: #64748b; --muted2: #94a3b8;
+      --brand: #0052d9; --brand2: #00a4ff; --violet: #7a3dff; --ok: #16a34a; --amber: #d97706; --red: #ef4444;
+      --shadow: 0 12px 30px -18px rgba(15,23,42,.36); --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-width: 1360px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; color: var(--ink); background: radial-gradient(900px 480px at 4% -6%, rgba(0,164,255,.1), transparent 70%), radial-gradient(820px 460px at 98% -4%, rgba(122,61,255,.1), transparent 72%), var(--bg); line-height: 1.45; }
+    .wrap { width: 1400px; margin: 18px auto; display: grid; gap: 12px; }
+
+    .hero { border: 1px solid rgba(0,82,217,.2); border-radius: var(--radius); background: linear-gradient(140deg, rgba(0,82,217,.1), rgba(122,61,255,.07)); box-shadow: var(--shadow); padding: 14px 16px; display: flex; align-items: center; gap: 16px; }
+    .hero .htxt h1 { font-size: 20px; font-weight: 900; }
+    .hero .htxt p { font-size: 12.5px; color: var(--ink2); margin-top: 5px; max-width: 78ch; }
+    .mode { margin-left: auto; display: inline-flex; background: #eef2f8; border-radius: 10px; padding: 3px; gap: 3px; flex: none; }
+    .mode button { border: 0; background: transparent; font: inherit; font-size: 12px; color: var(--muted); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .mode button.on { background: #fff; color: var(--violet); box-shadow: 0 1px 2px rgba(15,23,42,.1); }
+    .ctxsim { margin-left: auto; display: flex; align-items: center; gap: 8px; flex: none; }
+    .ctxlabel { font-size: 11px; color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+    .phead { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); background: #fbfdff; display: flex; align-items: center; gap: 8px; }
+    .phead .n { width: 22px; height: 22px; border-radius: 6px; background: rgba(122,61,255,.1); color: var(--violet); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+    .phead h2 { font-size: 14px; font-weight: 800; }
+    .phead .sub { font-size: 11px; color: var(--muted); margin-left: auto; }
+    .pbody { padding: 14px; }
+
+    .parent-card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: linear-gradient(180deg,#fff,#fcfdff); display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .parent-card .badge { font-size: 10px; font-weight: 800; color: #fff; background: linear-gradient(135deg,var(--brand2),var(--brand)); border-radius: 6px; padding: 3px 7px; }
+    .parent-card .code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted2); }
+    .parent-card .nm { font-size: 13.5px; font-weight: 700; }
+    .parent-card .prod { font-size: 11px; color: var(--muted); }
+    .parent-card .flag { margin-left: auto; font-size: 10.5px; padding: 2px 8px; border-radius: 999px; }
+    .flag-doing { background: rgba(0,82,217,.1); color: var(--brand); }
+    .flag-new { background: rgba(122,61,255,.1); color: var(--violet); }
+
+    .hint { font-size: 11.5px; color: var(--ink2); background: rgba(0,82,217,.04); border: 1px solid rgba(0,82,217,.15); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
+    .hint b { color: var(--ink); }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .toolbar .cnt { font-size: 11.5px; color: var(--muted); }
+    .btn { border: 1px solid var(--line); background: #fff; color: var(--ink2); font: inherit; font-size: 12px; height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .btn:hover { background: #f8fafc; }
+    .btn.primary { border-color: transparent; background: linear-gradient(90deg,var(--violet),var(--brand)); color: #fff; font-weight: 700; }
+    .btn.primary:disabled { opacity: .4; cursor: not-allowed; }
+    .btn.ghost-danger { border-color: rgba(239,68,68,.3); color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th { font-size: 11px; color: var(--muted); text-align: left; background: #f7faff; border-bottom: 1px solid var(--line); padding: 8px 9px; white-space: nowrap; }
+    tbody td { font-size: 12px; padding: 8px 9px; border-bottom: 1px solid var(--line-soft); color: var(--ink2); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr.split-row { background: rgba(122,61,255,.04); }
+    .mono { font-family: ui-monospace, Menlo, monospace; color: var(--muted2); }
+    .st { font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+    .st-un { background: #f1f5f9; color: var(--muted); }
+    .st-done { background: rgba(22,163,74,.12); color: var(--ok); }
+    .rowbtn { font-size: 11px; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--brand); }
+    .rowbtn:hover { background: #f0f6ff; }
+    .rowbtn.undo { color: var(--red); }
+    .rowbtn.del { color: var(--muted); }
+    .rowbtn.del:hover { color: var(--red); background: #fef2f2; }
+
+    /* 手动录入表单 */
+    .addlabel { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .addlabel b { color: var(--ink2); }
+    .addform { display: grid; grid-template-columns: 0.7fr 1fr 0.9fr 1fr 1fr auto; gap: 6px; margin-bottom: 12px; padding: 10px; border: 1px dashed var(--line); border-radius: 10px; background: #fbfdff; }
+    .addform input { height: 30px; border: 1px solid var(--line); border-radius: 7px; padding: 0 8px; font: inherit; font-size: 12px; outline: none; background: #fff; }
+    .addform input:focus { border-color: var(--brand); }
+    /* 行内可编辑单元格 */
+    .cellinput { width: 100%; height: 26px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; font: inherit; font-size: 12px; outline: none; background: #fff; }
+    .cellinput:focus { border-color: var(--brand); }
+    .cellinput:disabled { background: #f8fafc; color: var(--muted2); }
+    .mk-auto { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--violet); }
+    .mk-empty { font-size: 11px; color: var(--muted2); }
+    .rowbtn:disabled { opacity: .4; cursor: not-allowed; }
+    /* 拆分起点选择（执行中） */
+    .attachbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px 10px; border: 1px solid rgba(122,61,255,.25); background: rgba(122,61,255,.04); border-radius: 8px; font-size: 12px; color: var(--ink2); }
+    .attachbar > span:first-child { font-weight: 700; color: var(--violet); }
+    .attachbar select { height: 28px; border: 1px solid var(--line); border-radius: 7px; padding: 0 8px; font: inherit; font-size: 12px; background: #fff; outline: none; }
+    .attach-note { color: var(--muted); font-size: 11px; }
+    .origin-tag { font-size: 10px; color: var(--violet); background: rgba(122,61,255,.1); border-radius: 999px; padding: 1px 7px; margin-left: 6px; }
+
+    .children { margin-top: 12px; }
+    .children h3 { font-size: 12px; font-weight: 800; color: var(--ink2); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .child { border: 1px solid rgba(122,61,255,.25); background: rgba(122,61,255,.03); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .child .code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--violet); font-weight: 700; }
+    .child .nm { font-size: 12px; color: var(--ink2); flex: 1; min-width: 0; }
+    .empty-child { font-size: 12px; color: var(--muted2); padding: 8px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+
+    /* mind map */
+    .map { position: relative; height: 560px; overflow: hidden; background:
+      linear-gradient(0deg, #fcfdff, #fff);
+      border-radius: 8px; }
+    .map svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .node { position: absolute; border-radius: 10px; padding: 8px 10px; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 16px -12px rgba(15,23,42,.3); width: 168px; }
+    .node .nt { font-size: 11.5px; font-weight: 700; color: var(--ink); }
+    .node .ns { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .node.parent { border-color: rgba(0,82,217,.4); background: linear-gradient(180deg,#fff,#f5f9ff); }
+    .node.parent .nt { color: var(--brand); }
+    .node.child { border-color: rgba(122,61,255,.4); background: linear-gradient(180deg,#fff,#faf8ff); }
+    .node.child .nt { color: var(--violet); }
+    .node.task { border-style: dashed; opacity: .95; width: 150px; }
+    .node .tag { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 999px; margin-top: 4px; }
+    .tag-ic { background: rgba(122,61,255,.12); color: var(--violet); }
+    .tag-task { background: #f1f5f9; color: var(--muted); }
+    .map-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted2); font-size: 12px; }
+
+    .legend { display: flex; gap: 14px; font-size: 11px; color: var(--muted); padding: 8px 14px; border-top: 1px solid var(--line-soft); }
+    .legend .li { display: flex; align-items: center; gap: 5px; }
+    .sw { width: 10px; height: 10px; border-radius: 3px; }
+    .foot { font-size: 11.5px; color: var(--ink2); border: 1px solid rgba(255,149,0,.28); background: rgba(255,149,0,.07); border-radius: 10px; padding: 10px 12px; }
+    .foot b { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="htxt">
+        <h1>DIMM 拆分为 IC / 颗粒 · 交互原型</h1>
+        <p>非必拆：只有需要时才拆。<b>已取消「建案时/执行中」 Tab</b>：拆分时机由所在页面决定，拆分<b>起点</b>由选择器决定（父节点 / 子任务节点）。颗粒清单<b>由工程师手动录入（系统不预置）</b>，父→子 Case 关系实时映射到右侧<b>思维导图</b>。</p>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- 左：颗粒列表 + 拆分 -->
+      <section class="panel">
+        <div class="phead"><span class="n">✿</span><h2>DIMM 颗粒信息列表</h2><span class="sub" id="scopeHint">建案阶段 · 可选择颗粒拆分</span></div>
+        <div class="pbody">
+          <div class="parent-card">
+            <span class="badge">父 Case</span>
+            <div>
+              <div><span class="code">EA-2026-0428</span> <span class="nm">DMJFC · DIMM 高温 Icc 漏电批量失效</span></div>
+              <div class="prod">产品：DMJFC（DIMM 模组） · 物料：DIMM · 封装：FBGA</div>
+            </div>
+            <span class="flag" id="parentFlag">新建立案</span>
+          </div>
+
+          <div class="hint" id="modeHint"></div>
+
+          <div class="addlabel">➕ <b>手动录入颗粒</b>（照搬 IC 颗粒信息表：Barcode / Chip ID / Fail Mode / Fail Condition；<b>Mark Code 由系统自动生成</b>，填完一行即成立）</div>
+
+          <div class="toolbar">
+            <button class="btn primary" id="addRow">+ 添加一行</button>
+            <button class="btn" id="selAll">全选</button>
+            <button class="btn" id="selNone">清空选择</button>
+            <span class="cnt" id="selCnt">已选 0 颗</span>
+            <button class="btn primary" id="splitBtn" disabled style="margin-left:auto">拆分选中颗粒为子 Case</button>
+          </div>
+
+          <div class="attachbar" id="attachWrap" style="display:none">
+            <span>拆分起点</span>
+            <select id="attachSel">
+              <option value="parent">父 Case（模组级根节点）</option>
+              <option value="t1">子任务：FSA 失效分析</option>
+              <option value="t2">子任务：测试程式复核</option>
+            </select>
+            <span class="attach-note">执行中拆分可从思维导图的<b>父节点</b>或某个<b>子任务节点</b>派生子 Case</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34px"></th>
+                <th>Mark Code（自动）</th>
+                <th>Barcode</th>
+                <th>Chip ID</th>
+                <th>Fail Mode</th>
+                <th>Fail Condition</th>
+                <th>拆分 / 操作</th>
+              </tr>
+            </thead>
+            <tbody id="granuleBody"></tbody>
+          </table>
+
+          <div class="children">
+            <h3>已拆分子 Case（IC / 颗粒级）<span id="childCnt" style="color:var(--muted2);font-weight:400"></span></h3>
+            <div id="childList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右：思维导图 -->
+      <section class="panel">
+        <div class="phead"><span class="n">🧠</span><h2>思维导图（父 → 子 Case 联动）</h2><span class="sub" id="mapHint">拆分后自动生成子 Case 分支</span></div>
+        <div class="pbody" style="padding:0">
+          <div class="map" id="map">
+            <svg id="links"></svg>
+            <div class="map-empty" id="mapEmpty">尚未拆分：思维导图仅有父 Case 与分析思路</div>
+          </div>
+          <div class="legend">
+            <span class="li"><span class="sw" style="background:linear-gradient(135deg,#00a4ff,#0052d9)"></span>父 Case</span>
+            <span class="li"><span class="sw" style="background:linear-gradient(135deg,#7a3dff,#b79bff)"></span>子 Case（IC/颗粒）</span>
+            <span class="li"><span class="sw" style="background:#cbd5e1"></span>分析思路 / 任务</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="foot" id="footNote"></div>
+  </div>
+
+  <script>
+    // 颗粒由工程师手动录入（系统不预置）
+    let granules = [];
+    let granuleSeq = 0;
+
+    let hasAnalysis = true; // 固定为执行中上下文（含分析节点）
+    const selected = new Set();
+    const splitMap = {}; // granuleId -> childCase {code,name,attach}
+    let childSeq = 0;
+
+    // 执行中思维导图已有的子任务节点（分析思路）
+    const TASKS = [
+      { id: "t1", nt: "FSA 失效分析", ns: "定位漏电根因（分析思路）" },
+      { id: "t2", nt: "测试程式复核", ns: "确认 FT 高温判据（分析思路）" },
+    ];
+    const TASK_LABEL = { parent: "父 Case", t1: "FSA 失效分析", t2: "测试程式复核" };
+    let attachTarget = "parent"; // 执行中拆分的起点节点
+
+    const $ = (id) => document.getElementById(id);
+
+    function contextTexts() {
+      if (!hasAnalysis) {
+        $("parentFlag").className = "flag flag-new";
+        $("parentFlag").textContent = "新建立案";
+        $("scopeHint").textContent = "新建 Case 页 · 可选择颗粒拆分";
+        $("modeHint").innerHTML = "<b>统一拆分（已取消 Tab）：</b>当前处于<b>新建 Case 页</b>，思维导图仅有父节点，拆分起点只有「父 Case」——无需选择，子 Case 直接挂父节点。";
+        $("mapHint").textContent = "拆分后从父 Case 生成子 Case 分支";
+        $("attachWrap").style.display = "none";
+        attachTarget = "parent";
+      } else {
+        $("parentFlag").className = "flag flag-doing";
+        $("parentFlag").textContent = "执行中 · 进行中";
+        $("scopeHint").textContent = "Case 执行中 · 分析节点已存在";
+        $("modeHint").innerHTML = "<b>统一拆分（已取消 Tab）：</b>当前 Case <b>已进入分析</b>，思维导图已有子任务节点。拆分起点可选<b>父 Case</b>或某个<b>子任务节点</b>，子 Case 从所选节点派生。";
+        $("mapHint").textContent = "子 Case 从所选起点（父 / 子任务）连线";
+        $("attachWrap").style.display = "flex";
+        attachTarget = $("attachSel").value;
+      }
+      renderFoot();
+    }
+
+    function renderFoot() {
+      const n = Object.keys(splitMap).length;
+      $("footNote").innerHTML = !hasAnalysis
+        ? `颗粒清单由工程师<b>手动录入</b>（系统不预置）。已取消「建案时/执行中」Tab：时机由所在页面决定。当前<b>新建 Case 页</b>，拆分起点只有父 Case（无需选择）。已规划拆出 <b>${n}</b> 个子 Case，随父 Case 提交一并创建（parentCaseId / childCaseIds）。`
+        : `颗粒清单由工程师<b>手动录入</b>（系统不预置）。已取消 Tab：起点由「拆分起点」选择器决定。当前 Case <b>执行中</b>，可从父节点或子任务节点派生，本次拆出 <b>${n}</b> 个子 Case，思维导图从对应节点连线。`;
+    }
+
+    function markCodeOf(g) {
+      const filled = [g.barcode, g.chipid, g.failMode, g.failCondition].every((v) => (v || "").trim() !== "");
+      if (!filled) return null;
+      return `MC-${g.barcode.trim().slice(-4).toUpperCase()}-${g.chipid.trim().slice(-4).toUpperCase()}-${g.failMode.trim().slice(0,3).toUpperCase()}-${g.failCondition.trim().slice(0,3).toUpperCase()}`;
+    }
+
+    function renderGranules() {
+      if (granules.length === 0) {
+        $("granuleBody").innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:18px">暂无颗粒。点「+ 添加一行」按 IC 颗粒信息表逐条录入（Barcode / Chip ID / Fail Mode / Fail Condition）。</td></tr>`;
+        return;
+      }
+      $("granuleBody").innerHTML = granules.map((g) => {
+        const isSplit = !!splitMap[g.id];
+        const mc = markCodeOf(g);
+        const checked = selected.has(g.id);
+        const inp = (f, ph) => `<input class="cellinput" data-f="${f}" data-id="${g.id}" value="${g[f] ?? ""}" placeholder="${ph}" ${isSplit ? "disabled" : ""}>`;
+        return `<tr class="${isSplit ? "split-row" : ""}">
+          <td>${isSplit ? "" : `<input type="checkbox" data-g="${g.id}" ${checked ? "checked" : ""} ${mc ? "" : "disabled"} class="accent">`}</td>
+          <td class="mkcell">${mc ? `<span class="mk-auto">${mc}</span>` : `<span class="mk-empty">补全后生成</span>`}</td>
+          <td>${inp("barcode","Barcode")}</td>
+          <td>${inp("chipid","Chip ID")}</td>
+          <td>${inp("failMode","Fail Mode")}</td>
+          <td>${inp("failCondition","Fail Condition")}</td>
+          <td>${isSplit
+            ? `<span class="st st-done">已拆 → ${splitMap[g.id].code}</span> <button class="rowbtn undo" data-undo="${g.id}">撤销</button>`
+            : `<button class="rowbtn" data-one="${g.id}" ${mc ? "" : "disabled"}>拆分</button> <button class="rowbtn del" data-del="${g.id}">删除</button>`}</td>
+        </tr>`;
+      }).join("");
+
+      $("granuleBody").querySelectorAll("input.cellinput").forEach((ip) => {
+        ip.oninput = () => {
+          const g = granules.find((x) => x.id === ip.dataset.id);
+          if (!g) return;
+          g[ip.dataset.f] = ip.value;
+          const tr = ip.closest("tr");
+          const mc = markCodeOf(g);
+          tr.querySelector(".mkcell").innerHTML = mc ? `<span class="mk-auto">${mc}</span>` : `<span class="mk-empty">补全后生成</span>`;
+          const cb = tr.querySelector('input[type="checkbox"]');
+          if (cb) { cb.disabled = !mc; if (!mc && selected.has(g.id)) { selected.delete(g.id); cb.checked = false; } }
+          const sb = tr.querySelector("[data-one]"); if (sb) sb.disabled = !mc;
+          syncToolbar();
+        };
+      });
+      $("granuleBody").querySelectorAll("input[data-g]").forEach((cb) => {
+        cb.onchange = () => { const id = cb.dataset.g; cb.checked ? selected.add(id) : selected.delete(id); syncToolbar(); };
+      });
+      $("granuleBody").querySelectorAll("[data-one]").forEach((b) => b.onclick = () => { if (!b.disabled) splitOne(b.dataset.one); });
+      $("granuleBody").querySelectorAll("[data-undo]").forEach((b) => b.onclick = () => { undoSplit(b.dataset.undo); });
+      $("granuleBody").querySelectorAll("[data-del]").forEach((b) => b.onclick = () => { deleteGranule(b.dataset.del); });
+    }
+
+    function addRow() {
+      granuleSeq += 1;
+      granules.push({ id: `g${granuleSeq}`, barcode: "", chipid: "", failMode: "", failCondition: "" });
+      renderAll();
+      const rows = $("granuleBody").querySelectorAll("tr");
+      const last = rows[rows.length - 1];
+      const first = last && last.querySelector("input.cellinput");
+      if (first) first.focus();
+    }
+
+    function deleteGranule(gid) {
+      granules = granules.filter((g) => g.id !== gid);
+      selected.delete(gid);
+      delete splitMap[gid];
+      renderAll();
+    }
+
+    function syncToolbar() {
+      $("selCnt").textContent = `已选 ${selected.size} 颗`;
+      $("splitBtn").disabled = selected.size === 0;
+    }
+
+    function makeChild(g) {
+      childSeq += 1;
+      const code = `EA-2026-0428-C${String(childSeq).padStart(2, "0")}`;
+      const mc = markCodeOf(g) || "IC";
+      return { code, name: `${mc} · ${g.failMode || "颗粒"}`, granuleId: g.id, mark: (g.barcode || mc), attach: attachTarget };
+    }
+
+    function splitOne(gid) {
+      if (splitMap[gid]) return;
+      const g = granules.find((x) => x.id === gid);
+      if (!g || !markCodeOf(g)) return;
+      splitMap[gid] = makeChild(g);
+      selected.delete(gid);
+      renderAll();
+    }
+    function splitSelected() {
+      [...selected].forEach((gid) => { if (!splitMap[gid]) { const g = granules.find((x) => x.id === gid); splitMap[gid] = makeChild(g); } });
+      selected.clear();
+      renderAll();
+    }
+    function undoSplit(gid) { delete splitMap[gid]; renderAll(); }
+
+    function renderChildren() {
+      const entries = Object.entries(splitMap);
+      $("childCnt").textContent = entries.length ? ` · 共 ${entries.length} 个` : "";
+      if (!entries.length) { $("childList").innerHTML = `<div class="empty-child">尚未拆分。勾选颗粒后点「拆分」即可生成 IC / 颗粒级子 Case。</div>`; return; }
+      $("childList").innerHTML = entries.map(([gid, c]) => `
+        <div class="child">
+          <span class="code">${c.code}</span>
+          <span class="nm">${c.name}${(c.attach && c.attach !== "parent") ? `<span class="origin-tag">起点：${TASK_LABEL[c.attach] ?? c.attach}</span>` : ""}</span>
+          <button class="rowbtn undo" data-undo2="${gid}">移除</button>
+        </div>`).join("");
+      $("childList").querySelectorAll("[data-undo2]").forEach((b) => b.onclick = () => undoSplit(b.dataset.undo2));
+    }
+
+    function curve(x1, y1, x2, y2, color) {
+      const mx = (x1 + x2) / 2;
+      return `<path d="M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}" stroke="${color}" stroke-width="1.6" fill="none" opacity="0.85"/>`;
+    }
+    function addNode(map, x, y, html, width, cls) {
+      const el = document.createElement("div");
+      el.className = "node " + cls;
+      el.style.left = x + "px"; el.style.top = y + "px"; el.style.width = width + "px";
+      el.innerHTML = html;
+      map.appendChild(el);
+    }
+
+    function renderMap() {
+      const map = $("map");
+      const svg = $("links");
+      map.querySelectorAll(".node").forEach((n) => n.remove());
+      const children = Object.entries(splitMap).map(([gid, c]) => ({ ...c, gid }));
+      const hasTasks = hasAnalysis;
+      $("mapEmpty").style.display = (children.length === 0 && !hasTasks) ? "grid" : "none";
+
+      const W = map.clientWidth, H = map.clientHeight;
+      const HALF = 24; // node half-height for connector anchor
+      const parentX = 28, parentW = 168;
+      const taskX = Math.round(W * 0.40), taskW = 150;
+      const childX = W - 196, childW = 168;
+      const pos = {}; // id -> anchors
+
+      // 父节点
+      const parentY = H / 2 - HALF;
+      addNode(map, parentX, parentY, `<div class="nt">EA-2026-0428</div><div class="ns">DMJFC · DIMM 模组（父 Case）</div>`, parentW, "parent");
+      pos["parent"] = { rx: parentX + parentW, ry: parentY + HALF, lx: parentX, ly: parentY + HALF };
+
+      // 子任务节点（仅执行中）
+      const tasks = hasTasks ? TASKS : [];
+      if (tasks.length) {
+        const gap = Math.min(120, (H - 40) / tasks.length);
+        const startY = (H - gap * (tasks.length - 1)) / 2 - HALF;
+        tasks.forEach((t, i) => {
+          const y = startY + i * gap;
+          addNode(map, taskX, y, `<div class="nt" style="color:var(--muted)">${t.nt}</div><div class="ns">${t.ns}</div><span class="tag tag-task">分析思路</span>`, taskW, "task");
+          pos[t.id] = { rx: taskX + taskW, ry: y + HALF, lx: taskX, ly: y + HALF };
+        });
+      }
+
+      let lines = "";
+      // 父 → 子任务
+      tasks.forEach((t) => { lines += curve(pos["parent"].rx, pos["parent"].ry, pos[t.id].lx, pos[t.id].ly, "#cbd5e1"); });
+
+      // 子 Case（右列），从各自起点（父或子任务）连线
+      if (children.length) {
+        const gap = Math.min(74, (H - 40) / children.length);
+        const startY = (H - gap * (children.length - 1)) / 2 - HALF;
+        children.forEach((c, i) => {
+          const y = startY + i * gap;
+          addNode(map, childX, y, `<div class="nt">${c.code}</div><div class="ns">${c.name}</div><span class="tag tag-ic">IC ${c.mark}</span>`, childW, "child");
+          const src = pos[c.attach] || pos["parent"];
+          lines += curve(src.rx, src.ry, childX, y + HALF, "#7a3dff");
+        });
+      }
+      svg.innerHTML = lines;
+    }
+
+    function renderAll() {
+      renderGranules();
+      renderChildren();
+      renderMap();
+      syncToolbar();
+      renderFoot();
+    }
+
+    // events
+    $("selAll").onclick = () => { granules.forEach((g) => { if (!splitMap[g.id] && markCodeOf(g)) selected.add(g.id); }); renderAll(); };
+    $("selNone").onclick = () => { selected.clear(); renderAll(); };
+    $("splitBtn").onclick = () => splitSelected();
+    $("addRow").onclick = () => addRow();
+    $("attachSel").onchange = () => { attachTarget = $("attachSel").value; };
+
+    contextTexts();
+    renderAll();
+    window.addEventListener("resize", renderMap);
+  </script>
+</body>
+</html>

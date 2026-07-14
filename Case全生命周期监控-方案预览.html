@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Case 全生命周期监控 · 融合方案预览（V1.0.3）</title>
+<style>
+  :root{
+    --blue:#0052D9; --blue2:#00A4FF; --blueDk:#003FA8; --purple:#7A3DFF;
+    --ink:#0f172a; --ink2:#334155; --slate700:#334155; --mut:#64748b; --mut2:#94a3b8;
+    --line:#e2e8f0; --line2:#eef2f7; --bg:#f5f7fb; --card:#ffffff;
+    --doing:#2563eb; --done:#16a34a; --wait:#94a3b8; --accept:#d97706;
+    --u-vh:#FF3B30; --u-h:#FF9500; --u-n:#38BDF8; --u-l:#94A3B8;
+    --sh:0 1px 2px rgba(15,23,42,.05); --sh2:0 10px 30px -16px rgba(15,23,42,.28);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+  svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.12em}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  .app{display:flex;height:100vh}
+  .sidebar{width:236px;flex:none;height:100%;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .brand{height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line2)}
+  .brand .e{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+  .brand .tt .n{font-size:14px;color:var(--ink);letter-spacing:.3px} .brand .tt .s{font-size:11px;color:var(--mut2)}
+  .nav{flex:1;padding:12px 8px;overflow-y:auto}
+  .nav .grp{font-size:11px;text-transform:uppercase;color:var(--mut2);padding:8px 12px;letter-spacing:.08em}
+  .nav .item{width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:14px;color:var(--ink2);background:none;border:0;cursor:pointer;text-align:left;margin-bottom:2px}
+  .nav .item:hover{background:#f8fafc;color:var(--ink)}
+  .nav .item.on{background:rgba(0,82,217,.08);color:var(--blue);font-weight:600}
+  .nav .item .gw{margin-left:auto;color:var(--mut2);display:inline-flex}
+  .nav .item .tagN{margin-left:auto;font-size:8px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--purple));padding:1px 5px;border-radius:6px}
+  .subs{margin-left:19px;padding-left:12px;border-left:1px solid var(--line);margin-bottom:6px}
+  .subs .sub{width:100%;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;font-size:13px;color:var(--mut);background:none;border:0;cursor:pointer;text-align:left;margin-bottom:2px}
+  .subs .sub:hover{background:#f8fafc;color:var(--ink2)}
+  .sfoot{border-top:1px solid var(--line2);padding:12px}
+  .ucard{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f8fafc}
+  .ucard .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+  .ucard .nm .a{font-size:14px;color:var(--ink)} .ucard .nm .b{font-size:11px;color:var(--mut)}
+  .ver{margin-top:8px;text-align:center;font-size:10px;color:#cbd5e1;letter-spacing:.04em}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{height:56px;flex:none;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 20px;position:relative;z-index:10}
+  .crumb{display:flex;align-items:center;gap:6px;min-width:0;font-size:14px}
+  .crumb a{color:var(--mut2);text-decoration:none} .crumb a:hover{color:var(--blue)}
+  .crumb .sep{color:#cbd5e1;display:inline-flex} .crumb .cur{color:var(--slate700);font-weight:500}
+  .search{flex:1;display:flex;justify-content:center;min-width:0}
+  .search .box{position:relative;width:100%;max-width:420px}
+  .search .box svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut2)}
+  .search input{width:100%;height:36px;padding:0 12px 0 34px;border-radius:9px;background:#f8fafc;border:1px solid var(--line);font:inherit;font-size:14px;color:var(--ink2);outline:none}
+  .search input::placeholder{color:var(--mut2)}
+  .search input:focus{background:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,82,217,.12)}
+  .btn-pri{height:32px;padding:0 12px;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--blueDk));color:#fff;border:0;font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-gho{height:32px;padding:0 12px;border-radius:8px;background:#fff;color:var(--blue);border:1px solid rgba(0,82,217,.3);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .iconbtn{width:32px;height:32px;border-radius:8px;border:0;background:none;color:var(--ink2);cursor:pointer;display:grid;place-items:center;position:relative}
+  .iconbtn:hover{background:#f1f5f9}
+  .iconbtn .dotN{position:absolute;top:-1px;right:-1px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#ef4444;color:#fff;font-size:9px;display:grid;place-items:center}
+
+  .content{flex:1;overflow-y:auto;padding:22px}
+  .page{max-width:1200px;margin:0 auto}
+
+  .callout{display:flex;align-items:flex-start;gap:11px;background:linear-gradient(135deg,rgba(0,82,217,.05),rgba(122,61,255,.05));border:1px solid rgba(0,82,217,.18);border-radius:12px;padding:13px 16px;font-size:13px;color:var(--ink2);margin-bottom:16px;line-height:1.7}
+  .callout .nb{font-size:9px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--purple));padding:3px 8px;border-radius:6px;flex:none;margin-top:1px}
+  .callout b{color:var(--ink)}
+
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .dim{display:flex;gap:3px;background:#eef2f8;border:1px solid var(--line2);border-radius:10px;padding:3px}
+  .dim button{font:inherit;font-size:13px;color:var(--mut);border:0;background:transparent;padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+  .dim button .nd{font-size:8px;font-weight:800;color:#fff;background:var(--purple);padding:0 4px;border-radius:5px}
+  .dim button.on{background:#fff;color:var(--blue);box-shadow:var(--sh)}
+  .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .flt{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer}
+  .flt i{font-style:normal;color:var(--mut2);font-size:11px} .flt svg{color:var(--mut2)}
+  .flt:hover{border-color:var(--blue);color:var(--blue)}
+
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .kpi{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue)}
+  .kpi.warn::before{background:var(--u-h)} .kpi.ok::before{background:var(--done)}
+  .kpi .l{font-size:11.5px;color:var(--mut)} .kpi .v{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-top:2px}
+  .kpi .v small{font-size:13px;font-weight:700;color:var(--mut2);margin-left:2px} .kpi .d{font-size:11px;margin-top:2px;color:var(--mut2)}
+
+  .section{margin:22px 0}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  .sec-head .n{font-size:11px;font-weight:800;color:#fff;background:var(--blue);width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:none}
+  .sec-head h2{font-size:16px;font-weight:800}
+  .sec-head .sub{font-size:12.5px;color:var(--mut)}
+
+  .pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start}
+  .col{background:#f7f9fc;border:1px solid var(--line2);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+  .col .ch{padding:10px 12px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:8px;background:#fff}
+  .col .ch .sdot{width:9px;height:9px;border-radius:50%;flex:none}
+  .col .ch b{font-size:12.5px;font-weight:800}
+  .col .ch .cnt{margin-left:auto;font-size:11px;color:var(--mut);background:#f1f5f9;border-radius:999px;padding:1px 8px;font-weight:700}
+  .col .cards{padding:9px;display:flex;flex-direction:column;gap:9px;min-height:60px}
+  .ccard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px;border-left:3px solid var(--u-n);cursor:pointer;transition:box-shadow .15s,border-color .15s}
+  .ccard:hover{box-shadow:var(--sh2);border-color:rgba(0,82,217,.25)}
+  .ccard.sel{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,82,217,.18)}
+  .ccard.u-vh{border-left-color:var(--u-vh)} .ccard.u-h{border-left-color:var(--u-h)} .ccard.u-n{border-left-color:var(--u-n)} .ccard.u-l{border-left-color:var(--u-l)}
+  .ccard .top{display:flex;align-items:center;gap:6px}
+  .lvl{font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;border:1px solid}
+  .l-1{color:#bf2d24;background:#fdeeec;border-color:#f6c8c2} .l-2{color:#a35a12;background:#fdf3e8;border-color:#f3d8b4}
+  .l-3{color:#256199;background:#e9f2fb;border-color:#c3ddf2} .l-4{color:#0052D9;background:#eef3fe;border-color:#cdddfb}
+  .ccard .code{font-size:9.5px;color:var(--mut2);font-family:ui-monospace,monospace}
+  .ccard .nm{font-size:12px;font-weight:600;color:var(--ink);margin-top:5px;line-height:1.4}
+  .ccard .meta{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:10.5px;color:var(--mut2)}
+  .ccard .meta .ow{display:inline-flex;align-items:center;gap:4px}
+  .ccard .meta .ow .av{width:15px;height:15px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:7.5px}
+  .age{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:#f1f5f9;color:var(--mut)}
+  .age.hot{background:rgba(255,59,48,.1);color:var(--u-vh)}
+
+  .detail{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+  .panel{border:1px solid var(--line);border-radius:13px;background:#fff;overflow:hidden}
+  .panel .ph{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--line2)}
+  .panel .ph h4{font-size:13.5px;font-weight:800} .panel .ph .tagc{margin-left:auto;font-size:11px;color:var(--mut2)}
+  .panel .pb{padding:15px}
+
+  .ltl{display:flex;align-items:flex-start;margin:6px 0 4px}
+  .lstep{flex:1;position:relative;text-align:center;padding-top:26px}
+  .lstep::before{content:"";position:absolute;top:9px;left:50%;right:-50%;height:2px;background:var(--line)}
+  .lstep:last-child::before{display:none}
+  .lstep .dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--line);z-index:2}
+  .lstep.done .dot{background:var(--done);border-color:var(--done)} .lstep.done::before{background:var(--done)}
+  .lstep.cur .dot{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,82,217,.15)}
+  .lstep .nm{font-size:12px;font-weight:700} .lstep.future .nm{color:var(--mut2);font-weight:400}
+  .lstep .dt{font-size:10.5px;color:var(--mut2);margin-top:3px}
+  .lstep .dur{font-size:10px;color:var(--blue);margin-top:2px;font-weight:600}
+
+  .tlist{margin-top:14px;border-top:1px solid var(--line2);padding-top:12px}
+  .tlist .ev{display:flex;gap:10px;padding:7px 0;font-size:12px}
+  .tlist .ev .t{color:var(--mut2);width:50px;flex:none;font-variant-numeric:tabular-nums}
+  .tlist .ev .c{color:var(--ink2)} .tlist .ev .c b{color:var(--ink)}
+
+  .tchips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+  .tchip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}
+  .tchip .d{width:7px;height:7px;border-radius:50%}
+  .tc-done{color:var(--done);background:rgba(22,163,74,.1)}.tc-done .d{background:var(--done)}
+  .tc-doing{color:var(--doing);background:rgba(37,99,235,.1)}.tc-doing .d{background:var(--doing)}
+  .tc-accept{color:var(--accept);background:rgba(217,119,6,.1)}.tc-accept .d{background:var(--accept)}
+  .tc-late{color:var(--u-vh);background:rgba(255,59,48,.1)}.tc-late .d{background:var(--u-vh)}
+  .ttab{width:100%;border-collapse:collapse}
+  .ttab td{font-size:12px;padding:9px 4px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  .ttab tr:last-child td{border-bottom:0}
+  .ttab .nmm{color:var(--ink2)}
+  .ttab .ow{display:inline-flex;align-items:center;gap:5px;color:var(--mut);font-size:11px}
+  .ttab .ow .av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:8px}
+  .sbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .sbadge .sd{width:6px;height:6px;border-radius:50%}
+  .s-doing{color:var(--doing);background:rgba(37,99,235,.1)}.s-doing .sd{background:var(--doing)}
+  .s-done{color:var(--done);background:rgba(22,163,74,.1)}.s-done .sd{background:var(--done)}
+  .s-accept{color:var(--accept);background:rgba(217,119,6,.1)}.s-accept .sd{background:var(--accept)}
+  .due{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums} .due.late{color:var(--u-vh);font-weight:700}
+  .empty{padding:22px;text-align:center;color:var(--mut2);font-size:12.5px;background:#f7f9fc;border-radius:10px;line-height:1.7}
+  .empty b{color:var(--ink2)}
+
+  .prodnote{border:1px dashed rgba(0,82,217,.32);border-radius:14px;background:rgba(0,82,217,.03);padding:38px 30px;text-align:center;color:var(--mut)}
+  .prodnote .pic{width:54px;height:54px;border-radius:14px;background:rgba(0,82,217,.08);color:var(--blue);display:grid;place-items:center;margin:0 auto 14px;font-size:24px}
+  .prodnote h3{font-size:16px;color:var(--ink);font-weight:800}
+  .prodnote p{font-size:13px;margin-top:8px;max-width:60ch;margin-left:auto;margin-right:auto;line-height:1.7}
+  .prodnote .gobtn{margin-top:16px;height:34px;padding:0 16px;border-radius:9px;background:#fff;border:1px solid rgba(0,82,217,.3);color:var(--blue);font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+
+  .hidden{display:none}
+  .foot{padding:24px 0 36px;text-align:center;color:var(--mut2);font-size:11.5px} .foot b{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand"><div class="e">E</div><div class="tt"><div class="n">EA Platform</div><div class="s">Engineering Portal</div></div></div>
+    <nav class="nav">
+      <div class="grp">工作台</div>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>我的</span><span class="gw"><svg class="i" style="transform:rotate(90deg)" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span></button>
+      <div class="subs">
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6"/></svg>我的任务</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>我的 Case</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>最近浏览</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M2 6h3M2 12h3M2 18h3"/><rect x="6" y="2" width="16" height="20" rx="2"/><path d="M11 7h6M11 11h6M11 15h3"/></svg>智能汇总</button>
+      </div>
+      <button class="item on"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg><span>Case 中心</span></button>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>团队看板</span></button>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>项目监控</span><span class="tagN">NEW</span></button>
+    </nav>
+    <div class="sfoot">
+      <div class="ucard"><div class="av">伟</div><div class="nm"><div class="a">张伟</div><div class="b">PTE · 测试工程部</div></div></div>
+      <div class="ver">EA Platform · V1.0.3</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb"><a href="#">Case 中心</a><span class="sep"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span><span class="cur">全生命周期监控</span></div>
+      <div class="search"><div class="box"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg><input placeholder="搜索 Case / 任务 / 责任人" /></div></div>
+      <button class="btn-pri"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg> 新建 Case</button>
+      <button class="btn-gho"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> 系统建议</button>
+      <button class="iconbtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="dotN">3</span></button>
+    </header>
+
+    <div class="content">
+      <div class="page">
+
+        <div class="callout"><span class="nb">融合</span><div>现有「<b>产品分类</b>」按<b>产品维度</b>看 0→1 开发时间轴（概念→量产）。本视图在同一入口新增「<b>Case · 任务维度</b>」——按每个 Case <b>自身的全生命周期</b>（立项 → 分析 → 执行 → 结案审批 → 已结案/归档）监控，并下钻到任务流转。<b>复用同一批 Case 数据</b>，只换一个维度切片。</div></div>
+
+        <div class="toolbar">
+          <div class="dim">
+            <button data-dim="prod"><svg class="i" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>产品维度</button>
+            <button class="on" data-dim="case"><svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-4 3 3 5-6"/></svg>Case · 任务维度 <span class="nd">NEW</span></button>
+          </div>
+          <div class="filters">
+            <span class="flt"><i>产品族</i> 全部 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="flt"><i>层级</i> 全部 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="flt"><i>部门</i> 全部 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+            <span class="flt"><i>时间</i> 近 90 天 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+        </div>
+
+        <!-- 产品维度（指向现有视图的说明） -->
+        <div id="prodDim" class="hidden">
+          <div class="prodnote">
+            <div class="pic"><svg class="i" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>
+            <h3>产品维度 = 现有「产品分类」视图</h3>
+            <p>这是 EA 系统已有的能力（CategoryTimeline）：按 <b>产品族 → 产品</b> 级联，看产品 <b>0→1 开发生命周期</b>（概念/立项 → 设计开发 → 验证/试产 → 量产爬坡 → 量产/维护），Case 是时间轴上的标记点。本融合方案不改它，只在旁边新增「Case·任务维度」。</p>
+            <button class="gobtn" data-dim="case"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg> 切回 Case · 任务维度</button>
+          </div>
+        </div>
+
+        <!-- Case·任务维度 -->
+        <div id="caseDim">
+          <div class="kpis">
+            <div class="kpi"><div class="l">在办 Case</div><div class="v">9</div><div class="d">分布于 5 个阶段</div></div>
+            <div class="kpi warn"><div class="l">待结案审批</div><div class="v">2</div><div class="d">等待 PEL/总监</div></div>
+            <div class="kpi"><div class="l">平均结案周期</div><div class="v">18<small>天</small></div><div class="d">环比 −2 天</div></div>
+            <div class="kpi warn"><div class="l">逾期任务</div><div class="v">4</div><div class="d">集中在执行阶段</div></div>
+            <div class="kpi ok"><div class="l">本月结案</div><div class="v">3</div><div class="d">达成结论</div></div>
+          </div>
+
+          <section class="section">
+            <div class="sec-head"><span class="n">01</span><h2>Case 生命周期管线</h2><span class="sub">点任意卡片下钻 · 卡片右上为该阶段停留天数（标红=超阈值）</span></div>
+            <div class="pipe">
+              <div class="col">
+                <div class="ch"><span class="sdot" style="background:#94a3b8"></span><b>立项</b><span class="cnt">2</span></div>
+                <div class="cards">
+                  <div class="ccard u-n" data-c="c014"><div class="top"><span class="lvl l-3">L3</span><span class="code">EA-2606..014</span></div><div class="nm">DDR5 RDIMM 上电时序异常</div><div class="meta"><span class="ow"><span class="av">钱</span>钱工</span><span class="age">2 天</span></div></div>
+                  <div class="ccard u-l" data-c="c013"><div class="top"><span class="lvl l-4">L4</span><span class="code">EA-2606..013</span></div><div class="nm">Flash-N 擦写寿命衰减分析</div><div class="meta"><span class="ow"><span class="av">吴</span>吴工</span><span class="age">1 天</span></div></div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="ch"><span class="sdot" style="background:#00A4FF"></span><b>分析</b><span class="cnt">3</span></div>
+                <div class="cards">
+                  <div class="ccard u-vh" data-c="c005"><div class="top"><span class="lvl l-2">L2</span><span class="code">EA-2605..005</span></div><div class="nm">LPDDR5-7500 speedbin 良率跌落</div><div class="meta"><span class="ow"><span class="av">王</span>王工</span><span class="age hot">11 天</span></div></div>
+                  <div class="ccard u-h" data-c="c009"><div class="top"><span class="lvl l-3">L3</span><span class="code">EA-2606..009</span></div><div class="nm">DDR5-X-6400 边缘 die 良率损失</div><div class="meta"><span class="ow"><span class="av">陈</span>陈工</span><span class="age">6 天</span></div></div>
+                  <div class="ccard u-n" data-c="c011"><div class="top"><span class="lvl l-4">L4</span><span class="code">EA-2606..011</span></div><div class="nm">通用 SLT 高温失效率上升</div><div class="meta"><span class="ow"><span class="av">赵</span>赵工</span><span class="age">4 天</span></div></div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="ch"><span class="sdot" style="background:#0052D9"></span><b>执行</b><span class="cnt">3</span></div>
+                <div class="cards">
+                  <div class="ccard u-vh" data-c="c001"><div class="top"><span class="lvl l-2">L2</span><span class="code">EA-2605..001</span></div><div class="nm">DDR5-X-6400 ICC2 分布异常偏高</div><div class="meta"><span class="ow"><span class="av">张</span>张伟</span><span class="age hot">14 天</span></div></div>
+                  <div class="ccard u-h" data-c="c008"><div class="top"><span class="lvl l-3">L3</span><span class="code">EA-2606..008</span></div><div class="nm">LPDDR5 客诉 tDQSS 漂移</div><div class="meta"><span class="ow"><span class="av">李</span>李工</span><span class="age">8 天</span></div></div>
+                  <div class="ccard u-n" data-c="c010"><div class="top"><span class="lvl l-3">L3</span><span class="code">EA-2606..010</span></div><div class="nm">Flash-N 读取重试率上升</div><div class="meta"><span class="ow"><span class="av">孙</span>孙工</span><span class="age">5 天</span></div></div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="ch"><span class="sdot" style="background:#d97706"></span><b>结案审批</b><span class="cnt">2</span></div>
+                <div class="cards">
+                  <div class="ccard u-n" data-c="c002"><div class="top"><span class="lvl l-4">L4</span><span class="code">EA-2605..002</span></div><div class="nm">DDR5-X-6400 Pattern 优化验证</div><div class="meta"><span class="ow"><span class="av">周</span>周工</span><span class="age">3 天</span></div></div>
+                  <div class="ccard u-n" data-c="c012"><div class="top"><span class="lvl l-4">L4</span><span class="code">EA-2606..012</span></div><div class="nm">DDR4-3200 FT retest bin 复核</div><div class="meta"><span class="ow"><span class="av">郑</span>郑工</span><span class="age">1 天</span></div></div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="ch"><span class="sdot" style="background:#16a34a"></span><b>已结案 / 归档</b><span class="cnt">2</span></div>
+                <div class="cards">
+                  <div class="ccard u-l" data-c="c006"><div class="top"><span class="lvl l-3">L3</span><span class="code">EA-2605..006</span></div><div class="nm">eMMC 封装翘曲分析</div><div class="meta"><span class="ow"><span class="av">冯</span>冯工</span><span class="age">结案 6-18</span></div></div>
+                  <div class="ccard u-l" data-c="c007"><div class="top"><span class="lvl l-4">L4</span><span class="code">EA-2605..007</span></div><div class="nm">WLCSP bump 失效</div><div class="meta"><span class="ow"><span class="av">褚</span>褚工</span><span class="age">结案 6-12</span></div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="sec-head"><span class="n">02</span><h2>下钻：单 Case 全生命周期 + 任务流转</h2><span class="sub" id="detSub">—</span></div>
+            <div class="detail">
+              <div class="panel">
+                <div class="ph"><h4>Case 生命周期时间轴</h4><span class="tagc" id="lcSince">—</span></div>
+                <div class="pb"><div class="ltl" id="lcStepper"></div><div class="tlist" id="lcEvents"></div></div>
+              </div>
+              <div class="panel">
+                <div class="ph"><h4>任务维度监控</h4><span class="tagc" id="tkCount">—</span></div>
+                <div class="pb"><div id="tkBody"></div></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="foot">Case 全生命周期监控 · 融合方案预览（数据为示意）　|　<b>仅面向 PC 桌面端</b>　|　与「产品分类」共用同一批 Case，复用层级/紧急度/状态色板与生命周期阶段</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var STAGES = ["立项","分析","执行","结案审批","已结案"];
+  // marks[i]={dt,dur} 表示该阶段已发生/进行中；索引 i 与 stage 对齐，>stage 为 future
+  var CASES = {
+    c014:{nm:"DDR5 RDIMM 上电时序异常",stage:0,since:"立项 2 天",
+      marks:[{dt:"06-28",dur:"进行 2 天"}],
+      events:[["06-28","<b>立项</b> · 钱工 创建 Case，定级 L3，录入背景与影响"]],
+      stageName:"立项",tasks:[],thoughts:0},
+    c013:{nm:"Flash-N 擦写寿命衰减分析",stage:0,since:"立项 1 天",
+      marks:[{dt:"06-29",dur:"进行 1 天"}],
+      events:[["06-29","<b>立项</b> · 吴工 创建 Case，定级 L4"]],
+      stageName:"立项",tasks:[],thoughts:0},
+    c005:{nm:"LPDDR5-7500 speedbin 良率跌落",stage:1,since:"立项至今 14 天",
+      marks:[{dt:"06-16",dur:"3 天"},{dt:"06-19",dur:"进行 11 天"}],
+      events:[["06-16","<b>立项</b> · 王工 创建，定级 L2（高紧急）"],["06-19","<b>进入分析</b> · 思维导图建立 4 条怀疑方向，尚未下发执行任务"]],
+      stageName:"分析",tasks:[],thoughts:4},
+    c009:{nm:"DDR5-X-6400 边缘 die 良率损失",stage:1,since:"立项至今 9 天",
+      marks:[{dt:"06-21",dur:"2 天"},{dt:"06-23",dur:"进行 6 天"}],
+      events:[["06-21","<b>立项</b> · 陈工 创建，定级 L3"],["06-23","<b>进入分析</b> · 建立 3 条怀疑方向（边缘工艺 / 测试条件 / 划片）"]],
+      stageName:"分析",tasks:[],thoughts:3},
+    c011:{nm:"通用 SLT 高温失效率上升",stage:1,since:"立项至今 6 天",
+      marks:[{dt:"06-24",dur:"2 天"},{dt:"06-26",dur:"进行 4 天"}],
+      events:[["06-24","<b>立项</b> · 赵工 创建，定级 L4"],["06-26","<b>进入分析</b> · 建立 2 条怀疑方向"]],
+      stageName:"分析",tasks:[],thoughts:2},
+    c001:{nm:"DDR5-X-6400 ICC2 分布异常偏高",stage:2,since:"立项至今 41 天",
+      marks:[{dt:"05-20",dur:"2 天"},{dt:"05-22",dur:"6 天"},{dt:"05-28 起",dur:"进行 14 天"}],
+      events:[
+        ["05-20","<b>立项</b> · 张伟 创建 Case，定级 L2，录入背景与影响"],
+        ["05-22","<b>进入分析</b> · 思维导图建立 3 条怀疑方向（ICC2 漂移 / Pattern / 工艺）"],
+        ["05-28","<b>进入执行</b> · 4 个执行任务下发至责任人 Workspace"],
+        ["06-12","「ICC2 分布分析与 Pattern 定位」<b>已完成</b>，结论有效"],
+        ["06-20","<span style='color:#FF3B30'>「EFA 切片分析」<b>逾期</b>，FIB 设备排队，风险升高</span>"]
+      ],
+      stageName:"执行",
+      tasks:[
+        {nm:"ICC2 分布分析与 Pattern 定位",ow:"张伟",av:"张",st:"done",due:"05-12"},
+        {nm:"输出 Pattern 调整方案评审稿",ow:"李工",av:"李",st:"doing",due:"06-28"},
+        {nm:"EFA 切片分析与失效机理确认",ow:"孙工",av:"孙",st:"doing",due:"06-20",late:true},
+        {nm:"CP 测试程序 guardband 调整验证",ow:"周工",av:"周",st:"accept",due:"07-05"}
+      ]},
+    c008:{nm:"LPDDR5 客诉 tDQSS 漂移",stage:2,since:"立项至今 22 天",
+      marks:[{dt:"06-08",dur:"2 天"},{dt:"06-10",dur:"4 天"},{dt:"06-14 起",dur:"进行 8 天"}],
+      events:[["06-08","<b>立项</b> · 李工 创建，定级 L3"],["06-14","<b>进入执行</b> · 3 个任务下发"],["06-22","「客诉数据比对」<b>已完成</b>"]],
+      stageName:"执行",
+      tasks:[
+        {nm:"客诉数据比对与复现",ow:"郑工",av:"郑",st:"done",due:"06-18"},
+        {nm:"tDQSS 漂移温区复测",ow:"李工",av:"李",st:"doing",due:"06-25"},
+        {nm:"时序余量与 guardband 分析",ow:"孙工",av:"孙",st:"accept",due:"07-02"}
+      ]},
+    c010:{nm:"Flash-N 读取重试率上升",stage:2,since:"立项至今 13 天",
+      marks:[{dt:"06-17",dur:"2 天"},{dt:"06-19",dur:"3 天"},{dt:"06-22 起",dur:"进行 5 天"}],
+      events:[["06-17","<b>立项</b> · 孙工 创建，定级 L3"],["06-22","<b>进入执行</b> · 3 个任务下发"]],
+      stageName:"执行",
+      tasks:[
+        {nm:"读取重试 datalog 回归",ow:"孙工",av:"孙",st:"doing",due:"06-26",late:true},
+        {nm:"ECC 纠错统计分析",ow:"吴工",av:"吴",st:"doing",due:"06-29"},
+        {nm:"固件读取参数核查",ow:"冯工",av:"冯",st:"done",due:"06-15"}
+      ]},
+    c002:{nm:"DDR5-X-6400 Pattern 优化验证",stage:3,since:"立项至今 36 天",
+      marks:[{dt:"05-25",dur:"2 天"},{dt:"05-27",dur:"4 天"},{dt:"05-31",dur:"8 天"},{dt:"06-27 起",dur:"审批 3 天"}],
+      events:[["05-25","<b>立项</b> · 周工 创建，定级 L4"],["06-08","<b>进入执行</b>"],["06-27","<b>提交结案审批</b> · 待 PEL 审批，结论：Pattern 优化后 ICC2 达标"]],
+      stageName:"结案审批",
+      tasks:[
+        {nm:"Pattern 优化方案验证",ow:"周工",av:"周",st:"done",due:"06-10"},
+        {nm:"回归测试与数据复核",ow:"李工",av:"李",st:"done",due:"06-14"}
+      ]},
+    c012:{nm:"DDR4-3200 FT retest bin 复核",stage:3,since:"立项至今 20 天",
+      marks:[{dt:"06-10",dur:"2 天"},{dt:"06-12",dur:"3 天"},{dt:"06-15",dur:"12 天"},{dt:"06-29 起",dur:"审批 1 天"}],
+      events:[["06-10","<b>立项</b> · 郑工 创建，定级 L4"],["06-29","<b>提交结案审批</b> · 待审批"]],
+      stageName:"结案审批",
+      tasks:[{nm:"FT retest bin 分布复核",ow:"郑工",av:"郑",st:"done",due:"06-20"}]},
+    c006:{nm:"eMMC 封装翘曲分析",stage:4,since:"已结案 · 历时 16 天",
+      marks:[{dt:"06-02",dur:"2 天"},{dt:"06-04",dur:"5 天"},{dt:"06-09",dur:"7 天"},{dt:"06-16",dur:"2 天"},{dt:"06-18",dur:"已归档"}],
+      events:[["06-02","<b>立项</b> · 冯工 创建，定级 L3"],["06-16","<b>提交结案</b>"],["06-18","<b>已结案</b> · PEL 审批通过，结论有效，已归档"]],
+      stageName:"已结案",
+      tasks:[
+        {nm:"翘曲量测与基线对比",ow:"冯工",av:"冯",st:"done",due:"06-08"},
+        {nm:"回流曲线与材料分析",ow:"褚工",av:"褚",st:"done",due:"06-13"}
+      ]},
+    c007:{nm:"WLCSP bump 失效",stage:4,since:"已结案 · 历时 14 天",
+      marks:[{dt:"05-29",dur:"2 天"},{dt:"05-31",dur:"4 天"},{dt:"06-04",dur:"6 天"},{dt:"06-10",dur:"2 天"},{dt:"06-12",dur:"已归档"}],
+      events:[["05-29","<b>立项</b> · 褚工 创建，定级 L4"],["06-12","<b>已结案</b> · 审批通过，已归档"]],
+      stageName:"已结案",
+      tasks:[{nm:"bump 切片与失效定位",ow:"褚工",av:"褚",st:"done",due:"06-08"}]}
+  };
+
+  var ST_LABEL = {done:"已完成",doing:"进行中",accept:"待接受"};
+
+  function renderStepper(c){
+    return STAGES.map(function(nm,i){
+      var state = i < c.stage ? "done" : (i === c.stage ? "cur" : "future");
+      var m = c.marks[i];
+      var dt = m ? m.dt : "—";
+      var dur = m && m.dur ? '<div class="dur">'+m.dur+'</div>' : "";
+      return '<div class="lstep '+state+'"><span class="dot"></span><div class="nm">'+nm+'</div><div class="dt">'+dt+'</div>'+dur+'</div>';
+    }).join("");
+  }
+  function renderEvents(c){
+    return c.events.map(function(e){
+      return '<div class="ev"><span class="t">'+e[0]+'</span><span class="c">'+e[1]+'</span></div>';
+    }).join("");
+  }
+  function renderTasks(c){
+    if(!c.tasks.length){
+      var msg = c.stage===0
+        ? "该 Case 仍在 <b>立项</b> 阶段，尚未进入分析 / 下发执行任务。"
+        : "该 Case 在 <b>分析</b> 阶段，思维导图已建立 <b>"+(c.thoughts||0)+" 条怀疑方向</b>，尚未下发执行任务。";
+      return '<div class="empty">'+msg+'<br>进入「执行」阶段后，此处显示任务维度监控。</div>';
+    }
+    var cnt={done:0,doing:0,accept:0,late:0};
+    c.tasks.forEach(function(t){ cnt[t.st]++; if(t.late) cnt.late++; });
+    var chips='<div class="tchips">';
+    if(cnt.done) chips+='<span class="tchip tc-done"><span class="d"></span>已完成 '+cnt.done+'</span>';
+    if(cnt.doing) chips+='<span class="tchip tc-doing"><span class="d"></span>进行中 '+cnt.doing+'</span>';
+    if(cnt.accept) chips+='<span class="tchip tc-accept"><span class="d"></span>待接受 '+cnt.accept+'</span>';
+    if(cnt.late) chips+='<span class="tchip tc-late"><span class="d"></span>逾期 '+cnt.late+'</span>';
+    chips+='</div>';
+    var rows = c.tasks.map(function(t){
+      return '<tr><td class="nmm">'+t.nm+'</td>'
+        +'<td><span class="ow"><span class="av">'+t.av+'</span>'+t.ow+'</span></td>'
+        +'<td><span class="sbadge s-'+t.st+'"><span class="sd"></span>'+ST_LABEL[t.st]+'</span></td>'
+        +'<td class="due'+(t.late?' late':'')+'">'+t.due+(t.late?' 逾期':'')+'</td></tr>';
+    }).join("");
+    return chips+'<table class="ttab">'+rows+'</table>';
+  }
+  function select(key){
+    var c = CASES[key]; if(!c) return;
+    document.querySelectorAll('.ccard').forEach(function(el){ el.classList.toggle('sel', el.getAttribute('data-c')===key); });
+    document.getElementById('detSub').innerHTML = '已选 · '+c.nm+'（'+c.stageName+'阶段）';
+    document.getElementById('lcSince').textContent = c.since;
+    document.getElementById('lcStepper').innerHTML = renderStepper(c);
+    document.getElementById('lcEvents').innerHTML = renderEvents(c);
+    document.getElementById('tkCount').textContent = c.tasks.length ? ('共 '+c.tasks.length+' 个执行任务') : (c.stageName+'阶段');
+    document.getElementById('tkBody').innerHTML = renderTasks(c);
+  }
+
+  document.querySelectorAll('.ccard').forEach(function(el){
+    el.addEventListener('click', function(){ select(el.getAttribute('data-c')); });
+  });
+
+  // 维度切换
+  function setDim(d){
+    document.querySelectorAll('.dim button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-dim')===d); });
+    document.getElementById('caseDim').classList.toggle('hidden', d!=='case');
+    document.getElementById('prodDim').classList.toggle('hidden', d!=='prod');
+  }
+  document.querySelectorAll('[data-dim]').forEach(function(b){
+    b.addEventListener('click', function(){ setDim(b.getAttribute('data-dim')); });
+  });
+
+  // 默认选中执行阶段的 C-001
+  select('c001');
+</script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>研发平台项目管理 · V1.0.3 项目化融合方案</title>
+<style>
+  :root{
+    --blue:#0052D9; --blue2:#00A4FF; --blueDk:#003FA8; --purple:#7A3DFF;
+    --ink:#0f172a; --ink2:#334155; --slate700:#334155; --mut:#64748b; --mut2:#94a3b8;
+    --line:#e2e8f0; --line2:#eef2f7; --bg:#f5f7fb; --card:#ffffff;
+    --doing:#2563eb; --done:#16a34a; --wait:#94a3b8; --accept:#d97706;
+    --risk-h:#FF3B30; --risk-m:#FF9500; --risk-l:#38BDF8;
+    --sh:0 1px 2px rgba(15,23,42,.05); --sh2:0 10px 30px -16px rgba(15,23,42,.28);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+  svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.12em}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  .app{display:flex;height:100vh}
+  /* sidebar */
+  .sidebar{width:236px;flex:none;height:100%;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .brand{height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line2)}
+  .brand .e{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+  .brand .tt{line-height:1.2}
+  .brand .tt .n{font-size:14px;color:var(--ink);letter-spacing:.3px}
+  .brand .tt .s{font-size:11px;color:var(--mut2)}
+  .nav{flex:1;padding:12px 8px;overflow-y:auto}
+  .nav .grp{font-size:11px;text-transform:uppercase;color:var(--mut2);padding:8px 12px;letter-spacing:.08em}
+  .nav .item{width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:14px;color:var(--ink2);background:none;border:0;cursor:pointer;text-align:left;margin-bottom:2px}
+  .nav .item:hover{background:#f8fafc;color:var(--ink)}
+  .nav .item.on{background:rgba(0,82,217,.08);color:var(--blue);font-weight:600}
+  .nav .item .gw{margin-left:auto;color:var(--mut2);display:inline-flex}
+  .nav .item .tagN{margin-left:auto;font-size:8px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--purple));padding:1px 5px;border-radius:6px}
+  .subs{margin-left:19px;padding-left:12px;border-left:1px solid var(--line);margin-bottom:6px}
+  .subs .sub{width:100%;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;font-size:13px;color:var(--mut);background:none;border:0;cursor:pointer;text-align:left;margin-bottom:2px}
+  .subs .sub:hover{background:#f8fafc;color:var(--ink2)}
+  .sfoot{border-top:1px solid var(--line2);padding:12px}
+  .ucard{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f8fafc}
+  .ucard .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+  .ucard .nm .a{font-size:14px;color:var(--ink)} .ucard .nm .b{font-size:11px;color:var(--mut)}
+  .ver{margin-top:8px;text-align:center;font-size:10px;color:#cbd5e1;letter-spacing:.04em}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{height:56px;flex:none;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 20px;position:relative;z-index:10}
+  .crumb{display:flex;align-items:center;gap:6px;min-width:0;font-size:14px}
+  .crumb a{color:var(--mut2);text-decoration:none} .crumb a:hover{color:var(--blue)}
+  .crumb .sep{color:#cbd5e1;display:inline-flex} .crumb .cur{color:var(--slate700);font-weight:500}
+  .search{flex:1;display:flex;justify-content:center;min-width:0}
+  .search .box{position:relative;width:100%;max-width:420px}
+  .search .box svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut2)}
+  .search input{width:100%;height:36px;padding:0 12px 0 34px;border-radius:9px;background:#f8fafc;border:1px solid var(--line);font:inherit;font-size:14px;color:var(--ink2);outline:none}
+  .search input::placeholder{color:var(--mut2)}
+  .search input:focus{background:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,82,217,.12)}
+  .btn-pri{height:32px;padding:0 12px;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--blueDk));color:#fff;border:0;font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-gho{height:32px;padding:0 12px;border-radius:8px;background:#fff;color:var(--blue);border:1px solid rgba(0,82,217,.3);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .iconbtn{width:32px;height:32px;border-radius:8px;border:0;background:none;color:var(--ink2);cursor:pointer;display:grid;place-items:center;position:relative}
+  .iconbtn:hover{background:#f1f5f9}
+  .iconbtn .dotN{position:absolute;top:-1px;right:-1px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#ef4444;color:#fff;font-size:9px;display:grid;place-items:center}
+
+  .content{flex:1;overflow-y:auto;padding:22px}
+  .page{max-width:1180px;margin:0 auto}
+
+  .callout{display:flex;align-items:flex-start;gap:11px;background:linear-gradient(135deg,rgba(0,82,217,.05),rgba(122,61,255,.05));border:1px solid rgba(0,82,217,.18);border-radius:12px;padding:13px 16px;font-size:13px;color:var(--ink2);margin-bottom:18px;line-height:1.7}
+  .callout .nb{font-size:9px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--purple));padding:3px 8px;border-radius:6px;flex:none;margin-top:1px}
+  .callout b{color:var(--ink)}
+
+  .phead{margin-bottom:6px}
+  .phead h1{font-size:22px;font-weight:800;letter-spacing:-.3px}
+  .phead p{font-size:13.5px;color:var(--mut);margin-top:6px;max-width:84ch}
+
+  .section{margin:24px 0}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sec-head .n{font-size:11px;font-weight:800;color:#fff;background:var(--blue);width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:none}
+  .sec-head h2{font-size:16px;font-weight:800}
+  .sec-head .sub{font-size:12.5px;color:var(--mut)}
+
+  /* tags: reuse / extend / new */
+  .t{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .t-reuse{color:var(--done);background:rgba(22,163,74,.1)}
+  .t-ext{color:var(--blue);background:rgba(0,82,217,.1)}
+  .t-new{color:var(--purple);background:rgba(122,61,255,.1)}
+  .legend-tags{display:flex;gap:12px;font-size:11.5px;color:var(--mut);margin-bottom:12px;flex-wrap:wrap}
+
+  /* capability mapping */
+  .maphead,.maprow{display:grid;grid-template-columns:158px 1fr 1.05fr;gap:0}
+  .maphead{padding:0 0 8px 0}
+  .maphead div{font-size:11px;font-weight:700;color:var(--mut2);padding:0 15px;letter-spacing:.04em}
+  .maprow{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;margin-bottom:10px}
+  .maprow>div{padding:13px 15px}
+  .mc-cap{background:#f7f9fc;border-right:1px solid var(--line2);display:flex;flex-direction:column;gap:5px;justify-content:center}
+  .mc-cap b{font-size:13.5px;font-weight:800}
+  .mc-cap .kk{font-size:10px;color:var(--mut2);font-weight:700;letter-spacing:.07em}
+  .mc-have{border-right:1px solid var(--line2);font-size:12.5px;color:var(--ink2);line-height:1.6}
+  .mc-do{font-size:12.5px;color:var(--ink2);line-height:1.6}
+  .ml{font-size:10px;color:var(--mut2);margin-bottom:6px;display:block;letter-spacing:.04em}
+  .mc-have b,.mc-do b{color:var(--ink);font-weight:700}
+
+  /* lenses */
+  .lens-top{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .lcard{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+  .lcard.cur{border-color:rgba(122,61,255,.4);background:linear-gradient(135deg,rgba(122,61,255,.06),transparent)}
+  .lcard .lh2{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px}
+  .lcard .li2{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
+  .lcard p{font-size:12px;color:var(--mut);margin-top:9px;line-height:1.65}
+  .lcard .role{font-size:10px;font-weight:700;color:var(--mut2);letter-spacing:.06em;margin-top:9px}
+  .lens-conn{display:flex;justify-content:center;align-items:center;gap:8px;color:var(--mut2);font-size:11.5px;margin:11px 0}
+  .lens-conn .ln{flex:1;height:1px;background:var(--line)}
+  .lens-base{border:1px dashed rgba(0,82,217,.35);border-radius:12px;background:rgba(0,82,217,.03);padding:14px 16px}
+  .lens-base .bt{font-size:12px;font-weight:800;color:var(--blue);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+
+  /* hierarchy chips */
+  .hier{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .hnode{border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:#fff;font-size:13px;font-weight:700;text-align:center;line-height:1.3}
+  .hnode small{display:block;font-weight:400;color:var(--mut2);font-size:10.5px;margin-top:2px}
+  .hnode.nw{border-color:rgba(122,61,255,.4);background:rgba(122,61,255,.05);color:var(--purple)}
+  .hnode.cs{border-color:rgba(0,82,217,.4);background:rgba(0,82,217,.05);color:var(--blue)}
+  .harrow{color:var(--mut2);font-size:16px}
+
+  /* dashboard */
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:hidden}
+  .dash .bar{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line2)}
+  .dash .bar .t2{font-weight:800;font-size:14.5px;display:flex;align-items:center;gap:9px}
+  .dash .bar .t2 .sq{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:12px}
+  .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .flt{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+  .flt i{font-style:normal;color:var(--mut2);font-size:11px} .flt svg{color:var(--mut2)}
+  .flt:hover{border-color:var(--blue);color:var(--blue)}
+  .flt.strong{border-color:rgba(0,82,217,.35);color:var(--blue);background:rgba(0,82,217,.04);font-weight:600}
+  .flt.clear{border:0;background:none;color:var(--mut2);padding:5px 4px}
+  .viewbar{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid var(--line2);background:#fcfdff}
+  .seg{display:flex;gap:3px;background:#eef2f8;border:1px solid var(--line2);border-radius:10px;padding:3px}
+  .seg button{font:inherit;font-size:12.5px;color:var(--mut);border:0;background:transparent;padding:6px 13px;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .seg button .nd{font-size:8px;font-weight:800;color:#fff;background:var(--purple);padding:0 4px;border-radius:5px}
+  .seg button.on{background:#fff;color:var(--blue);box-shadow:var(--sh)}
+  .seg-desc{font-size:12.5px;color:var(--mut)} .seg-desc b{color:var(--ink)}
+  .dash .body{padding:18px}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
+  .kpi{border:1px solid var(--line);border-radius:11px;padding:12px 13px;background:#fff;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue)}
+  .kpi.risk::before{background:var(--risk-h)} .kpi.warn::before{background:var(--risk-m)} .kpi.ok::before{background:var(--done)}
+  .kpi .l{font-size:11.5px;color:var(--mut)} .kpi .v{font-size:25px;font-weight:800;letter-spacing:-.5px;margin-top:2px}
+  .kpi .v small{font-size:13px;font-weight:700;color:var(--mut2);margin-left:2px} .kpi .d{font-size:11px;margin-top:2px;color:var(--mut2)}
+
+  .grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-top:14px}
+  .panel{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line2)}
+  .panel .ph h4{font-size:13px;font-weight:800} .panel .ph .more{font-size:11.5px;color:var(--mut2)}
+  .panel .pb{padding:13px 14px}
+  .prj{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line2)}
+  .prj:last-child{border-bottom:0} .prj .nm{flex:1;min-width:0}
+  .prj .nm .top{display:flex;align-items:center;gap:8px} .prj .nm .top b{font-size:13px;font-weight:700}
+  .prj .nm .sub{font-size:11px;color:var(--mut2);margin-top:2px}
+  .sbadge{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:7px;display:inline-flex;align-items:center;gap:5px}
+  .sbadge .sd{width:6px;height:6px;border-radius:50%}
+  .s-doing{color:var(--doing);background:rgba(37,99,235,.1)}.s-doing .sd{background:var(--doing)}
+  .s-done{color:var(--done);background:rgba(22,163,74,.1)}.s-done .sd{background:var(--done)}
+  .s-wait{color:#475569;background:rgba(148,163,184,.16)}.s-wait .sd{background:var(--wait)}
+  .risk{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
+  .risk .rd{width:6px;height:6px;border-radius:50%}
+  .r-h{color:var(--risk-h);background:rgba(255,59,48,.1)}.r-h .rd{background:var(--risk-h)}
+  .r-m{color:#b45309;background:rgba(255,149,0,.1)}.r-m .rd{background:var(--risk-m)}
+  .r-l{color:#0369a1;background:rgba(56,189,248,.12)}.r-l .rd{background:var(--risk-l)}
+  .prog{width:126px;flex:none}
+  .prog .track{height:7px;border-radius:999px;background:#eef2f7;overflow:hidden}
+  .prog .fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue2),var(--blue))}
+  .prog .num{font-size:11px;color:var(--mut);text-align:right;margin-top:3px;font-variant-numeric:tabular-nums}
+  .donut-wrap{display:flex;align-items:center;gap:16px}
+  .donut{width:122px;height:122px;border-radius:50%;flex:none;position:relative;background:conic-gradient(var(--doing) 0 45%, var(--done) 45% 70%, var(--accept) 70% 84%, var(--wait) 84% 100%)}
+  .donut::after{content:"";position:absolute;inset:18px;border-radius:50%;background:#fff}
+  .donut .ctr{position:absolute;inset:0;display:grid;place-content:center;text-align:center;z-index:2}
+  .donut .ctr b{font-size:21px;font-weight:800;display:block;line-height:1} .donut .ctr span{font-size:10.5px;color:var(--mut2)}
+  .legend{display:flex;flex-direction:column;gap:8px;font-size:12px;flex:1}
+  .legend .li{display:flex;align-items:center;gap:8px} .legend .sw{width:9px;height:9px;border-radius:3px}
+  .legend .li .vv{margin-left:auto;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
+  .rbars{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+  .rbar .lab{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+  .rbar .lab .n{font-variant-numeric:tabular-nums;font-weight:700}
+  .rbar .tk{height:9px;border-radius:999px;background:#eef2f7;overflow:hidden} .rbar .fl{height:100%;border-radius:999px}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{font-size:11px;font-weight:700;color:var(--mut);text-align:left;padding:9px 12px;background:#f7f9fc;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{font-size:12.5px;padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:0}
+  .goal-row td{background:#fbfcff}
+  .goal{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12.5px}
+  .goal .gi{width:20px;height:20px;border-radius:6px;background:rgba(0,82,217,.08);color:var(--blue);display:grid;place-items:center;font-size:11px}
+  .sub-task{padding-left:30px;position:relative}
+  .sub-task::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:1px;background:var(--line)}
+  .owner{display:inline-flex;align-items:center;gap:7px}
+  .owner .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:9.5px;flex:none}
+  .due{font-variant-numeric:tabular-nums;color:var(--ink2)} .due.late{color:var(--risk-h);font-weight:700}
+  .miniprog{display:flex;align-items:center;gap:8px}
+  .miniprog .mt{width:74px;height:6px;border-radius:999px;background:#eef2f7;overflow:hidden}
+  .miniprog .mf{height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue))}
+  .miniprog span{font-size:11px;color:var(--mut);width:30px;font-variant-numeric:tabular-nums}
+
+  .logcard{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}
+  .logcard+.logcard{margin-top:10px}
+  .logcard .lh{display:flex;align-items:center;gap:10px} .logcard .lh b{font-size:13px;font-weight:700;flex:1}
+  .logmeta{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}
+  .logmeta .m{background:#f7f9fc;border:1px solid var(--line2);border-radius:9px;padding:8px 11px}
+  .logmeta .m .ml2{font-size:10.5px;color:var(--mut2)} .logmeta .m .mv{font-size:13px;font-weight:700;margin-top:3px}
+  .logmeta .m .mv.diff-neg{color:var(--risk-h)} .logmeta .m .mv.diff-ok{color:var(--done)}
+  .upd{font-size:12px;color:var(--ink2);background:#fbfcfe;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:9px 12px;margin-top:11px}
+  .upd .ut{font-size:10.5px;color:var(--mut2);margin-bottom:3px}
+
+  /* gantt / timeline */
+  .gantt{border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .g-row{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line2)}
+  .g-row:last-child{border-bottom:0}
+  .g-months{display:grid;grid-template-columns:repeat(6,1fr);background:#f7f9fc}
+  .g-months span{font-size:11px;color:var(--mut);padding:8px 0;text-align:center;border-left:1px solid var(--line2)}
+  .g-corner{background:#f7f9fc;border-right:1px solid var(--line2)}
+  .g-lab{padding:0 12px;font-size:12px;display:flex;align-items:center;border-right:1px solid var(--line2);color:var(--ink2);white-space:nowrap;overflow:hidden}
+  .g-lab .av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff;display:grid;place-items:center;font-size:9px;flex:none;margin-right:7px}
+  .g-lab.goal{font-weight:800;background:#fbfcff;gap:7px}
+  .g-lab.goal .gi{width:18px;height:18px;border-radius:5px;background:rgba(0,82,217,.08);color:var(--blue);display:grid;place-items:center;font-size:10px;flex:none}
+  .g-track{position:relative;height:40px;background:repeating-linear-gradient(to right,transparent 0,transparent calc(16.666% - 1px),var(--line2) calc(16.666% - 1px),var(--line2) 16.666%)}
+  .g-track.goalrow{background:#fbfcff}
+  .bar{position:absolute;top:11px;height:18px;border-radius:5px;display:flex;align-items:center;padding:0 7px;font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+  .bar.done{background:linear-gradient(90deg,#22c55e,#16a34a)}
+  .bar.doing{background:linear-gradient(90deg,#3b82f6,#2563eb)}
+  .bar.late{background:linear-gradient(90deg,#fb7185,#ef4444)}
+  .bar.wait{background:linear-gradient(90deg,#cbd5e1,#94a3b8);color:#475569}
+  .mstone{position:absolute;top:13px;width:13px;height:13px;background:var(--purple);transform:rotate(45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);z-index:2}
+  .mstone-lab{position:absolute;top:1px;font-size:10px;color:var(--purple);font-weight:700;white-space:nowrap;transform:translateX(-38%)}
+  .today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:3}
+  .today.tagged::after{content:"今天";position:absolute;top:-2px;left:3px;font-size:9px;color:#ef4444;font-weight:700}
+  .gleg{display:flex;gap:16px;flex-wrap:wrap;margin-top:11px;font-size:11.5px;color:var(--mut)}
+  .gleg i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+  .gleg .lb{width:14px;height:8px;border-radius:3px;display:inline-block}
+  .gleg .dm{width:10px;height:10px;background:var(--purple);transform:rotate(45deg);display:inline-block}
+
+  /* risk matrix */
+  .rmx{display:grid;grid-template-columns:46px repeat(3,1fr);gap:7px;align-items:stretch}
+  .rmx .corner{}
+  .rmx .colh{font-size:11px;color:var(--mut);text-align:center;padding:3px 0;font-weight:600}
+  .rmx .rowh{font-size:11px;color:var(--mut);display:flex;align-items:center;justify-content:center;font-weight:600;writing-mode:vertical-rl;transform:rotate(180deg)}
+  .cell{border-radius:9px;min-height:78px;padding:8px;display:flex;flex-direction:column;gap:5px;border:1px solid}
+  .cell .cc{font-size:10px;font-weight:800;opacity:.65}
+  .cell .tk{font-size:10.5px;background:rgba(255,255,255,.85);border-radius:6px;padding:3px 7px;color:var(--ink2);border:1px solid rgba(15,23,42,.06)}
+  .sev1{background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.22)}
+  .sev2{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.28)}
+  .sev3{background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3)}
+  .sev4{background:rgba(255,59,48,.1);border-color:rgba(255,59,48,.32)}
+  .rmx-axis{font-size:11px;color:var(--mut2);text-align:center;margin-top:9px}
+
+  .ai{margin-top:14px;border:1px solid rgba(0,82,217,.18);border-radius:12px;background:linear-gradient(135deg,rgba(0,82,217,.04),rgba(122,61,255,.04));padding:15px 17px}
+  .ai .ah{display:flex;align-items:center;gap:9px;font-weight:800;font-size:13px;color:var(--blue)}
+  .ai .ah .sp{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:grid;place-items:center;font-size:12px}
+  .ai ul{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .ai li{font-size:12.5px;color:var(--ink2);display:flex;gap:9px;align-items:flex-start}
+  .ai li .mk{flex:none;margin-top:1px;width:16px;height:16px;border-radius:5px;display:grid;place-items:center;font-size:9px;color:#fff;font-weight:700}
+
+  .hidden{display:none}
+  .foot{padding:24px 0 36px;text-align:center;color:var(--mut2);font-size:11.5px} .foot b{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand"><div class="e">E</div><div class="tt"><div class="n">EA Platform</div><div class="s">Engineering Portal</div></div></div>
+    <nav class="nav">
+      <div class="grp">工作台</div>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>我的</span><span class="gw"><svg class="i" style="transform:rotate(90deg)" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span></button>
+      <div class="subs">
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6"/></svg>我的任务</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>我的 Case</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>最近浏览</button>
+        <button class="sub"><svg class="i" viewBox="0 0 24 24"><path d="M2 6h3M2 12h3M2 18h3"/><rect x="6" y="2" width="16" height="20" rx="2"/><path d="M11 7h6M11 11h6M11 15h3"/></svg>智能汇总</button>
+      </div>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg><span>Case 中心</span></button>
+      <button class="item"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>团队看板</span></button>
+      <button class="item on"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>项目监控</span><span class="tagN">NEW</span></button>
+    </nav>
+    <div class="sfoot">
+      <div class="ucard"><div class="av">伟</div><div class="nm"><div class="a">张伟</div><div class="b">PTE · 测试工程部</div></div></div>
+      <div class="ver">EA Platform · V1.0.3</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb"><a href="#">项目监控</a><span class="sep"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span><span class="cur">项目化融合方案</span></div>
+      <div class="search"><div class="box"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg><input placeholder="搜索项目 / Case / 任务 / 责任人" /></div></div>
+      <button class="btn-pri"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg> 新建项目</button>
+      <button class="btn-gho"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> 系统建议</button>
+      <button class="iconbtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="dotN">3</span></button>
+    </header>
+
+    <div class="content">
+      <div class="page">
+
+        <div class="callout"><span class="nb">融合</span><div><b>本方案不是新建一套系统</b>，而是把「项目管理」能力<b>融合进 V1.0.3 现有的任务树 / Workspace 日志 / 看板</b>：拆解·分发·日志·回收大多<b>复用或小幅扩展</b>现有功能，真正新增的只有 ① <b>项目 / 项目群聚合层</b> 与 ② <b>项目监控镜头（含产品 Timeline）</b>。</div></div>
+
+        <div class="phead">
+          <h1>研发平台项目管理 · V1.0.3 项目化融合方案</h1>
+          <p>给现有的任务树、Workspace 日志、团队看板装上「项目层」与「项目交付镜头」——管理者以目标倒推拆解、自动分发、回收进展，沿用既有交互，宏观到微观一条线贯穿。</p>
+        </div>
+
+        <!-- 01 能力映射 -->
+        <section class="section">
+          <div class="sec-head"><span class="n">01</span><h2>能力映射：哪些复用 · 哪些扩展 · 哪些新增</h2></div>
+          <div class="legend-tags">
+            <span class="t t-reuse">复用</span> 现有功能直接承载
+            <span class="t t-ext">扩展</span> 在现有功能上补字段/口径
+            <span class="t t-new">新增</span> 需要新建的能力
+          </div>
+          <div class="maphead"><div>文案能力</div><div>V1.0.3 现有承载</div><div>融合动作</div></div>
+
+          <div class="maprow">
+            <div class="mc-cap"><div class="kk">MBO · WBS</div><b>任务拆解</b></div>
+            <div class="mc-have"><span class="ml">已有</span><b>思维导图任务树</b>：思路 / 执行任务双层节点，含责任人、DueDate、责任链。</div>
+            <div class="mc-do"><span class="ml">动作</span><span class="t t-ext">扩展</span> 给节点加「目标 / MBO」语义；<span class="t t-new">新增</span> 项目层作为拆解根。</div>
+          </div>
+          <div class="maprow">
+            <div class="mc-cap"><div class="kk">AUTO DISPATCH</div><b>任务分发</b></div>
+            <div class="mc-have"><span class="ml">已有</span><b>我的任务 + IM 派单 + Workspace 云文档</b>：拆解后已可派发、责任人可接受/拒绝。</div>
+            <div class="mc-do"><span class="ml">动作</span><span class="t t-reuse">复用</span> 直接沿用，零新增操作。</div>
+          </div>
+          <div class="maprow">
+            <div class="mc-cap"><div class="kk">WORKLOG</div><b>日志填写</b></div>
+            <div class="mc-have"><span class="ml">已有</span><b>任务字段 + statusHistory + Workspace 笔记</b>：进展、附件、过程沉淀已具备。</div>
+            <div class="mc-do"><span class="ml">动作</span><span class="t t-ext">扩展</span> 补「预期完成时间」「风险等级」两个字段。</div>
+          </div>
+          <div class="maprow">
+            <div class="mc-cap"><div class="kk">AUTO RECLAIM</div><b>任务回收</b></div>
+            <div class="mc-have"><span class="ml">已有</span><b>团队看板 Cycle Time / 异常预警</b>：超时未结案、转办异常已在回收 Case 时效。</div>
+            <div class="mc-do"><span class="ml">动作</span><span class="t t-ext">扩展</span> 把口径从「Case 时效」扩到「任务预期 vs DueDate」算进度差。</div>
+          </div>
+          <div class="maprow">
+            <div class="mc-cap"><div class="kk">DASHBOARD</div><b>项目监控</b></div>
+            <div class="mc-have"><span class="ml">已有</span><b>团队看板 + Case 中心</b>：已有图表与异常表，但都是 Case / 人 维度。</div>
+            <div class="mc-do"><span class="ml">动作</span><span class="t t-new">新增</span> 项目交付维度的监控镜头：总览 / Timeline / 风险矩阵。</div>
+          </div>
+        </section>
+
+        <!-- 02 三个镜头 -->
+        <section class="section">
+          <div class="sec-head"><span class="n">02</span><h2>一份数据，三个镜头</h2><span class="sub">同一张任务图，三种视角各看各的，不重复造系统</span></div>
+          <div class="lens-top">
+            <div class="lcard">
+              <div class="lh2"><span class="li2" style="background:linear-gradient(135deg,#00A4FF,#0052D9)"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9l-.81-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>Case 中心</div>
+              <p>单个失效分析的工作台 —— 思维导图建树、执行、结案。</p>
+              <div class="role">现有 · 单 CASE 工作台</div>
+            </div>
+            <div class="lcard">
+              <div class="lh2"><span class="li2" style="background:linear-gradient(135deg,#0d9488,#0052D9)"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>团队看板</div>
+              <p>团队 / 人的运营绩效镜头 —— Cycle Time、积分、负载、Case 异常预警。</p>
+              <div class="role">现有 · 运营 & 绩效视角</div>
+            </div>
+            <div class="lcard cur">
+              <div class="lh2"><span class="li2" style="background:linear-gradient(135deg,#7A3DFF,#0052D9)"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>项目监控 <span class="t t-new" style="margin-left:auto">新增</span></div>
+              <p>项目 / 目标的交付镜头 —— MBO 进度、产品 Timeline、健康度与风险。</p>
+              <div class="role">新增 · 交付 & 目标视角</div>
+            </div>
+          </div>
+          <div class="lens-conn"><span class="ln"></span>三者都从下面这一份数据取数<span class="ln"></span></div>
+          <div class="lens-base">
+            <div class="bt"><svg class="i" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> 共享任务图（同一棵 TaskNode 树 + Owner / 部门映射）</div>
+            <div class="hier">
+              <span class="hnode nw">项目群<small>新增聚合</small></span>
+              <span class="harrow">›</span>
+              <span class="hnode nw">项目<small>新增聚合</small></span>
+              <span class="harrow">›</span>
+              <span class="hnode cs">一级任务 ≈ Case<small>现有 Case 挂载</small></span>
+              <span class="harrow">›</span>
+              <span class="hnode">底层任务<small>现有执行任务 / 日志</small></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 03 新增项目监控镜头 -->
+        <section class="section">
+          <div class="sec-head"><span class="n">03</span><h2>新增镜头：项目监控（含产品 Timeline）</h2><span class="sub">多筛选维度 × 多看板视图，宏观微观皆可下钻</span></div>
+
+          <div class="dash">
+            <div class="bar">
+              <div class="t2"><span class="sq"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>DRAM 研发平台</div>
+              <div class="filters">
+                <span class="flt strong"><i>产品</i> DDR5 16Gb 良率提升 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                <span class="flt"><i>部门</i> 全部 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                <span class="flt"><i>时间</i> 2026 H1 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                <span class="flt"><i>风险</i> 全部 <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                <span class="flt clear">重置</span>
+              </div>
+            </div>
+            <div class="viewbar">
+              <div class="seg">
+                <button class="on" data-tab="prog">总览</button>
+                <button data-tab="task">关键任务</button>
+                <button data-tab="time">时间线 <span class="nd">NEW</span></button>
+                <button data-tab="risk">风险矩阵 <span class="nd">NEW</span></button>
+                <button data-tab="leaf">任务回收</button>
+              </div>
+              <span class="seg-desc" id="vdesc"><b>项目群总览</b> · 全局健康度与风险（复用 Case 任务树聚合）</span>
+            </div>
+
+            <div class="body">
+
+              <!-- 总览 -->
+              <div class="pane" id="pane-prog">
+                <div class="kpis">
+                  <div class="kpi"><div class="l">在研项目</div><div class="v">12</div><div class="d">本季度立项 3</div></div>
+                  <div class="kpi ok"><div class="l">进行中</div><div class="v">8</div><div class="d">按计划推进</div></div>
+                  <div class="kpi"><div class="l">已结项</div><div class="v">2</div><div class="d">达成目标</div></div>
+                  <div class="kpi risk"><div class="l">高风险项目</div><div class="v">2</div><div class="d">需重点跟进</div></div>
+                  <div class="kpi warn"><div class="l">逾期任务</div><div class="v">5<small>项</small></div><div class="d">分布于 3 个项目</div></div>
+                  <div class="kpi"><div class="l">平均健康度</div><div class="v">82<small>%</small></div><div class="d">环比 +4%</div></div>
+                </div>
+                <div class="grid2">
+                  <div class="panel">
+                    <div class="ph"><h4>项目群进度与风险</h4><span class="more">按健康度排序</span></div>
+                    <div class="pb">
+                      <div class="prj"><div class="nm"><div class="top"><b>DDR5 16Gb 良率提升</b><span class="sbadge s-doing"><span class="sd"></span>进行中</span></div><div class="sub">目标：良率 78% → 90% · 牵头 李工 · 含 3 个 Case</div></div><span class="risk r-h"><span class="rd"></span>高风险</span><div class="prog"><div class="track"><div class="fill" style="width:64%"></div></div><div class="num">64%</div></div></div>
+                      <div class="prj"><div class="nm"><div class="top"><b>LPDDR5X 速率拉升至 8533</b><span class="sbadge s-doing"><span class="sd"></span>进行中</span></div><div class="sub">目标：speed bin 通过率 ≥ 85% · 牵头 王工</div></div><span class="risk r-m"><span class="rd"></span>中风险</span><div class="prog"><div class="track"><div class="fill" style="width:48%"></div></div><div class="num">48%</div></div></div>
+                      <div class="prj"><div class="nm"><div class="top"><b>DDR5 RDIMM 客户导入</b><span class="sbadge s-doing"><span class="sd"></span>进行中</span></div><div class="sub">目标：客户认证一次通过 · 牵头 陈工</div></div><span class="risk r-l"><span class="rd"></span>低风险</span><div class="prog"><div class="track"><div class="fill" style="width:79%"></div></div><div class="num">79%</div></div></div>
+                      <div class="prj"><div class="nm"><div class="top"><b>HBM3 堆叠工艺验证</b><span class="sbadge s-doing"><span class="sd"></span>进行中</span></div><div class="sub">目标：TSV 良率 ≥ 95% · 牵头 赵工</div></div><span class="risk r-h"><span class="rd"></span>高风险</span><div class="prog"><div class="track"><div class="fill" style="width:35%"></div></div><div class="num">35%</div></div></div>
+                      <div class="prj"><div class="nm"><div class="top"><b>DRAM 测试程序优化</b><span class="sbadge s-done"><span class="sd"></span>已结项</span></div><div class="sub">目标：测试时间 −15% · 牵头 张伟</div></div><span class="risk r-l"><span class="rd"></span>低风险</span><div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><div class="num">100%</div></div></div>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <div class="ph"><h4>关键指标可视化</h4><span class="more">全维度健康状态</span></div>
+                    <div class="pb">
+                      <div class="donut-wrap">
+                        <div class="donut"><div class="ctr"><b>12</b><span>项目总数</span></div></div>
+                        <div class="legend">
+                          <div class="li"><span class="sw" style="background:var(--doing)"></span>进行中<span class="vv">8</span></div>
+                          <div class="li"><span class="sw" style="background:var(--done)"></span>已结项<span class="vv">2</span></div>
+                          <div class="li"><span class="sw" style="background:var(--accept)"></span>待启动<span class="vv">1</span></div>
+                          <div class="li"><span class="sw" style="background:var(--wait)"></span>挂起<span class="vv">1</span></div>
+                        </div>
+                      </div>
+                      <div style="height:1px;background:var(--line2);margin:15px 0"></div>
+                      <div class="rbars">
+                        <div class="rbar"><div class="lab"><span>高风险</span><span class="n" style="color:var(--risk-h)">2</span></div><div class="tk"><div class="fl" style="width:17%;background:var(--risk-h)"></div></div></div>
+                        <div class="rbar"><div class="lab"><span>中风险</span><span class="n" style="color:#b45309">3</span></div><div class="tk"><div class="fl" style="width:25%;background:var(--risk-m)"></div></div></div>
+                        <div class="rbar"><div class="lab"><span>低风险</span><span class="n" style="color:#0369a1">7</span></div><div class="tk"><div class="fl" style="width:58%;background:var(--risk-l)"></div></div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 关键任务 (MBO) -->
+              <div class="pane hidden" id="pane-task">
+                <div class="panel">
+                  <table>
+                    <thead><tr><th style="width:34%">目标 / 一级任务（≈ Case）</th><th>责任人</th><th>DueDate</th><th>风险</th><th style="width:18%">进度</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr class="goal-row"><td colspan="6"><div class="goal"><span class="gi">◎</span>目标：DDR5 16Gb 良率由 78% 提升至 90%</div></td></tr>
+                      <tr><td class="sub-task">ICC2 异常分布定位与 Pattern 收敛</td><td><span class="owner"><span class="av">李</span>李工</span></td><td class="due">2026-05-12</td><td><span class="risk r-m"><span class="rd"></span>中</span></td><td><div class="miniprog"><div class="mt"><div class="mf" style="width:80%"></div></div><span>80%</span></div></td><td><span class="sbadge s-doing"><span class="sd"></span>进行中</span></td></tr>
+                      <tr><td class="sub-task">EFA 切片分析与失效机理确认</td><td><span class="owner"><span class="av">孙</span>孙工</span></td><td class="due late">2026-05-08 · 逾期</td><td><span class="risk r-h"><span class="rd"></span>高</span></td><td><div class="miniprog"><div class="mt"><div class="mf" style="width:55%"></div></div><span>55%</span></div></td><td><span class="sbadge s-doing"><span class="sd"></span>进行中</span></td></tr>
+                      <tr><td class="sub-task">CP 测试程序 guardband 调整验证</td><td><span class="owner"><span class="av">周</span>周工</span></td><td class="due">2026-05-20</td><td><span class="risk r-l"><span class="rd"></span>低</span></td><td><div class="miniprog"><div class="mt"><div class="mf" style="width:30%"></div></div><span>30%</span></div></td><td><span class="sbadge s-wait"><span class="sd"></span>待启动</span></td></tr>
+                      <tr class="goal-row"><td colspan="6"><div class="goal"><span class="gi">◎</span>目标：晶圆边缘区良率损失收敛至 &lt; 3%</div></td></tr>
+                      <tr><td class="sub-task">边缘 die datalog 回归与分区统计</td><td><span class="owner"><span class="av">陈</span>陈工</span></td><td class="due">2026-05-15</td><td><span class="risk r-m"><span class="rd"></span>中</span></td><td><div class="miniprog"><div class="mt"><div class="mf" style="width:62%"></div></div><span>62%</span></div></td><td><span class="sbadge s-doing"><span class="sd"></span>进行中</span></td></tr>
+                      <tr><td class="sub-task">工艺参数关联分析（DOE）</td><td><span class="owner"><span class="av">王</span>王工</span></td><td class="due">2026-05-26</td><td><span class="risk r-l"><span class="rd"></span>低</span></td><td><div class="miniprog"><div class="mt"><div class="mf" style="width:100%"></div></div><span>100%</span></div></td><td><span class="sbadge s-done"><span class="sd"></span>已完成</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 时间线 Timeline -->
+              <div class="pane hidden" id="pane-time">
+                <div class="gantt">
+                  <div class="g-row">
+                    <div class="g-corner"></div>
+                    <div class="g-months"><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span><span>8月</span></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab goal"><span class="gi">◎</span>目标A：良率 78%→90%</div>
+                    <div class="g-track goalrow"><div class="today tagged" style="left:37%"></div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab"><span class="av">李</span>ICC2 异常分布定位与 Pattern 收敛</div>
+                    <div class="g-track"><div class="today" style="left:37%"></div><div class="bar doing" style="left:22%;width:18%">80%</div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab"><span class="av">孙</span>EFA 切片分析与失效机理确认</div>
+                    <div class="g-track"><div class="today" style="left:37%"></div><div class="bar late" style="left:28%;width:13%">逾期</div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab"><span class="av">周</span>CP guardband 调整验证</div>
+                    <div class="g-track"><div class="today" style="left:37%"></div><div class="bar wait" style="left:34%;width:10%">待启动</div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab goal"><span class="gi">◎</span>目标B：边缘损失 &lt;3%</div>
+                    <div class="g-track goalrow"><div class="today" style="left:37%"></div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab"><span class="av">陈</span>边缘 die datalog 回归与分区统计</div>
+                    <div class="g-track"><div class="today" style="left:37%"></div><div class="bar doing" style="left:30%;width:12%">62%</div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab"><span class="av">王</span>工艺参数关联分析（DOE）</div>
+                    <div class="g-track"><div class="today" style="left:37%"></div><div class="bar done" style="left:11%;width:36%">已完成</div></div>
+                  </div>
+                  <div class="g-row">
+                    <div class="g-lab goal"><span class="gi">◆</span>关键里程碑</div>
+                    <div class="g-track goalrow">
+                      <div class="today" style="left:37%"></div>
+                      <div class="mstone" style="left:50%"></div><div class="mstone-lab" style="left:50%">客户送样 6/1</div>
+                      <div class="mstone" style="left:75%"></div><div class="mstone-lab" style="left:75%">量产决策 7/15</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gleg">
+                  <i><span class="lb" style="background:linear-gradient(90deg,#3b82f6,#2563eb)"></span>进行中</i>
+                  <i><span class="lb" style="background:linear-gradient(90deg,#22c55e,#16a34a)"></span>已完成</i>
+                  <i><span class="lb" style="background:linear-gradient(90deg,#fb7185,#ef4444)"></span>逾期 / 高风险</i>
+                  <i><span class="lb" style="background:linear-gradient(90deg,#cbd5e1,#94a3b8)"></span>待启动</i>
+                  <i><span class="dm"></span>里程碑</i>
+                </div>
+              </div>
+
+              <!-- 风险矩阵 -->
+              <div class="pane hidden" id="pane-risk">
+                <div class="rmx">
+                  <div class="corner"></div>
+                  <div class="colh">可能性 低</div><div class="colh">可能性 中</div><div class="colh">可能性 高</div>
+
+                  <div class="rowh">影响 高</div>
+                  <div class="cell sev3"><div class="cc">中高</div></div>
+                  <div class="cell sev3"><div class="cc">高</div><span class="tk">ICC2 分布定位</span></div>
+                  <div class="cell sev4"><div class="cc">严重</div><span class="tk">EFA 切片（逾期）</span></div>
+
+                  <div class="rowh">影响 中</div>
+                  <div class="cell sev2"><div class="cc">低</div><span class="tk">CP guardband</span></div>
+                  <div class="cell sev3"><div class="cc">中</div><span class="tk">边缘 datalog 回归</span></div>
+                  <div class="cell sev3"><div class="cc">中高</div></div>
+
+                  <div class="rowh">影响 低</div>
+                  <div class="cell sev1"><div class="cc">可忽略</div><span class="tk">DOE（已完成）</span></div>
+                  <div class="cell sev2"><div class="cc">低</div></div>
+                  <div class="cell sev2"><div class="cc">低中</div></div>
+                </div>
+                <div class="rmx-axis">纵轴：影响程度　·　横轴：发生可能性　—　颜色越红优先级越高</div>
+              </div>
+
+              <!-- 任务回收 (Workspace 日志) -->
+              <div class="pane hidden" id="pane-leaf">
+                <div class="grid2" style="grid-template-columns:1fr 1fr">
+                  <div>
+                    <div class="logcard">
+                      <div class="lh"><span class="owner"><span class="av">孙</span></span><b>EFA 切片分析与失效机理确认</b><span class="risk r-h"><span class="rd"></span>高风险</span></div>
+                      <div class="logmeta"><div class="m"><div class="ml2">截止时间</div><div class="mv">05-08</div></div><div class="m"><div class="ml2">预期完成</div><div class="mv">05-14</div></div><div class="m"><div class="ml2">进度差</div><div class="mv diff-neg">+6 天 ⚠</div></div></div>
+                      <div class="upd"><div class="ut">最新进展更新 · 2026-05-07 孙工</div>切片样品制备完成 3/5，FIB 设备排队导致延误，预计顺延至下周。</div>
+                    </div>
+                    <div class="logcard">
+                      <div class="lh"><span class="owner"><span class="av">李</span></span><b>ICC2 异常分布定位与 Pattern 收敛</b><span class="risk r-m"><span class="rd"></span>中风险</span></div>
+                      <div class="logmeta"><div class="m"><div class="ml2">截止时间</div><div class="mv">05-12</div></div><div class="m"><div class="ml2">预期完成</div><div class="mv">05-12</div></div><div class="m"><div class="ml2">进度差</div><div class="mv diff-ok">准时</div></div></div>
+                      <div class="upd"><div class="ut">最新进展更新 · 2026-05-06 李工</div>已定位至 P_ICC2_07，复测分布收敛明显，正在输出方案评审稿。</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="logcard">
+                      <div class="lh"><span class="owner"><span class="av">陈</span></span><b>边缘 die datalog 回归与分区统计</b><span class="risk r-m"><span class="rd"></span>中风险</span></div>
+                      <div class="logmeta"><div class="m"><div class="ml2">截止时间</div><div class="mv">05-15</div></div><div class="m"><div class="ml2">预期完成</div><div class="mv">05-16</div></div><div class="m"><div class="ml2">进度差</div><div class="mv diff-neg">+1 天</div></div></div>
+                      <div class="upd"><div class="ut">最新进展更新 · 2026-05-06 陈工</div>分区统计脚本完成，边缘 3 环良率损失定位中，数据量较大略有延迟。</div>
+                    </div>
+                    <div class="logcard">
+                      <div class="lh"><span class="owner"><span class="av">周</span></span><b>CP 测试程序 guardband 调整验证</b><span class="risk r-l"><span class="rd"></span>低风险</span></div>
+                      <div class="logmeta"><div class="m"><div class="ml2">截止时间</div><div class="mv">05-20</div></div><div class="m"><div class="ml2">预期完成</div><div class="mv">05-19</div></div><div class="m"><div class="ml2">进度差</div><div class="mv diff-ok">提前 1 天</div></div></div>
+                      <div class="upd"><div class="ut">最新进展更新 · 2026-05-05 周工</div>guardband 调整方案已评审通过，等待产线窗口安排验证 lot。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI summary -->
+              <div class="ai">
+                <div class="ah"><span class="sp"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.4L12 15l-1.9-4.6L5.5 9l4.6-1.4z"/></svg></span>AI 辅助总结</div>
+                <ul>
+                  <li><span class="mk" style="background:var(--risk-h)">!</span><b style="color:var(--ink)">重点风险：</b>「EFA 切片分析」已逾期 6 天且高风险，受 FIB 设备排队影响，建议协调设备资源或调整里程碑，避免拖累「良率 78%→90%」主目标。</li>
+                  <li><span class="mk" style="background:var(--risk-m)">~</span><b style="color:var(--ink)">需关注：</b>「HBM3 堆叠工艺验证」整体进度仅 35% 且高风险，落后于计划，建议下钻其底层任务排查瓶颈。</li>
+                  <li><span class="mk" style="background:var(--done)">✓</span><b style="color:var(--ink)">进展良好：</b>项目群平均健康度 82%（环比 +4%），「DDR5 RDIMM 客户导入」79% 顺利，「DRAM 测试程序优化」已达成 −15% 目标并结项。</li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <div class="foot">研发平台项目管理 · V1.0.3 项目化融合方案（数据为示意）　|　<b>仅面向 PC 桌面端</b>　|　复用同一棵 TaskNode 任务树，沿用 EA 侧栏 + 面包屑 + 分段 Tab 交互规范</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var DESCS = {
+    prog: '<b>项目群总览</b> · 全局健康度与风险（复用 Case 任务树聚合）',
+    task: '<b>关键任务（MBO 拆解）</b> · 目标→一级任务，一级任务可挂载现有 Case',
+    time: '<b>产品 Timeline</b> · 当前筛选「DDR5 16Gb 良率提升」的目标 / 任务 / 里程碑甘特（新增）',
+    risk: '<b>风险矩阵</b> · 按影响×可能性分级，聚焦高优先级任务（新增）',
+    leaf: '<b>任务回收</b> · 自动回收 Workspace 日志，比对截止时间算进度差（扩展自团队看板）'
+  };
+  var btns = document.querySelectorAll('.seg button');
+  var panes = { prog:'pane-prog', task:'pane-task', time:'pane-time', risk:'pane-risk', leaf:'pane-leaf' };
+  var vdesc = document.getElementById('vdesc');
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      btns.forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      var t = b.getAttribute('data-tab');
+      Object.keys(panes).forEach(function(k){
+        document.getElementById(panes[k]).classList.toggle('hidden', k !== t);
+      });
+      if (DESCS[t]) vdesc.innerHTML = DESCS[t];
+    });
+  });
+</script>
+</body>
+</html>

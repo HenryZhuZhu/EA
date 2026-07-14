@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1460, initial-scale=1.0" />
+  <title>新建 Case（完整页面预览）· 物料与拆解</title>
+  <style>
+    :root {
+      --bg: #f4f7fc; --card: #fff; --line: #e2e8f0; --line-soft: #eef2f7;
+      --ink: #0f172a; --ink2: #334155; --muted: #64748b; --muted2: #94a3b8;
+      --brand: #0052d9; --brand2: #00a4ff; --violet: #7a3dff; --ok: #16a34a; --amber: #d97706; --red: #ef4444;
+      --shadow: 0 12px 30px -18px rgba(15,23,42,.36); --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-width: 1400px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; color: var(--ink); background: radial-gradient(900px 480px at 4% -6%, rgba(0,164,255,.1), transparent 70%), radial-gradient(820px 460px at 98% -4%, rgba(122,61,255,.1), transparent 72%), var(--bg); line-height: 1.45; }
+    .wrap { width: 1420px; margin: 18px auto; display: grid; gap: 12px; }
+
+    .hero { border: 1px solid rgba(0,82,217,.2); border-radius: var(--radius); background: linear-gradient(140deg, rgba(0,82,217,.1), rgba(122,61,255,.07)); box-shadow: var(--shadow); padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+    .hero .htxt h1 { font-size: 20px; font-weight: 900; }
+    .hero .htxt p { font-size: 12.5px; color: var(--ink2); margin-top: 5px; max-width: 96ch; }
+    .badge-review { margin-left: auto; font-size: 11px; color: var(--violet); background: rgba(122,61,255,.1); border: 1px solid rgba(122,61,255,.25); border-radius: 999px; padding: 5px 12px; flex: none; }
+
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+    .phead { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); background: #fbfdff; display: flex; align-items: center; gap: 8px; }
+    .phead .n { width: 22px; height: 22px; border-radius: 6px; background: rgba(122,61,255,.1); color: var(--violet); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+    .phead h2 { font-size: 14px; font-weight: 800; }
+    .phead .sub { font-size: 11px; color: var(--muted); margin-left: auto; }
+    .pbody { padding: 14px; }
+
+    .basic { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .basic .full { grid-column: 1 / -1; }
+    .grp-label { font-size: 11px; font-weight: 800; color: var(--violet); letter-spacing: .04em; margin: 16px 0 8px; display: flex; align-items: center; gap: 6px; }
+    .grp-label::before { content: ""; width: 3px; height: 12px; background: var(--violet); border-radius: 2px; }
+    .grp { display: grid; gap: 10px; }
+    .grp.c2 { grid-template-columns: repeat(2,1fr); }
+    .grp.c3 { grid-template-columns: repeat(3,1fr); }
+    .grp.c4 { grid-template-columns: repeat(4,1fr); }
+    .grp .full { grid-column: 1 / -1; }
+    .more { margin-top: 12px; border: 1px solid var(--line-soft); border-radius: 8px; background: #fbfdff; }
+    .more > summary { cursor: pointer; list-style: none; padding: 9px 12px; font-size: 12px; color: var(--ink2); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .more > summary::-webkit-details-marker { display: none; }
+    .more > summary .caret { transition: transform .15s; color: var(--muted2); }
+    .more[open] > summary .caret { transform: rotate(90deg); }
+    .more[open] > summary { border-bottom: 1px solid var(--line-soft); }
+    .more .more-body { padding: 12px; }
+    .seg.wfull { display: flex; width: 100%; }
+    .seg.wfull button { flex: 1; }
+    .matdesc-inline { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .fld label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+    .fld label .req { color: var(--red); }
+    .fld input, .fld select, .fld textarea { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 0 9px; font: inherit; font-size: 12.5px; outline: none; background: #fff; }
+    .fld input, .fld select { height: 34px; }
+    .fld textarea { padding: 8px 9px; min-height: 58px; resize: vertical; }
+    .fld input:focus, .fld select:focus, .fld textarea:focus { border-color: var(--brand); }
+
+    .divider { height: 1px; background: var(--line-soft); margin: 14px 0; }
+
+    /* material segmented */
+    .seg { display: inline-flex; background: #eef2f8; border-radius: 10px; padding: 3px; gap: 3px; }
+    .seg button { border: 0; background: transparent; font: inherit; font-size: 13px; color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .seg button.on { background: #fff; color: var(--violet); box-shadow: 0 1px 2px rgba(15,23,42,.1); }
+    .matdesc { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
+    .card2 { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-top: 12px; background: linear-gradient(180deg,#fff,#fcfdff); }
+    .card2 h3 { font-size: 13px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .card2 h3 .b { font-size: 10px; font-weight: 700; color: #fff; border-radius: 6px; padding: 2px 7px; }
+    .b-dimm { background: linear-gradient(135deg,var(--brand2),var(--brand)); }
+    .b-ic { background: linear-gradient(135deg,var(--violet),#b79bff); }
+    .b-lot { background: linear-gradient(135deg,#f59e0b,#d97706); }
+
+    .formgrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .markline { margin-top: 8px; font-size: 11px; color: var(--muted); }
+    .mk-auto { font-family: ui-monospace, Menlo, monospace; color: var(--violet); }
+    .mk-empty { color: var(--muted2); }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; margin: 10px 0 8px; }
+    .btn { border: 1px solid var(--line); background: #fff; color: var(--ink2); font: inherit; font-size: 12px; height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .btn:hover { background: #f8fafc; }
+    .btn.primary { border-color: transparent; background: linear-gradient(90deg,var(--violet),var(--brand)); color: #fff; font-weight: 700; }
+    .btn.primary:disabled { opacity: .4; cursor: not-allowed; }
+    .cnt { font-size: 11.5px; color: var(--muted); }
+    .splitchk { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink2); cursor: pointer; margin-left: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th { font-size: 11px; color: var(--muted); text-align: left; background: #f7faff; border-bottom: 1px solid var(--line); padding: 8px 9px; white-space: nowrap; }
+    tbody td { font-size: 12px; padding: 7px 9px; border-bottom: 1px solid var(--line-soft); color: var(--ink2); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .cellinput { width: 100%; height: 28px; border: 1px solid var(--line); border-radius: 6px; padding: 0 7px; font: inherit; font-size: 12px; outline: none; background: #fff; }
+    .cellinput:focus { border-color: var(--brand); }
+    .rowbtn { font-size: 11px; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--red); }
+    .rowbtn:hover { background: #fef2f2; }
+    .mono { font-family: ui-monospace, Menlo, monospace; }
+
+    .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px; border: 1px dashed rgba(122,61,255,.3); border-radius: 8px; background: rgba(122,61,255,.03); }
+    .toggle-row label { font-size: 12.5px; color: var(--ink2); font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .toggle-row .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    /* preview */
+    .presum { border: 1px solid rgba(0,82,217,.2); background: rgba(0,82,217,.04); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--ink2); margin-bottom: 12px; }
+    .presum b { color: var(--brand); }
+    .casecard { border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; margin-bottom: 7px; background: #fff; display: flex; align-items: center; gap: 8px; }
+    .casecard.parent { border-color: rgba(0,82,217,.35); background: linear-gradient(180deg,#fff,#f5f9ff); }
+    .casecard.child { border-color: rgba(122,61,255,.3); background: linear-gradient(180deg,#fff,#faf8ff); margin-left: 22px; position: relative; }
+    .casecard.child::before { content: ""; position: absolute; left: -12px; top: 50%; width: 12px; height: 1px; background: rgba(122,61,255,.4); }
+    .casecard .tag { font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 7px; }
+    .tag-dimm { background: rgba(0,82,217,.1); color: var(--brand); }
+    .tag-ic { background: rgba(122,61,255,.12); color: var(--violet); }
+    .tag-lot { background: rgba(217,119,6,.12); color: var(--amber); }
+    .casecard .code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--muted2); }
+    .casecard .nm { font-size: 12px; color: var(--ink2); flex: 1; min-width: 0; }
+    .empty { border: 1px dashed var(--line); border-radius: 9px; padding: 14px; text-align: center; color: var(--muted2); font-size: 12px; }
+    .foot { font-size: 11.5px; color: var(--ink2); border: 1px solid rgba(255,149,0,.28); background: rgba(255,149,0,.07); border-radius: 10px; padding: 10px 12px; }
+    .foot b { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="htxt">
+        <h1>新建 Case · 完整页面预览（含物料拆解）</h1>
+        <p>独立预览页，<b>不影响 V1.0.3</b>。按案件物料决定拆解：DIMM → 1 个 DIMM Case + N 个 IC Case；IC → N 个 Case；Lot/Wafer → N 个 Case。字段照搬各物料真实颗粒表，Mark Code 自动生成。</p>
+      </div>
+      <span class="badge-review">审阅版 · 不写入 V1.0.3</span>
+    </section>
+
+    <div class="grid">
+      <!-- 左：表单 -->
+      <section class="panel">
+        <div class="phead"><span class="n">1</span><h2>Case 基本信息</h2><span class="sub">先填基础信息，再选物料与拆解</span></div>
+        <div class="pbody">
+          <div class="grp c3">
+            <div class="fld full"><label>Case 名称 <span class="req">*</span></label><input id="f_name" placeholder="例如：DMJFC FT 高温 Icc 漏电批量失效"></div>
+            <div class="fld"><label>产品</label><input id="f_prod" placeholder="例如：DMJFC"></div>
+            <div class="fld"><label>Level</label><select id="f_level"><option>L4</option><option>L3</option><option>L2</option><option>L1</option><option>L5</option></select></div>
+            <div class="fld"><label>紧急度</label><select id="f_urgency"><option>一般</option><option>紧急</option><option>非常紧急</option><option>不紧急</option></select></div>
+          </div>
+
+          <div class="fld" style="margin-top:12px">
+            <label>案件物料 <span class="req">*</span>（决定下方物料相关字段）</label>
+            <div class="seg wfull" id="mat">
+              <button data-m="DIMM" class="on">DIMM</button>
+              <button data-m="IC">IC</button>
+              <button data-m="LOT">Lot / Wafer</button>
+            </div>
+            <div class="matdesc-inline" id="matDesc"></div>
+          </div>
+
+          <div class="grp-label" style="margin-top:14px">物料相关信息 <span style="color:var(--muted);font-weight:400;margin-left:6px" id="matFieldsHint"></span></div>
+          <div id="matFields" class="grp c4"></div>
+
+          <div class="grp c2" style="margin-top:12px">
+            <div class="fld full"><label>背景 · 事由 <span class="req">*</span></label><textarea id="f_bg" placeholder="失效背景、现象、发生阶段等"></textarea></div>
+            <div class="fld full"><label>影响 <span class="req">*</span></label><textarea id="f_impact" placeholder="对交付 / 良率 / 客户的影响"></textarea></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="grp-label" style="color:var(--brand)">物料明细与拆解<span style="color:var(--muted);font-weight:400;margin-left:6px">（字段随物料：DIMM=SN/Work Order、IC=Barcode/Chip ID、Lot·Wafer=Lot/Wafer/Chip ID）</span></div>
+
+          <!-- DIMM 区 -->
+          <div id="paneDIMM">
+            <div class="card2">
+              <h3><span class="b b-dimm">DIMM</span> DIMM 信息（本 Case 主体）</h3>
+              <div class="formgrid">
+                <div class="fld"><label>SN</label><input id="d_sn" placeholder="SN"></div>
+                <div class="fld"><label>Work Order</label><input id="d_wo" placeholder="Work Order"></div>
+                <div class="fld"><label>Fail Mode</label><input id="d_fm" placeholder="Fail Mode"></div>
+                <div class="fld"><label>Fail Condition</label><input id="d_fc" placeholder="Fail Condition"></div>
+              </div>
+              <div class="markline">Mark Code：<span id="d_mk" class="mk-empty">补全后生成</span></div>
+            </div>
+
+            <div class="toggle-row">
+              <label><input type="checkbox" id="d_split"> 本 DIMM 需要拆解为 IC（可选）</label>
+              <span class="hint">勾选后录入多颗 IC → 生成 1 个 DIMM Case + N 个 IC Case</span>
+            </div>
+
+            <div id="d_icWrap" style="display:none">
+              <div class="card2">
+                <h3><span class="b b-ic">IC</span> 拆解 IC 信息列表（Barcode / Chip ID / Fail Mode / Fail Condition）</h3>
+                <div class="toolbar">
+                  <button class="btn primary" id="d_addIc">+ 添加 IC</button>
+                  <span class="cnt" id="d_icCnt">共 0 颗 IC</span>
+                </div>
+                <table>
+                  <thead><tr><th>Mark Code（自动）</th><th>Barcode</th><th>Chip ID</th><th>Fail Mode</th><th>Fail Condition</th><th>操作</th></tr></thead>
+                  <tbody id="d_icBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- IC 区 -->
+          <div id="paneIC" style="display:none">
+            <div class="card2">
+              <h3><span class="b b-ic">IC</span> IC 信息列表
+                <label class="splitchk"><input type="checkbox" id="ic_split"> 每条各自拆解为独立 Case</label>
+              </h3>
+              <div class="toolbar">
+                <button class="btn primary" id="ic_add">+ 添加一行</button>
+                <span class="cnt" id="ic_cnt">共 0 条</span>
+              </div>
+              <table>
+                <thead><tr><th>Mark Code（自动）</th><th>Barcode</th><th>Chip ID</th><th>Fail Mode</th><th>Fail Condition</th><th>操作</th></tr></thead>
+                <tbody id="ic_body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lot/Wafer 区 -->
+          <div id="paneLOT" style="display:none">
+            <div class="card2">
+              <h3><span class="b b-lot">Lot/Wafer</span> Lot / Wafer 信息列表
+                <label class="splitchk"><input type="checkbox" id="lot_split"> 每条各自拆解为独立 Case</label>
+              </h3>
+              <div class="toolbar">
+                <button class="btn primary" id="lot_add">+ 添加一行</button>
+                <span class="cnt" id="lot_cnt">共 0 条</span>
+              </div>
+              <table>
+                <thead><tr><th>Mark Code（自动）</th><th>Lot ID</th><th>Wafer ID</th><th>Chip ID</th><th>Fail Mode</th><th>Fail Condition</th><th>操作</th></tr></thead>
+                <tbody id="lot_body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右：拆解结果预览 -->
+      <section class="panel" style="align-self:start">
+        <div class="phead"><span class="n">3</span><h2>拆解结果预览</h2><span class="sub" id="preSub"></span></div>
+        <div class="pbody">
+          <div class="presum" id="preSum"></div>
+          <div id="preList"></div>
+          <button class="btn primary" id="genBtn" style="width:100%;justify-content:center;margin-top:10px;height:36px">确定（按上方拆解生成 Case）</button>
+          <div class="foot" id="foot" style="margin-top:12px"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let mat = "DIMM";
+    const up = (s) => (s || "").trim().toUpperCase();
+    const icMark = (g) => { const ok = [g.barcode,g.chipid,g.failMode,g.failCondition].every(v => (v||"").trim() !== ""); return ok ? `MC-${up(g.barcode).slice(-4)}-${up(g.chipid).slice(-4)}-${up(g.failMode).slice(0,3)}-${up(g.failCondition).slice(0,3)}` : null; };
+    const dimmMark = (g) => { const ok = [g.sn,g.wo,g.fm,g.fc].every(v => (v||"").trim() !== ""); return ok ? `MC-${up(g.sn).slice(-4)}-${up(g.wo).slice(-4)}-${up(g.fm).slice(0,3)}-${up(g.fc).slice(0,3)}` : null; };
+    const lotMark = (g) => { const ok = [g.lotId,g.waferId,g.chipId,g.failMode,g.failCondition].every(v => (v||"").trim() !== ""); return ok ? `MC-${up(g.lotId).slice(-3)}-${up(g.waferId).slice(-3)}-${up(g.chipId).slice(-3)}-${up(g.failMode).slice(0,2)}-${up(g.failCondition).slice(0,2)}` : null; };
+
+    const dimm = { sn:"", wo:"", fm:"", fc:"" };
+    let dimmSplit = false, icSplit = false, lotSplit = false;
+    let dIcRows = [], icRows = [], lotRows = [], seq = 0;
+    const nid = () => `r${++seq}`;
+    const caseName = () => ($("f_name").value.trim() || "未命名 Case");
+
+    function setMat(m) {
+      mat = m;
+      $("mat").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+      $("paneDIMM").style.display = m === "DIMM" ? "block" : "none";
+      $("paneIC").style.display = m === "IC" ? "block" : "none";
+      $("paneLOT").style.display = m === "LOT" ? "block" : "none";
+      $("matDesc").innerHTML = m === "DIMM"
+        ? "DIMM：先填 DIMM 主体信息；如需勾选「拆解为 IC」录入多颗 IC → 生成 <b>1 个 DIMM Case + N 个 IC Case</b>。"
+        : m === "IC" ? "IC：录入 N 条 IC 信息；勾选「每条各自拆解」→ 生成 <b>N 个独立 IC Case</b>，否则 1 个 Case。"
+        : "Lot / Wafer：录入 N 条信息；勾选「每条各自拆解」→ 生成 <b>N 个独立 Case</b>，否则 1 个 Case。";
+      renderMatFields();
+      renderAll();
+    }
+
+    // 物料相关基础字段（与真实组件一致）：DIMM/IC 共 8 项，lot/wafer 共 5 项
+    function matFieldDefs(m) {
+      const stage = { t:"sel", l:"Fail Stage", o:["请选择","CP1","CP2","FT","SLT","FAB","其他"] };
+      const ratio = { t:"in", l:"Fail Ratio", p:"如：0.5%" };
+      const density = { t:"sel", l:"Density", o:["请选择","8Gb","16Gb","24Gb","32Gb","其他"] };
+      const mask = { t:"sel", l:"Mask Version", o:["请选择","A0","A1","B0","B1","C0","其他"] };
+      const pkg = { t:"sel", l:"Fail Package", o:["请选择","BGA","FBGA","WLCSP","QFP","裸片","其他"] };
+      const io = { t:"sel", l:"IO Type", o:["请选择","x4","x8","x16","x32","其他"] };
+      const platform = { t:"in", l:"Fail Platform", p:"如：X86 / ARM" };
+      const customer = { t:"in", l:"Customer", p:"客户名称" };
+      const program = { t:"in", l:"Program", p:"程序名称" };
+      if (m === "DIMM" || m === "IC") return [stage, ratio, density, mask, pkg, io, platform, customer];
+      if (m === "LOT") return [stage, ratio, density, mask, program];
+      return [];
+    }
+    function renderMatFields() {
+      const defs = matFieldDefs(mat);
+      $("matFieldsHint").textContent = mat === "LOT" ? "lot/wafer · 共 5 项" : "DIMM / IC · 共 8 项";
+      $("matFields").innerHTML = defs.map(d => d.t === "sel"
+        ? `<div class="fld"><label>${d.l} <span class="req">*</span></label><select>${d.o.map(o => `<option${o === "请选择" ? ' value=""' : ''}>${o}</option>`).join("")}</select></div>`
+        : `<div class="fld"><label>${d.l} <span class="req">*</span></label><input placeholder="${d.p}"></div>`
+      ).join("");
+    }
+
+    function icRowHtml(g, prefix) {
+      const mc = icMark(g);
+      const inp = (f, ph) => `<input class="cellinput" data-p="${prefix}" data-id="${g.id}" data-f="${f}" value="${g[f] ?? ""}" placeholder="${ph}">`;
+      return `<tr>
+        <td>${mc ? `<span class="mono mk-auto">${mc}</span>` : `<span class="mk-empty">补全后生成</span>`}</td>
+        <td>${inp("barcode","Barcode")}</td><td>${inp("chipid","Chip ID")}</td><td>${inp("failMode","Fail Mode")}</td><td>${inp("failCondition","Fail Condition")}</td>
+        <td><button class="rowbtn" data-del="${prefix}:${g.id}">删除</button></td></tr>`;
+    }
+    function lotRowHtml(g) {
+      const mc = lotMark(g);
+      const inp = (f, ph) => `<input class="cellinput" data-p="lot" data-id="${g.id}" data-f="${f}" value="${g[f] ?? ""}" placeholder="${ph}">`;
+      return `<tr>
+        <td>${mc ? `<span class="mono mk-auto">${mc}</span>` : `<span class="mk-empty">补全后生成</span>`}</td>
+        <td>${inp("lotId","Lot ID")}</td><td>${inp("waferId","Wafer ID")}</td><td>${inp("chipId","Chip ID")}</td><td>${inp("failMode","Fail Mode")}</td><td>${inp("failCondition","Fail Condition")}</td>
+        <td><button class="rowbtn" data-del="lot:${g.id}">删除</button></td></tr>`;
+    }
+
+    function bindInputs() {
+      document.querySelectorAll(".cellinput").forEach(ip => {
+        ip.oninput = () => {
+          const p = ip.dataset.p, id = ip.dataset.id, f = ip.dataset.f;
+          const arr = p === "dic" ? dIcRows : p === "ic" ? icRows : lotRows;
+          const g = arr.find(x => x.id === id); if (g) g[f] = ip.value;
+          const tr = ip.closest("tr");
+          const mc = p === "lot" ? lotMark(g) : icMark(g);
+          tr.querySelector("td:first-child").innerHTML = mc ? `<span class="mono mk-auto">${mc}</span>` : `<span class="mk-empty">补全后生成</span>`;
+          renderPreview();
+        };
+      });
+      document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+        const [p, id] = b.dataset.del.split(":");
+        if (p === "dic") dIcRows = dIcRows.filter(x => x.id !== id);
+        else if (p === "ic") icRows = icRows.filter(x => x.id !== id);
+        else lotRows = lotRows.filter(x => x.id !== id);
+        renderAll();
+      });
+    }
+
+    function renderTables() {
+      const dmk = dimmMark(dimm);
+      $("d_mk").className = dmk ? "mono mk-auto" : "mk-empty"; $("d_mk").textContent = dmk || "补全后生成";
+      $("d_icWrap").style.display = dimmSplit ? "block" : "none";
+      $("d_icBody").innerHTML = dIcRows.length ? dIcRows.map(g => icRowHtml(g, "dic")).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--muted2);padding:12px">暂无 IC，点「+ 添加 IC」录入</td></tr>`;
+      $("d_icCnt").textContent = `共 ${dIcRows.length} 颗 IC`;
+      $("ic_body").innerHTML = icRows.length ? icRows.map(g => icRowHtml(g, "ic")).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--muted2);padding:12px">暂无 IC，点「+ 添加一行」录入</td></tr>`;
+      $("ic_cnt").textContent = `共 ${icRows.length} 条`;
+      $("lot_body").innerHTML = lotRows.length ? lotRows.map(g => lotRowHtml(g)).join("") : `<tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:12px">暂无 Lot/Wafer，点「+ 添加一行」录入</td></tr>`;
+      $("lot_cnt").textContent = `共 ${lotRows.length} 条`;
+      bindInputs();
+    }
+
+    function plan() {
+      if (mat === "DIMM") {
+        const dmk = dimmMark(dimm);
+        const parent = { code: `EA-DIMM-${(dmk || "----").slice(-6)}`, name: `${caseName()} · DIMM 模组`, tag: "dimm" };
+        if (!dimmSplit) return { single: parent, children: [] };
+        const children = dIcRows.filter(g => icMark(g)).map((g, i) => ({ code: `EA-IC-${String(i+1).padStart(2,"0")}`, name: `${caseName()} · ${icMark(g)}`, tag: "ic" }));
+        return { parent, children };
+      }
+      if (mat === "IC") {
+        const valid = icRows.filter(g => icMark(g));
+        if (!icSplit) return { single: { code: "EA-IC-CASE", name: caseName(), tag: "ic" }, children: [] };
+        return { parent: null, children: valid.map((g, i) => ({ code: `EA-IC-${String(i+1).padStart(2,"0")}`, name: `${caseName()} · ${icMark(g)}`, tag: "ic" })) };
+      }
+      const valid = lotRows.filter(g => lotMark(g));
+      if (!lotSplit) return { single: { code: "EA-LOT-CASE", name: caseName(), tag: "lot" }, children: [] };
+      return { parent: null, children: valid.map((g, i) => ({ code: `EA-LOT-${String(i+1).padStart(2,"0")}`, name: `${caseName()} · ${lotMark(g)}`, tag: "lot" })) };
+    }
+
+    function tagCls(t) { return t === "dimm" ? "tag-dimm" : t === "ic" ? "tag-ic" : "tag-lot"; }
+    function tagTxt(t) { return t === "dimm" ? "DIMM" : t === "ic" ? "IC" : "Lot/Wafer"; }
+
+    function renderPreview() {
+      const p = plan(); let summary = "", list = "", total = 0;
+      if (mat === "DIMM") {
+        if (!dimmSplit) {
+          const ok = !!dimmMark(dimm); total = ok ? 1 : 0;
+          summary = ok ? "不拆解：生成 <b>1</b> 个 DIMM Case。" : "请先补全 DIMM 信息（生成 Mark Code）。";
+          list = ok ? card(p.single, "parent") : `<div class="empty">补全 DIMM 信息后显示。</div>`;
+        } else {
+          const okP = !!dimmMark(dimm); const n = p.children.length; total = (okP ? 1 : 0) + n;
+          summary = `拆解为 <b>1</b> 个 DIMM Case ＋ <b>${n}</b> 个 IC Case（共 <b>${total}</b>）。`;
+          list = (okP ? card(p.parent, "parent") : `<div class="empty" style="margin-bottom:7px">DIMM 信息未补全</div>`) + (n ? p.children.map(c => card(c, "child")).join("") : `<div class="empty">尚无有效 IC（需补全 4 个字段）</div>`);
+        }
+      } else if (mat === "IC") {
+        if (!icSplit) { const okAny = icRows.some(g => icMark(g)); total = 1; summary = "不拆解：生成 <b>1</b> 个 IC Case（含全部 IC 记录）。"; list = card(p.single, ""); }
+        else { const n = p.children.length; total = n; summary = `拆解为 <b>${n}</b> 个独立 IC Case。`; list = n ? p.children.map(c => card(c, "")).join("") : `<div class="empty">尚无有效 IC 条目。</div>`; }
+      } else {
+        if (!lotSplit) { total = 1; summary = "不拆解：生成 <b>1</b> 个 Lot/Wafer Case（含全部记录）。"; list = card(p.single, ""); }
+        else { const n = p.children.length; total = n; summary = `拆解为 <b>${n}</b> 个独立 Lot/Wafer Case。`; list = n ? p.children.map(c => card(c, "")).join("") : `<div class="empty">尚无有效 Lot/Wafer 条目。</div>`; }
+      }
+      $("preSum").innerHTML = summary; $("preList").innerHTML = list;
+      $("preSub").textContent = `将生成 ${total} 个 Case`;
+      $("genBtn").disabled = total === 0;
+      $("foot").innerHTML = mat === "DIMM"
+        ? "DIMM：DIMM 为父 Case，勾选拆解后每颗 IC 生成子 Case，建立 parentCaseId / childCaseIds。"
+        : mat === "IC" ? "IC：勾选拆解时每条 IC 各自独立成 Case（平级）；否则合为 1 个 Case。"
+        : "Lot/Wafer：勾选拆解时每条各自独立成 Case（平级）；否则合为 1 个 Case。";
+    }
+    function card(c, kind) { return `<div class="casecard ${kind}"><span class="tag ${tagCls(c.tag)}">${tagTxt(c.tag)}</span><span class="code">${c.code}</span><span class="nm">${c.name}</span></div>`; }
+
+    function renderAll() { renderTables(); renderPreview(); }
+
+    $("mat").querySelectorAll("button").forEach(b => b.onclick = () => setMat(b.dataset.m));
+    ["d_sn","d_wo","d_fm","d_fc"].forEach(id => $(id).oninput = () => { dimm.sn=$("d_sn").value; dimm.wo=$("d_wo").value; dimm.fm=$("d_fm").value; dimm.fc=$("d_fc").value; const dmk=dimmMark(dimm); $("d_mk").className=dmk?"mono mk-auto":"mk-empty"; $("d_mk").textContent=dmk||"补全后生成"; renderPreview(); });
+    ["f_name"].forEach(id => $(id).oninput = renderPreview);
+    $("d_split").onchange = () => { dimmSplit = $("d_split").checked; if (dimmSplit && dIcRows.length === 0) dIcRows.push({ id: nid(), barcode:"", chipid:"", failMode:"", failCondition:"" }); renderAll(); };
+    $("d_addIc").onclick = () => { dIcRows.push({ id: nid(), barcode:"", chipid:"", failMode:"", failCondition:"" }); renderAll(); };
+    $("ic_add").onclick = () => { icRows.push({ id: nid(), barcode:"", chipid:"", failMode:"", failCondition:"" }); renderAll(); };
+    $("lot_add").onclick = () => { lotRows.push({ id: nid(), lotId:"", waferId:"", chipId:"", failMode:"", failCondition:"" }); renderAll(); };
+    $("ic_split").onchange = () => { icSplit = $("ic_split").checked; renderPreview(); };
+    $("lot_split").onchange = () => { lotSplit = $("lot_split").checked; renderPreview(); };
+    $("genBtn").onclick = () => {
+      const p = plan();
+      const total = (mat === "DIMM") ? ((dimmSplit ? (dimmMark(dimm)?1:0)+p.children.length : (dimmMark(dimm)?1:0))) : ((mat==="IC"?icSplit:lotSplit) ? p.children.length : 1);
+      alert(`【演示】将生成 ${total} 个 Case。\n物料：${mat}${mat==="DIMM"&&dimmSplit?"（1 DIMM 父 + N IC 子）":""}`);
+    };
+
+    setMat("DIMM");
+  </script>
+</body>
+</html>
