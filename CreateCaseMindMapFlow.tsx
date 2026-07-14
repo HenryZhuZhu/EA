@@ -27,11 +27,16 @@ const THOUGHT_CATEGORIES = ["设计", "工艺", "测试", "其他"];
 const MM_DEPARTMENTS = ["PTE", "CP", "FT", "DA", "PE", "QA", "EFA", "RD", "PM"];
 const CREATE_STATUS_OPTIONS = ["全部", "待开始", "待接受", "进行中", "已完成", "已中止", "已拒绝"];
 const THOUGHT_PLACEHOLDER = "新的思路/怀疑方向";
-const MM_CREATE_SPOTLIGHT_KEY = "ea_mm_create_spotlight_v8";
+const MM_CREATE_SPOTLIGHT_KEY = "ea_mm_create_spotlight_v12";
+const COACH_DELAY = {
+  NEW_TASK_READY: 520,
+  FIRST_TASK_SAVED: 900,
+  EXTRA_TASK_SAVED: 760,
+} as const;
 type Direction = "LR" | "TB";
 type CreateViewMode = "all" | "incomplete" | "valid";
-type CoachStep = "fullscreen" | "minimap" | "zoomIn" | "zoomOut" | "fitView" | "toolbar" | "thoughtCategory" | "thought" | "thoughtResult" | "addTask" | "task" | "legend" | "more" | "nested";
-const COACH_STEPS: CoachStep[] = ["fullscreen", "minimap", "zoomIn", "zoomOut", "fitView", "toolbar", "thoughtCategory", "thought", "thoughtResult", "addTask", "task", "legend", "more", "nested"];
+type CoachStep = "fullscreen" | "minimap" | "zoomIn" | "zoomOut" | "fitView" | "toolbar" | "caseRoot" | "thoughtCategory" | "thought" | "thoughtResult" | "task" | "urgencyCard" | "legend" | "addTask" | "extraTask" | "more" | "nested";
+const COACH_STEPS: CoachStep[] = ["fullscreen", "minimap", "zoomIn", "zoomOut", "fitView", "toolbar", "caseRoot", "thoughtCategory", "thought", "thoughtResult", "task", "urgencyCard", "legend", "addTask", "extraTask", "more", "nested"];
 
 const COACH_CONTENT: Record<CoachStep, { index: number; title: string; description: string; target: string }> = {
   fullscreen: {
@@ -70,29 +75,29 @@ const COACH_CONTENT: Record<CoachStep, { index: number; title: string; descripti
     description: "切换视图、筛选任务或调整布局。",
     target: '[data-create-guide="toolbar"]',
   },
-  thoughtCategory: {
+  caseRoot: {
     index: 7,
+    title: "Case 根节点",
+    description: "Case 基本信息汇总在这里。",
+    target: '[data-create-guide="case-root"]',
+  },
+  thoughtCategory: {
+    index: 8,
     title: "选择思路分类",
     description: "选择设计、工艺、测试或其他。",
     target: '[data-create-guide="thought-category"]',
   },
   thought: {
-    index: 8,
+    index: 9,
     title: "填写怀疑依据",
     description: "先填写「因为」，说明观察到的现象。",
     target: '[data-create-guide="thought-input"]',
   },
   thoughtResult: {
-    index: 9,
+    index: 10,
     title: "填写怀疑结论",
     description: "填写「所以」，然后确认思路。",
     target: '[data-create-guide="thought-result"]',
-  },
-  addTask: {
-    index: 10,
-    title: "添加执行任务",
-    description: "点击蓝色加号，添加相关任务。",
-    target: '[data-create-guide="add-task"]',
   },
   task: {
     index: 11,
@@ -100,20 +105,38 @@ const COACH_CONTENT: Record<CoachStep, { index: number; title: string; descripti
     description: "填写相关信息，点击确认，创建任务。",
     target: '[data-create-guide="task"]',
   },
-  legend: {
+  urgencyCard: {
     index: 12,
+    title: "查看紧急程度",
+    description: "任务卡左侧色条表示紧急程度。",
+    target: '[data-create-guide="urgency-bar"]',
+  },
+  legend: {
+    index: 13,
     title: "理解紧急程度",
-    description: "图例颜色对应任务卡左侧色条，快速识别紧急程度。",
+    description: "图例颜色与任务卡色条一一对应。",
     target: '[data-create-guide="legend"]',
   },
+  addTask: {
+    index: 14,
+    title: "添加更多任务",
+    description: "点击思路卡上的蓝色加号，再添加一个任务。",
+    target: '[data-create-guide="add-task"]',
+  },
+  extraTask: {
+    index: 15,
+    title: "填写新任务",
+    description: "填写相关信息，点击确认，创建任务。",
+    target: '[data-create-guide="task"]',
+  },
   more: {
-    index: 13,
+    index: 16,
     title: "添加更多思路",
     description: "点击「新建思路」，增加并列排查方向。",
     target: '[data-create-guide="case-add-thought"]',
   },
   nested: {
-    index: 14,
+    index: 17,
     title: "添加更多细节思路",
     description: "点击蓝色加号，添加更多子思路。",
     target: '[data-create-guide="saved-task"]',
@@ -154,6 +177,7 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
   const [thoughtCategory, setThoughtCategory] = useState("测试");
   const [actionForm, setActionForm] = useState<Partial<ActionCard>>({});
   const seededRef = useRef(false);
+  const initialActionIdRef = useRef<string | null>(null);
   const coachAdvanceTimerRef = useRef<number | null>(null);
 
   useEffect(() => () => {
@@ -227,7 +251,7 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
     [allActions]
   );
 
-  // 新建思路时只创建思路；任务由用户确认思路后手动添加
+  // 后续新建思路只创建思路；首屏的首个任务由初始化逻辑单独预置
   const addThoughtGroup = () => {
     const newGroup: ThoughtGroup = {
       id: `group-${Date.now()}`,
@@ -262,7 +286,13 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
     onGroupsChange(updateInGroups(thoughtGroups));
     setEditingThought(null);
     if (newThought.trim()) {
-      setCoach((c) => (c.active && (c.step === "thought" || c.step === "thoughtResult") ? { ...c, step: "addTask" } : c));
+      const currentGroup = thoughtGroups.find((group) => group.id === groupId);
+      const initialAction = currentGroup?.actions.find((action) => action.id === initialActionIdRef.current) ?? currentGroup?.actions[0];
+      if (initialAction && initialAction.title === "新执行任务") {
+        setActionForm(initialAction);
+        setEditingAction(initialAction.id);
+      }
+      setCoach((c) => (c.active && (c.step === "thought" || c.step === "thoughtResult") ? { ...c, step: "task" } : c));
     }
   };
 
@@ -310,7 +340,11 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
     // Auto-enter edit mode
     setActionForm(newAction);
     setEditingAction(newActionId);
-    setCoach((c) => (c.active && c.step === "addTask" ? { ...c, step: "task" } : c));
+    if (coachAdvanceTimerRef.current !== null) window.clearTimeout(coachAdvanceTimerRef.current);
+    coachAdvanceTimerRef.current = window.setTimeout(() => {
+      setCoach((c) => (c.active && c.step === "addTask" ? { ...c, step: "extraTask" } : c));
+      coachAdvanceTimerRef.current = null;
+    }, COACH_DELAY.NEW_TASK_READY);
   };
 
   // Delete action
@@ -355,10 +389,19 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
     setEditingAction(null);
     if ((updates.title || "").trim()) {
       if (coachAdvanceTimerRef.current !== null) window.clearTimeout(coachAdvanceTimerRef.current);
+      const advanceDelay = coach.active && coach.step === "extraTask"
+        ? COACH_DELAY.EXTRA_TASK_SAVED
+        : coach.active && coach.step === "task"
+        ? COACH_DELAY.FIRST_TASK_SAVED
+        : 520;
       coachAdvanceTimerRef.current = window.setTimeout(() => {
-        setCoach((c) => (c.active && c.step === "task" ? { ...c, step: "legend" } : c));
+        setCoach((c) => c.active && c.step === "task"
+          ? { ...c, step: "urgencyCard" }
+          : c.active && c.step === "extraTask"
+          ? { ...c, step: "more" }
+          : c);
         coachAdvanceTimerRef.current = null;
-      }, 520);
+      }, advanceDelay);
     }
   };
 
@@ -406,11 +449,31 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
     setEditingThought(newGroup.id);
   };
 
-  // 画布为空时始终预置第一个「思路 + 连接的执行动作」并进入填写
+  // 画布为空时预置「Case 根节点 + 第一个思路 + 第一个任务」，先进入思路填写
   useEffect(() => {
     if (!seededRef.current && thoughtGroups.length === 0) {
       seededRef.current = true;
-      addThoughtGroup();
+      const timestamp = Date.now();
+      const initialAction: ActionCard = {
+        id: `action-${timestamp}`,
+        title: "新执行任务",
+        urgency: "一般",
+        department: "PTE",
+        assignee: "",
+        dueDate: "",
+        note: "",
+      };
+      const initialGroup: ThoughtGroup = {
+        id: `group-${timestamp}`,
+        thought: THOUGHT_PLACEHOLDER,
+        category: "测试",
+        actions: [initialAction],
+      };
+      initialActionIdRef.current = initialAction.id;
+      onGroupsChange([initialGroup]);
+      setThoughtText("");
+      setThoughtCategory("测试");
+      setEditingThought(initialGroup.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thoughtGroups.length]);
@@ -517,9 +580,9 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
               action,
               direction,
               dimmed,
-              guideUrgency: coach.active && coach.step === "legend" && action.id === actionForm.id,
-              guideTarget: coach.active && coach.step === "task",
-              guideAddChild: coach.active && coach.step === "nested" && editingAction !== action.id,
+              guideUrgency: coach.active && (coach.step === "urgencyCard" || coach.step === "legend") && action.id === actionForm.id,
+              guideTarget: coach.active && (coach.step === "task" || coach.step === "extraTask") && action.id === actionForm.id,
+              guideAddChild: coach.active && coach.step === "nested" && action.id === actionForm.id && editingAction !== action.id,
               groupId: group.id,
               isEditing: editingAction === action.id,
               actionForm,
@@ -770,10 +833,12 @@ export function CreateCaseMindMapFlow({ caseData, thoughtGroups, onGroupsChange 
                   current.step === "zoomIn" ? "zoomOut" :
                   current.step === "zoomOut" ? "fitView" :
                   current.step === "fitView" ? "toolbar" :
-                  current.step === "toolbar" ? "thoughtCategory" :
+                  current.step === "toolbar" ? "caseRoot" :
+                  current.step === "caseRoot" ? "thoughtCategory" :
                   current.step === "thoughtCategory" ? "thought" :
                   current.step === "thought" ? "thoughtResult" :
-                  current.step === "legend" ? "more" :
+                  current.step === "urgencyCard" ? "legend" :
+                  current.step === "legend" ? "addTask" :
                   current.step === "more" ? "nested" : current.step,
               }));
             }}
@@ -808,7 +873,9 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
       if (element && container) {
         if (!revealed) {
           revealed = true;
-          if (step !== "legend") element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          if (step !== "urgencyCard" && step !== "legend" && step !== "addTask" && step !== "extraTask" && step !== "more") {
+            element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          }
           if (step === "thought" || step === "thoughtResult") {
             window.setTimeout(() => {
               const input = (element.matches("input, textarea")
@@ -834,7 +901,9 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
         const urgencyElement = step === "legend" ? document.querySelector('[data-create-guide="urgency-bar"]') as HTMLElement | null : null;
         const urgency = urgencyElement?.getBoundingClientRect();
         setUrgencyRect(urgency ? { top: urgency.top, left: urgency.left, width: urgency.width, height: urgency.height } : null);
-        const anchorElement = step === "nested" ? element.closest(".react-flow__node") as HTMLElement | null : null;
+        const anchorElement = step === "nested" || step === "urgencyCard"
+          ? element.closest(".react-flow__node") as HTMLElement | null
+          : null;
         const anchor = anchorElement?.getBoundingClientRect() || next;
         setCardAnchor({ top: anchor.top, left: anchor.left, width: anchor.width, height: anchor.height });
         const padding = step === "fullscreen" ? 7 : 10;
@@ -863,7 +932,7 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
 
   if (!rect || !cardAnchor || !bounds) return null;
 
-  const placementAnchor = step === "nested" ? cardAnchor : rect;
+  const placementAnchor = step === "nested" || step === "urgencyCard" ? cardAnchor : rect;
   const right = placementAnchor.left + placementAnchor.width;
   const bottom = placementAnchor.top + placementAnchor.height;
   const cardWidth = 320;
@@ -884,7 +953,7 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
   }
   cardTop = Math.max(bounds.top + 12, cardTop);
 
-  const needsInteraction = (step === "thought" && isOtherThought) || step === "addTask" || step === "task";
+  const needsInteraction = (step === "thought" && isOtherThought) || step === "addTask" || step === "task" || step === "extraTask";
   const isLast = step === "nested";
   const spotlightRadius = Math.min(14, rect.width / 3, rect.height / 3);
   const relativeRect = {
@@ -897,8 +966,10 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
     x2: urgencyRect.left + urgencyRect.width / 2,
     y2: urgencyRect.top + urgencyRect.height / 2,
   } : null;
-  const spotlightTransition = step === "legend" ? 1100 : 680;
-  const cardTransition = step === "legend" ? 1200 : 760;
+  const isLongTravel = step === "legend" || step === "addTask" || step === "more" || step === "nested";
+  const isTaskHandoff = step === "urgencyCard" || step === "extraTask";
+  const spotlightTransition = isLongTravel ? 1200 : isTaskHandoff ? 900 : 680;
+  const cardTransition = isLongTravel ? 1300 : isTaskHandoff ? 980 : 760;
 
   return (
     <>
@@ -1038,7 +1109,7 @@ function CreateCaseSpotlight({ step, container, onNext, onGoTo, canProceed, isOt
 function CaseNodeComponent({ data }: { data: any }) {
   const { caseItem, direction, onAddThought, guideAddThought } = data;
   return (
-    <div className="group/case relative bg-white border-2 border-slate-200 rounded-xl p-4 shadow-lg w-[280px]">
+    <div data-create-guide="case-root" className="group/case relative bg-white border-2 border-slate-200 rounded-xl p-4 shadow-lg w-[280px]">
       <Handle type="source" position={direction === "LR" ? Position.Right : Position.Bottom} id={direction === "LR" ? "right" : "bottom"} />
       <button
         data-create-guide={guideAddThought ? "case-add-thought" : undefined}
