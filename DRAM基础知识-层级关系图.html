@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>DRAM 基础知识 · 层级关系图</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #121a30;
+    --panel2: #182036;
+    --ink: #e8ecf6;
+    --sub: #9aa6bf;
+    --line: #2a3550;
+    --blue: #0052D9;
+    --blue-soft: #1f4fd0;
+    --cyan: #22b8cf;
+    --green: #2fb380;
+    --amber: #e0a437;
+    --pink: #d9578f;
+    --purple: #7A3DFF;
+    --wafer: #3d7bff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(1200px 700px at 20% -10%, #16203c 0%, #0b1020 55%) no-repeat, #0b1020;
+    color: var(--ink);
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 48px 72px;
+  }
+  header.page {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 22px;
+    margin-bottom: 34px;
+  }
+  header.page h1 {
+    font-size: 30px;
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+  }
+  header.page .tag {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--cyan);
+    border: 1px solid rgba(34,184,207,.4);
+    border-radius: 999px;
+    padding: 3px 12px;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+  header.page p.lead {
+    margin: 0;
+    color: var(--sub);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 640px;
+  }
+  header.page .right {
+    text-align: right;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.9;
+    min-width: 200px;
+  }
+
+  /* ===== 主链路：从硅到模组 ===== */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    letter-spacing: 1px;
+    margin: 44px 0 20px;
+    color: var(--ink);
+  }
+  .section-title .no {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    display: grid; place-items: center;
+    font-weight: 700;
+  }
+  .section-title .hint { color: var(--sub); font-size: 12px; font-weight: 400; letter-spacing: 0; }
+
+  .chain {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .node {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    background: linear-gradient(180deg, #141d36, #101728);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .node .badge {
+    align-self: flex-start;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    color: #fff;
+  }
+  .node h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .node h3 small { font-size: 12px; color: var(--sub); font-weight: 400; }
+  .node p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--sub); }
+  .node .qty {
+    margin-top: auto;
+    font-size: 11px;
+    color: var(--cyan);
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+  .arrow {
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    color: var(--cyan);
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .node h3 { font-size: 16px; }
+  .node p { font-size: 12px; }
+  /* 视觉小图 */
+  .visual { height: 74px; display: grid; place-items: center; margin: 2px 0 4px; }
+  .wafer-svg circle.notch { fill: var(--bg); }
+
+  .grid-dies {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    width: 68px;
+  }
+  .grid-dies i {
+    aspect-ratio: 1;
+    background: rgba(61,123,255,.35);
+    border: 1px solid rgba(61,123,255,.6);
+    border-radius: 2px;
+  }
+  .grid-dies i.hl { background: var(--wafer); }
+
+  .chip {
+    width: 66px; height: 44px;
+    background: linear-gradient(180deg, #23324f, #16213a);
+    border: 1px solid #3a4a6e;
+    border-radius: 6px;
+    position: relative;
+  }
+  .chip::before, .chip::after {
+    content: "";
+    position: absolute;
+    left: -6px; right: -6px;
+    height: 4px;
+    background:
+      repeating-linear-gradient(90deg, #6c7ba0 0 4px, transparent 4px 9px);
+    top: 8px;
+  }
+  .chip::after { top: auto; bottom: 8px; }
+  .chip span {
+    position: absolute; inset: 8px 4px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 3px;
+    display: grid; place-items: center;
+    font-size: 9px; color: var(--sub);
+  }
+
+  /* 模组区 */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 8px;
+  }
+  .mod-card {
+    background: linear-gradient(180deg, #141d36, #0f1626);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .mod-card.full { grid-column: 1 / -1; }
+  .mod-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .mod-head .k {
+    font-size: 19px; font-weight: 700; letter-spacing: .5px;
+  }
+  .mod-head .en { color: var(--sub); font-size: 12.5px; }
+  .mod-head .pill {
+    margin-left: auto;
+    font-size: 11px; padding: 3px 11px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--sub);
+  }
+  .mod-body { display: flex; gap: 20px; align-items: center; }
+  .mod-body .desc { font-size: 13px; line-height: 1.75; color: var(--sub); flex: 1; }
+  .mod-body .desc b { color: var(--ink); font-weight: 600; }
+
+  /* PCB 模组图形 */
+  .pcb {
+    --h: 58px;
+    height: var(--h);
+    border-radius: 6px 6px 3px 3px;
+    background: linear-gradient(180deg, #17392b, #10261d);
+    border: 1px solid #2f6b4f;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    min-width: 220px;
+  }
+  .pcb.long { min-width: 320px; }
+  .pcb.short { min-width: 150px; }
+  .pcb .ic {
+    width: 26px; height: 30px;
+    background: linear-gradient(180deg, #2b3c5c, #1a2740);
+    border: 1px solid #46587f;
+    border-radius: 3px;
+  }
+  .pcb .ic.reg { background: linear-gradient(180deg, #5a3a6e, #3a2447); border-color: #8f5fb0; }
+  .pcb .fingers {
+    position: absolute; left: 6px; right: 6px; bottom: -1px; height: 8px;
+    background: repeating-linear-gradient(90deg, #caa84a 0 4px, transparent 4px 8px);
+    border-radius: 0 0 3px 3px;
+  }
+  .pcb .notch-b {
+    position: absolute; bottom: -1px;
+    width: 10px; height: 8px; background: var(--bg);
+  }
+  .pcb .cap {
+    position: absolute; top: -5px; font-size: 10px; color: var(--sub);
+    left: 50%; transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tags span {
+    font-size: 11px; padding: 3px 10px; border-radius: 6px;
+    background: rgba(31,79,208,.15); border: 1px solid rgba(31,79,208,.4); color: #9db8ff;
+  }
+
+  /* 对比表 */
+  table {
+    width: 100%; border-collapse: collapse; margin-top: 14px;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line);
+  }
+  thead th {
+    color: var(--cyan); font-size: 12px; letter-spacing: 1px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(34,184,207,.05);
+  }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  td b { color: var(--ink); }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align: middle;}
+
+  .legend {
+    display: flex; gap: 22px; flex-wrap: wrap;
+    margin-top: 16px; color: var(--sub); font-size: 12px;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+
+  footer.page {
+    margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line);
+    color: var(--sub); font-size: 12px; line-height: 1.8;
+  }
+  .kbd { font-family: ui-monospace, Menlo, monospace; background:#0c142a; padding:2px 8px; border-radius:5px; color:#9db8ff; }
+  .note {
+    background: rgba(224,164,55,.08);
+    border: 1px solid rgba(224,164,55,.35);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 12.5px; color: #e7c98f; line-height: 1.7;
+    margin-top: 22px;
+  }
+  .note b { color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <div>
+      <span class="tag">DRAM 101</span>
+      <h1>DRAM 基础知识 · 从硅片到内存条</h1>
+      <p class="lead">一张图看懂半导体存储器的物料层级：Lot（批次）→ Wafer（晶圆）→ Die（晶粒）→ IC（颗粒）→ DIMM（内存模组），以及 RDIMM / UDIMM / SODIMM / CAMM 各类模组的区别。</p>
+    </div>
+    <div class="right">
+      适用：测试 / 良率 / 失效分析<br>
+      物料追溯层级参考<br>
+      2026 · EA Platform
+    </div>
+  </header>
+
+  <!-- ============ 主链路 ============ -->
+  <div class="section-title">
+    <span class="no">1</span>
+    制造物料层级链
+    <span class="hint">— 一颗内存的"从沙子到内存条"之路，从左到右逐级封装组装</span>
+  </div>
+
+  <div class="chain">
+    <!-- LOT -->
+    <div class="node" style="border-color:#3a4a6e;">
+      <span class="badge" style="background:#5563a8;">批次</span>
+      <div class="visual">
+        <div style="display:flex;gap:4px;">
+          <div style="width:16px;height:50px;border:1px solid #5563a8;border-radius:4px;background:linear-gradient(180deg,#22305a,#161f3a)"></div>
+          <div style="width:16px;height:50px;border:1px solid #5563a8;border-radius:4px;background:linear-gradient(180deg,#22305a,#161f3a)"></div>
+          <div style="width:16px;height:50px;border:1px solid #5563a8;border-radius:4px;background:linear-gradient(180deg,#22305a,#161f3a)"></div>
+        </div>
+      </div>
+      <h3>Lot <small>批次</small></h3>
+      <p>同一炉、同工艺条件一起投产的一组晶圆，共享工艺履历。是良率与失效追溯的最大追踪单位。</p>
+      <div class="qty">1 Lot ≈ 25 片 Wafer</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- WAFER -->
+    <div class="node" style="border-color:#3d7bff;">
+      <span class="badge" style="background:var(--wafer);">晶圆</span>
+      <div class="visual">
+        <svg width="60" height="60" viewBox="0 0 66 66" class="wafer-svg">
+          <circle cx="33" cy="33" r="30" fill="#17264d" stroke="#3d7bff" stroke-width="1.5"/>
+          <g stroke="rgba(61,123,255,.4)" stroke-width="1">
+            <line x1="9" y1="20" x2="57" y2="20"/><line x1="6" y1="33" x2="60" y2="33"/>
+            <line x1="9" y1="46" x2="57" y2="46"/>
+            <line x1="20" y1="8" x2="20" y2="58"/><line x1="33" y1="5" x2="33" y2="61"/>
+            <line x1="46" y1="8" x2="46" y2="58"/>
+          </g>
+          <path d="M27 61 a30 30 0 0 0 12 0 l0 2 l-12 0 z" fill="#0b1020"/>
+        </svg>
+      </div>
+      <h3>Wafer <small>晶圆</small></h3>
+      <p>一片圆形单晶硅片（8"/12"），用光刻等工艺同时做出成百上千个相同电路。底部"缺口"标晶向。</p>
+      <div class="qty">1 Wafer → 数百~上千 Die</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- DIE -->
+    <div class="node" style="border-color:#3d7bff;">
+      <span class="badge" style="background:var(--wafer);">裸晶粒</span>
+      <div class="visual">
+        <div class="grid-dies">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i class="hl"></i><i></i><i></i><i class="hl"></i><i></i>
+          <i></i><i></i><i></i><i class="hl"></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+      <h3>Die <small>晶粒 / 裸芯</small></h3>
+      <p>晶圆切割 (Dicing) 后得到的<b>单颗裸硅芯片</b>，没有外壳与引脚，尚不能直接焊接使用。</p>
+      <div class="qty">切割 + 封装 (Packaging) →</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- IC -->
+    <div class="node" style="border-color:#22b8cf;">
+      <span class="badge" style="background:var(--cyan);color:#062;">颗粒</span>
+      <div class="visual"><div class="chip"><span>DRAM</span></div></div>
+      <h3>IC <small>内存颗粒</small></h3>
+      <p>Die <b>封装</b>后得到的成品 DRAM 芯片（DDR4/DDR5 颗粒），有外壳与引脚、可焊接。即"内存颗粒 = 单颗 DRAM 芯片"。</p>
+      <div class="qty">若干 IC 焊到 PCB →</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- DIMM -->
+    <div class="node" style="border-color:#2fb380;flex:1.6 1 0;">
+      <span class="badge" style="background:var(--green);color:#052;">内存模组</span>
+      <div class="visual" style="height:auto;padding:8px 0;">
+        <div class="pcb long" style="min-width:0;width:100%;">
+          <div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          <div class="ic reg"></div>
+          <div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          <div class="fingers"></div>
+          <div class="notch-b" style="left:42%;"></div>
+        </div>
+      </div>
+      <h3>DIMM <small>双列直插内存模组</small></h3>
+      <p>把多颗 DRAM <b>IC</b> 焊在一块 <b>PCB</b> 上、金手指两面独立引脚，就是插到主板上的"内存条"。按用途/形态分 RDIMM / UDIMM / SODIMM / CAMM。</p>
+      <div class="qty">8~36 颗 IC + PCB + 金手指</div>
+    </div>
+  </div>
+
+  <!-- ============ 模组家族 ============ -->
+  <div class="section-title">
+    <span class="no">2</span>
+    DIMM 家族：四种常见内存模组
+    <span class="hint">— 同样是"内存条"，因应用场景不同而形态/电气不同</span>
+  </div>
+
+  <div class="modules">
+    <!-- UDIMM -->
+    <div class="mod-card">
+      <div class="mod-head">
+        <span class="k" style="color:#7fd0a3;">UDIMM</span>
+        <span class="en">Unbuffered DIMM · 无缓冲</span>
+        <span class="pill">消费级 / 台式机</span>
+      </div>
+      <div class="mod-body">
+        <div class="pcb">
+          <div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          <div class="fingers"></div><div class="notch-b" style="left:44%;"></div>
+        </div>
+        <div class="desc">
+          最"原始"的桌面内存条。地址/命令信号 <b>直连</b> DRAM，无寄存器缓冲。<br>
+          <b>成本低、延迟低</b>，但单条容量与稳定性上限较低，容量大时对 CPU 负载压力大。
+        </div>
+      </div>
+    </div>
+
+    <!-- RDIMM -->
+    <div class="mod-card">
+      <div class="mod-head">
+        <span class="k" style="color:#b79bff;">RDIMM</span>
+        <span class="en">Registered DIMM · 带寄存器</span>
+        <span class="pill">服务器 / 数据中心</span>
+      </div>
+      <div class="mod-body">
+        <div class="pcb">
+          <div class="ic"></div><div class="ic"></div><div class="ic reg"></div><div class="ic"></div><div class="ic"></div>
+          <div class="fingers"></div><div class="notch-b" style="left:44%;"></div>
+        </div>
+        <div class="desc">
+          在地址/命令线上加了 <b>寄存器 (Register / RCD)</b> 做缓冲（图中紫色芯片），减轻 CPU 内存控制器负载。<br>
+          <b>可堆更大容量、更稳定</b>，常配 ECC；延迟略高、价格贵。服务器主流。
+        </div>
+      </div>
+    </div>
+
+    <!-- SODIMM -->
+    <div class="mod-card">
+      <div class="mod-head">
+        <span class="k" style="color:#8fd0ff;">SODIMM</span>
+        <span class="en">Small Outline DIMM · 小型化</span>
+        <span class="pill">笔记本 / 迷你机</span>
+      </div>
+      <div class="mod-body">
+        <div class="pcb short">
+          <div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          <div class="fingers"></div><div class="notch-b" style="left:40%;"></div>
+        </div>
+        <div class="desc">
+          <b>更短更小</b>的 DIMM，为笔记本/一体机/迷你主机的空间设计（约桌面条的一半长）。<br>
+          电气上多为无缓冲(类 UDIMM)，也有 ECC 版本。是移动设备的标准可插拔内存。
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMM -->
+    <div class="mod-card">
+      <div class="mod-head">
+        <span class="k" style="color:#f0b46a;">CAMM(2)</span>
+        <span class="en">Compression Attached Memory Module</span>
+        <span class="pill">新一代 / 超薄本</span>
+      </div>
+      <div class="mod-body">
+        <div style="width:130px;height:52px;border-radius:8px;border:1px solid #caa84a;background:linear-gradient(180deg,#3a3320,#241f12);position:relative;display:flex;gap:4px;align-items:center;justify-content:center;">
+          <div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div>
+          <div style="position:absolute;inset:auto 0 4px;height:6px;background:repeating-linear-gradient(90deg,#caa84a 0 3px,transparent 3px 6px);"></div>
+        </div>
+        <div class="desc">
+          <b>压缩贴合式</b>新标准 (JEDEC CAMM2)：模组 <b>平铺</b>并用螺丝/触点压接到主板，而非竖插金手指。<br>
+          <b>更薄、走线更短、频率更高</b>，可替代 SODIMM，兼容 DDR5/LPDDR5。面向超薄本与高性能移动平台。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 对比表 ============ -->
+  <div class="section-title">
+    <span class="no">3</span>
+    四种模组速查对比
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>模组</th>
+        <th>全称 / 含义</th>
+        <th>缓冲寄存器</th>
+        <th>主要场景</th>
+        <th>形态特点</th>
+        <th>典型容量/稳定性</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b><span class="dot" style="background:#7fd0a3;"></span>UDIMM</b></td>
+        <td>Unbuffered 无缓冲 DIMM</td>
+        <td>无</td>
+        <td>台式机、消费级</td>
+        <td>标准长条，全长</td>
+        <td>容量中等，成本低、延迟低</td>
+      </tr>
+      <tr>
+        <td><b><span class="dot" style="background:#b79bff;"></span>RDIMM</b></td>
+        <td>Registered 带寄存器 DIMM</td>
+        <td>有 (RCD)</td>
+        <td>服务器、工作站、数据中心</td>
+        <td>标准长条 + 寄存器芯片，多配 ECC</td>
+        <td>容量大、最稳定，价格高</td>
+      </tr>
+      <tr>
+        <td><b><span class="dot" style="background:#8fd0ff;"></span>SODIMM</b></td>
+        <td>Small Outline 小型 DIMM</td>
+        <td>一般无</td>
+        <td>笔记本、迷你主机、一体机</td>
+        <td>短小（约桌面条一半），竖插</td>
+        <td>容量中等，节省空间</td>
+      </tr>
+      <tr>
+        <td><b><span class="dot" style="background:#f0b46a;"></span>CAMM2</b></td>
+        <td>Compression Attached MM 压缩贴合</td>
+        <td>视规格</td>
+        <td>超薄本、新一代移动/高性能平台</td>
+        <td>平铺压接（非金手指竖插），超薄</td>
+        <td>高频、低延迟，替代 SODIMM</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--wafer);"></span>Wafer 晶圆</span>
+    <span><span class="dot" style="background:var(--cyan);"></span>Die/IC 颗粒</span>
+    <span><span class="dot" style="background:var(--green);"></span>DIMM 模组</span>
+    <span><span class="dot" style="background:var(--purple);"></span>寄存器/RCD（RDIMM）</span>
+    <span><span class="dot" style="background:#caa84a;"></span>金手指/触点</span>
+  </div>
+
+  <div class="note">
+    <b>易混点提示：</b>
+    ① <b>Die 与 IC</b>：Die 是晶圆上切下的裸晶粒；IC 是封装后的成品颗粒——DRAM 语境下常直接叫"内存颗粒"。
+    ② <b>DIMM 是"模组"级</b>，不是芯片级：一条 DIMM = 多颗 IC + PCB。
+    ③ <b>RDIMM/UDIMM 是电气区别</b>（有无寄存器缓冲），<b>SODIMM 是尺寸区别</b>（小型化），<b>CAMM 是连接方式区别</b>（压接替代竖插），三者划分维度不同。
+    ④ <b>ECC</b> 与 R/U 无关：UDIMM 也可以带 ECC，RDIMM 也可无 ECC，只是服务器多为 ECC RDIMM。
+  </div>
+
+  <footer class="page">
+    层级追溯链：<span class="kbd">Lot → Wafer → Die → IC → DIMM(RDIMM/UDIMM/SODIMM/CAMM)</span><br>
+    本页为静态示意图，可直接双击在浏览器打开查看。© EA Platform · DRAM 基础知识梳理
+  </footer>
+
+</div>
+</body>
+</html>
