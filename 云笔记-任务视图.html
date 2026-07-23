@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>云笔记 · EA 每日更新（任务视图）</title>
+<style>
+  /*
+  * 云笔记 · EA 每日更新 —— 独立可嵌入组件
+   * ---------------------------------------------------------------
+   * 设计为通过 <iframe> 嵌入到「别的云笔记产品」里，因此：
+   *  - 自包含：无外部依赖、无构建，直接 open / 作为 iframe src。
+   *  - 响应式：布局随宿主 iframe 宽度自适应（这里的媒体查询以 iframe
+   *    自身视口宽度为准），窄到 320、宽到 1400 都可用。
+  *  - 粘贴 EA URL 后自动识别 Case / 任务两种数据范围。
+  *  - 三种形态：一句话摘要 / 展开当天明细与附件 / 全屏演示。
+   * 颜色：EA 蓝 #0052D9（紫色保留给 AI，这里不使用）。
+   */
+  :root {
+    --blue: #0052d9;
+    --blue-d: #003fa8;
+    --ink: #0f172a;
+    --slate-800: #1e293b;
+    --slate-700: #334155;
+    --slate-600: #475569;
+    --slate-500: #64748b;
+    --slate-400: #94a3b8;
+    --slate-300: #cbd5e1;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--slate-50);
+    color: var(--slate-800);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .host {
+    padding: clamp(0px, 2vw, 16px);
+    min-height: 100vh;
+  }
+
+  /* ── 卡片外框 ───────────────────────────────────────────── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    overflow: visible;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── 首次配置：粘贴 EA URL ───────────────────────────────── */
+  .setup { padding: clamp(20px, 5vw, 36px); }
+  .setup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 6px;
+  }
+  .setup-back {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    border: 1px solid var(--slate-200);
+    background: #fff;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: var(--slate-600);
+    cursor: pointer;
+  }
+  .setup-back:hover { border-color: var(--slate-300); background: var(--slate-50); }
+  .cur-source {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--slate-100);
+    border-radius: 8px;
+    background: var(--slate-50);
+  }
+  .cur-source .cur-label { font-size: 11px; color: var(--slate-400); }
+  .cur-source .cur-name { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+  .cur-source .code { font-size: 12px; color: var(--slate-400); }
+  .setup-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--slate-800);
+  }
+  .setup-head .setup-title { margin: 0; }
+  .setup-title svg { color: var(--blue); }
+  .setup-desc {
+    margin: 4px 0 16px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--slate-400);
+  }
+  .source-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .source-form { display: flex; align-items: stretch; gap: 8px; flex: 1; min-width: 240px; }  .source-input {
+    min-width: 0;
+    flex: 1;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--slate-200);
+    border-radius: 7px;
+    outline: none;
+    font-size: 13px;
+    color: var(--slate-700);
+    background: #fff;
+  }
+  .source-input:focus { border-color: var(--blue); }
+  .source-submit {
+    flex: none;
+    height: 38px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 7px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .source-submit:hover { background: var(--blue-d); }
+  .source-submit[disabled] { opacity: .55; cursor: default; }
+  .source-error {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #fff1f0;
+    color: #c62828;
+    font-size: 12px;
+  }
+  .source-samples {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--slate-400);
+  }
+  .sample-link {
+    border: none;
+    background: var(--slate-50);
+    border-radius: 5px;
+    padding: 4px 7px;
+    color: var(--slate-500);
+    cursor: pointer;
+  }
+  .sample-link:hover { color: var(--blue); }
+  .mode-badge {
+    flex: none;
+    padding: 2px 6px;
+    border: 1px solid rgba(0, 82, 217, .16);
+    border-radius: 4px;
+    background: rgba(0, 82, 217, .06);
+    color: var(--blue);
+    font-size: 10px;
+  }
+  @media (max-width: 520px) {
+    .source-form { flex-direction: column; }
+    .source-submit { width: 100%; }
+  }
+
+  /* ── 头部 ───────────────────────────────────────────────── */
+  .hd {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px clamp(12px, 3vw, 20px);
+    border-bottom: 1px solid var(--slate-100);
+  }
+  .hd .ic { color: var(--blue); display: inline-flex; }
+  .hd h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--slate-800);
+  }
+  .case-link { color: inherit; text-decoration: none; cursor: pointer; }
+  .case-link:hover { color: var(--blue); text-decoration: underline; }
+  .hd .code { font-size: 12px; color: var(--slate-400); }
+  .hd-fs {
+    margin-left: 8px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--slate-200);
+    background: #fff;
+    border-radius: 8px;
+    color: var(--slate-500);
+    cursor: pointer;
+    flex: none;
+  }
+  .hd-fs:hover {
+    color: var(--blue);
+    border-color: rgba(0, 82, 217, 0.25);
+    background: rgba(0, 82, 217, 0.05);
+  }
+
+  /* 日期选择器（并入标题行右侧） ────────────────── */
+  .date-tag {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate-500);
+    white-space: nowrap;
+  }
+  .date-picker { position: relative; display: inline-flex; }
+  .date-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 30;
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    padding: 10px;
+  }
+  .cal { width: 234px; }
+  .cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .cal-title { font-size: 13px; font-weight: 600; color: var(--slate-700); }
+  .cal-nav {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--slate-200);
+    background: #fff;
+    border-radius: 6px;
+    color: var(--slate-500);
+    cursor: pointer;
+  }
+  .cal-nav:hover { background: var(--slate-50); border-color: var(--slate-300); }
+  .cal-dow,
+  .cal-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-dow span {
+    text-align: center;
+    font-size: 11px;
+    color: var(--slate-400);
+    padding: 4px 0;
+  }
+  .cal-cell,
+  .cal-day {
+    position: relative;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    border: none;
+    background: none;
+    border-radius: 7px;
+  }
+  .cal-day.empty { color: var(--slate-300); }
+  .cal-day.has {
+    color: var(--slate-700);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .cal-day.has:hover { background: var(--slate-50); }
+  .cal-dot {
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--blue);
+  }
+  .cal-day.today { color: var(--blue); font-weight: 600; }
+  .cal-day.active {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 600;
+  }
+  .cal-day.active .cal-dot { background: #fff; }
+  .badge {
+    font-size: 10px;
+    color: var(--blue);
+    background: rgba(0, 82, 217, 0.08);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  .today-link {
+    font-size: 12px;
+    color: var(--blue);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .today-link:hover { text-decoration: underline; }
+  .date-pos { font-size: 12px; color: var(--slate-400); }
+  .day { padding: 16px clamp(12px, 3vw, 20px); }
+
+  .btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    border: 1px solid var(--slate-200);
+    background: #fff;
+    color: var(--slate-600);
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--slate-50); }
+  .btn.primary {
+    color: var(--blue);
+    border-color: rgba(0, 82, 217, 0.25);
+  }
+  .btn.primary:hover { background: rgba(0, 82, 217, 0.05); }
+  .btn svg { display: block; }
+
+  /* ── 日期 chip（单条更新内部复用） ───────────────────────── */
+  .chip-day {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--blue);
+    background: rgba(0, 82, 217, 0.08);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* ── 单条更新块（内联 & 全屏复用） ───────────────────────── */
+  .u-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .u-who {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--slate-500);
+  }
+  .u-who .sep { color: var(--slate-300); }
+  .u-who .role { color: var(--slate-400); }
+  .u-head {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--slate-800);
+    margin-bottom: 8px;
+  }
+  .u-head.clamp {
+    margin-bottom: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* 收起态的一句话摘要 / 展开态的 lead */
+  .u-sum {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--slate-800);
+  }
+  .u-sum.clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .u-bullets.detail { margin-top: 12px; }
+  .u-bullets { list-style: none; margin: 0; padding: 0; }
+  .u-bullets li {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--slate-600);
+    line-height: 1.6;
+    margin-bottom: 6px;
+  }
+  .u-bullets li::before {
+    content: "";
+    flex: none;
+    margin-top: 8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--slate-300);
+  }
+
+  /* ── 附件列表 ───────────────────────────── */
+  .files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .file-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--slate-600);
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  .file-pill svg { display: block; color: var(--slate-400); }
+
+  /* 全屏时大字排版 */
+  .big .u-who { font-size: 14px; }
+  .big .u-head { font-size: 17px; margin-bottom: 12px; }
+  .big .u-sum { font-size: 17px; }
+  .big .u-bullets li { font-size: 14px; }
+
+  /* 展开 / 收起 —— 幽灵链接（非按钮），一条 hairline 分隔 */
+  .toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    margin-top: 14px;
+    padding-top: 12px;
+    border: none;
+    border-top: 1px solid var(--slate-100);
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--slate-400);
+  }
+  .toggle:hover { color: var(--blue); }
+  .toggle svg { display: block; }
+
+  /* ── 形态 3：全屏演示 ───────────────────────────────────── */
+  .fs {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+  .fs-top {
+    height: 56px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 clamp(12px, 3vw, 24px);
+    border-bottom: 1px solid var(--slate-100);
+  }
+  .fs-title { display: flex; flex-direction: column; min-width: 0; }
+  .fs-title .t {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fs-title .s { font-size: 11px; color: var(--slate-400); }
+  .fs-hint { font-size: 11px; color: var(--slate-400); }
+  @media (max-width: 900px) { .fs-hint { display: none; } }
+  .fs-top .spacer { margin-left: auto; }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    border: none;
+    background: none;
+    color: var(--slate-400);
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--slate-100); }
+
+  .fs-body { flex: 1; min-height: 0; display: flex; }
+  .fs-nav {
+    width: 224px;
+    flex: none;
+    border-right: 1px solid var(--slate-100);
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+  .fs-nav button {
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-left: 2px solid transparent;
+    background: none;
+    padding: 12px 16px;
+    cursor: pointer;
+  }
+  .fs-nav button:hover { background: var(--slate-50); }
+  .fs-nav button.active {
+    border-left-color: var(--blue);
+    background: rgba(0, 82, 217, 0.05);
+  }
+  .fs-nav .d { font-size: 14px; font-weight: 500; color: var(--slate-700); display: inline-flex; align-items: center; gap: 6px; }
+  .fs-nav button.active .d { color: var(--blue); }
+  .fs-nav .h {
+    font-size: 11px;
+    color: var(--slate-400);
+    margin-top: 4px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .fs-nav .w { font-size: 10px; color: var(--slate-400); margin-top: 4px; }
+
+  .fs-content { flex: 1; min-width: 0; overflow-y: auto; }
+  .fs-content .inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: clamp(20px, 4vw, 40px);
+  }
+
+  .fs-foot {
+    height: 56px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 clamp(12px, 3vw, 24px);
+    border-top: 1px solid var(--slate-100);
+  }
+  .fs-foot .btn { height: 36px; }
+  .dots {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dots span {
+    height: 6px;
+    width: 6px;
+    border-radius: 999px;
+    background: var(--slate-200);
+    transition: all 0.2s;
+  }
+  .dots span.on { width: 24px; background: var(--blue); }
+
+  /* 窄屏全屏：左侧按天导航改为顶部横向 chip 滚动 */
+  @media (max-width: 720px) {
+    .fs-body { flex-direction: column; }
+    .fs-nav {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-right: none;
+      border-bottom: 1px solid var(--slate-100);
+      padding: 10px 12px;
+    }
+    .fs-nav button {
+      flex: none;
+      width: auto;
+      min-width: 150px;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 8px;
+    }
+    .fs-nav button.active { border-bottom-color: var(--blue); }
+    .fs-nav .h { display: none; }
+  }
+  .btn[disabled] { opacity: 0.4; cursor: default; }
+
+  /* 全屏：当天更新逐条展开（细节视图） */
+  .fs-daytag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate-500);
+    padding: 4px 10px;
+    border: 1px solid var(--slate-200);
+    border-radius: 999px;
+  }
+  .fs-day-head { margin-bottom: 28px; }
+  .fs-day-sum {
+    font-size: clamp(18px, 2.2vw, 24px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .fs-day-meta { margin-top: 8px; font-size: 13px; color: var(--slate-400); }
+
+  .fs-ev {
+    display: grid;
+    grid-template-columns: 52px 16px 1fr;
+    padding-bottom: 22px;
+  }
+  .fs-ev:last-child { padding-bottom: 0; }
+  .fs-ev-time {
+    font-size: 13px;
+    color: var(--slate-400);
+    font-variant-numeric: tabular-nums;
+    padding-top: 3px;
+  }
+  .fs-ev-line { position: relative; display: flex; justify-content: center; }
+  .fs-ev-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--blue);
+    margin-top: 6px;
+    z-index: 1;
+  }
+  .fs-ev-line::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: -22px;
+    width: 2px;
+    background: var(--slate-100);
+  }
+  .fs-ev:last-child .fs-ev-line::before { display: none; }
+  .fs-ev-main { min-width: 0; padding-left: 6px; }
+  .fs-ev-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fs-ev-kind { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .k-status,
+  .k-casestatus,
+  .k-progress,
+  .k-dispatch { color: var(--blue); background: rgba(0, 82, 217, 0.08); }
+  .k-comment,
+  .k-flow,
+  .k-voice,
+  .k-accept,
+  .k-change { color: var(--slate-600); background: var(--slate-100); }
+  .k-attach,
+  .k-caseattach,
+  .k-efa { color: #0f766e; background: rgba(15, 118, 110, 0.08); }
+  .k-conclusion,
+  .k-close { color: #b45309; background: rgba(180, 83, 9, 0.08); }
+  .k-reject,
+  .k-terminate { color: #b91c1c; background: rgba(185, 28, 28, 0.08); }
+  .k-aisummary { color: #7a3dff; background: rgba(122, 61, 255, 0.08); }
+  .k-newtask,
+  .k-participant,
+  .k-link { color: #15803d; background: rgba(21, 128, 61, 0.08); }
+  .fs-ev-who { font-size: 13px; font-weight: 500; color: var(--slate-700); }
+  .fs-ev-task {
+    font-size: 11px;
+    color: var(--slate-400);
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+  .fs-ev-flow { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .fs-ev-field {
+    font-size: 12px;
+    color: var(--slate-400);
+    margin-right: 2px;
+  }
+  .fs-ev-flow .chip {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 6px;
+    background: var(--slate-100);
+    color: var(--slate-600);
+  }
+  .fs-ev-flow .chip.done { background: rgba(0, 82, 217, 0.08); color: var(--blue); }
+  .fs-ev-flow .arrow { color: var(--slate-300); }
+  .fs-ev-text { margin-top: 8px; font-size: 15px; color: var(--ink); line-height: 1.65; }
+  .fs-empty { text-align: center; color: var(--slate-400); font-size: 15px; padding: 64px 0; }
+</style>
+</head>
+<body>
+<div class="host">
+  <div id="root" class="card"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── 数据来源 ──────────────────────────────────────────────────────
+   * 云笔记不自己造内容，而是读取「一个 Case 的原始事件流」再按天切增量。
+   * 事件流在真实系统里由后端把这些 Case 子对象合并、按时间戳排好：
+   *   · 任务状态变更  ← TaskNode.statusHistory[]（from/to/at/by）
+   *   · 任务评论      ← 任务评论区（by/at/text，可带附件）
+   *   · 附件上传      ← Case/任务 attachments[]（name/kind/by/at）
+   *   · 结论          ← TaskNode.conclusion / Case 结论
+   *   · 流转          ← Case 流转日志（owner/due/level 变更）
+   * 每个事件都带 at（时间戳）、by（人）、task（执行任务编号 TaskNode.code）；
+   * role（角色）由 owner→岗位映射得到（对应 EA 的 ownerToDepartment）。
+   * ───────────────────────────────────────────────────────────────── */
+  var MOCK_CASE = {
+    id: "case-001",
+    name: "DDR5 X-die CP1 yield drop @Site A",
+    code: "EA-260511000001",
+    createdAt: "2026-04-15",
+  };
+  var MOCK_TASKS = {
+    "EA-260511000001.001": { name: "低压 Shmoo / Pattern 验证", code: "EA-260511000001.001", caseCode: "EA-260511000001" },
+    "EA-260511000001.002": { name: "近 8 Lot 良率回溯", code: "EA-260511000001.002", caseCode: "EA-260511000001" },
+    "EA-260511000001.003": { name: "FIB / SEM 物理分析", code: "EA-260511000001.003", caseCode: "EA-260511000001" },
+  };
+
+  // owner → 角色（对应 EA 的 ownerToDepartment / 岗位映射）
+  var ROLE_OF = { "张伟": "PTE", "李娜": "PE", "陈磊": "FA", "王芳": "TE" };
+
+  // 原始事件流（= 该 Case 各子对象合并后的时间线，尚未分组）
+  // 事件类型（kind）：
+  //  任务级：status/progress/comment/attach/conclusion/newtask/dispatch/accept/reject/terminate/change/efa/voice
+  //  Case级：flow/casestatus/aisummary/participant/caseattach/close/link（无 task 字段，只在 Case 视图出现）
+  var CASE_EVENTS = [
+    // ══════════ 今天 07-23 ══════════
+    { at: "2026-07-23 11:32", kind: "close", by: "张伟",
+      text: "主因确认为电压 margin，已上线 Coverage 拦截", path: "低压 Shmoo 验证 → P_ICC2_07 定位 → 时序修正" },
+    { at: "2026-07-23 11:30", kind: "casestatus", by: "张伟", from: "进行中", to: "已关闭" },
+    { at: "2026-07-23 11:20", kind: "aisummary", by: "系统",
+      text: "结论与风险段落已刷新：主因锁定电压 margin，建议扩样 2 个 Lot 复验" },
+    { at: "2026-07-23 11:00", kind: "caseattach", by: "张伟",
+      text: "Coverage 上线留档", file: "Coverage上线记录_260723.xlsx" },
+    { at: "2026-07-23 10:24", kind: "status", by: "张伟", task: "EA-260511000001.001",
+      from: "进行中", to: "已完成", text: "低压过激方向验证完成" },
+    { at: "2026-07-23 10:05", kind: "conclusion", by: "张伟", task: "EA-260511000001.001",
+      validity: "有效", text: "确认 1.05V 以下高频段为主因，属电压 margin 问题" },
+    { at: "2026-07-23 09:40", kind: "comment", by: "张伟", task: "EA-260511000001.001",
+      text: "1.05V 以下高频段 Fail 面积扩大，与 P_ICC2_07 强相关", file: "shmoo_vddmin.xlsx" },
+    { at: "2026-07-23 09:20", kind: "progress", by: "张伟", task: "EA-260511000001.001",
+      from: "60%", to: "100%" },
+    { at: "2026-07-23 09:10", kind: "attach", by: "陈磊", task: "EA-260511000001.003",
+      text: "边缘 die 的 Bin7 聚集分布", file: "wafermap_lotA.png" },
+    { at: "2026-07-23 08:50", kind: "efa", by: "陈磊", task: "EA-260511000001.003",
+      qms: "EFA-260723-014", stage: "已回同步", text: "金相未见异常，排除封装因素" },
+
+    // ══════════ 07-22 ══════════
+    { at: "2026-07-22 17:00", kind: "participant", by: "陈磊", action: "加入", dept: "FA",
+      text: "物理分析需要 FA 支援" },
+    { at: "2026-07-22 16:40", kind: "flow", by: "系统",
+      text: "系统将任务 .002 分派至 PE 组，负责人李娜" },
+    { at: "2026-07-22 16:20", kind: "attach", by: "李娜", task: "EA-260511000001.002",
+      text: "导出近 8 Lot 良率数据", file: "datalog_lotA.csv" },
+    { at: "2026-07-22 15:00", kind: "comment", by: "李娜", task: "EA-260511000001.002",
+      text: "L04–L06 良率从 94% 掉到 82%，与产线换 target 时间点吻合" },
+    { at: "2026-07-22 14:20", kind: "progress", by: "李娜", task: "EA-260511000001.002",
+      from: "30%", to: "70%" },
+    { at: "2026-07-22 13:40", kind: "newtask", by: "陈磊", task: "EA-260511000001.003",
+      title: "SEM 高倍复检边缘 die" },
+    { at: "2026-07-22 13:10", kind: "newtask", by: "李娜", task: "EA-260511000001.002",
+      title: "良率与炉温相关性回归" },
+    { at: "2026-07-22 13:00", kind: "terminate", by: "张伟", task: "EA-260511000001.001",
+      reason: "高温加严方向验证无差异，中止该分支" },
+    { at: "2026-07-22 11:30", kind: "status", by: "李娜", task: "EA-260511000001.002",
+      from: "待接受", to: "进行中", text: "开始近 8 Lot 良率回溯" },
+    { at: "2026-07-22 11:10", kind: "accept", by: "李娜", task: "EA-260511000001.002",
+      text: "接单，预计 2 天完成" },
+    { at: "2026-07-22 10:50", kind: "change", by: "李娜", task: "EA-260511000001.002",
+      field: "期限", from: "07-24", to: "07-26" },
+    { at: "2026-07-22 10:30", kind: "voice", by: "李娜", task: "EA-260511000001.002",
+      dur: "0:42", text: "口述产线换 target 的时间点与批次" },
+    { at: "2026-07-22 09:30", kind: "caseattach", by: "李娜",
+      text: "产线变更工单留档", file: "背景_产线换target记录.pdf" },
+    { at: "2026-07-22 09:00", kind: "aisummary", by: "系统",
+      text: "进度段落已更新：良率回溯 70%，物理分析进行中" },
+
+    // ══════════ 07-21 ══════════
+    { at: "2026-07-21 16:50", kind: "conclusion", by: "陈磊", task: "EA-260511000001.003",
+      validity: "部分有效", text: "排除封装 / bonding，问题缩小到 die 内部时序 margin" },
+    { at: "2026-07-21 16:45", kind: "comment", by: "陈磊", task: "EA-260511000001.003",
+      text: "FIB_edge01 截面未见裂纹、bonding 正常，怀疑方向转 die 内部时序 / 电压 margin" },
+    { at: "2026-07-21 15:30", kind: "voice", by: "陈磊", task: "EA-260511000001.003",
+      dur: "1:05", text: "口述切片观察，边缘 die 无物理缺陷" },
+    { at: "2026-07-21 15:10", kind: "terminate", by: "陈磊", task: "EA-260511000001.003",
+      reason: "X-ray 无损方向分辨率不足，中止转 FIB" },
+    { at: "2026-07-21 14:10", kind: "status", by: "陈磊", task: "EA-260511000001.003",
+      from: "待接受", to: "进行中", text: "FIB / SEM 切片启动" },
+    { at: "2026-07-21 13:50", kind: "dispatch", by: "王芳", task: "EA-260511000001.003",
+      to: "陈磊", text: "物理分析请 FA 支援" },
+    { at: "2026-07-21 13:30", kind: "efa", by: "陈磊", task: "EA-260511000001.003",
+      qms: "EFA-260721-009", stage: "已提交", text: "送 FIB 切片，诉求定位失效层" },
+    { at: "2026-07-21 12:00", kind: "accept", by: "张伟", task: "EA-260511000001.001",
+      text: "接手低压 Shmoo / Pattern 验证" },
+    { at: "2026-07-21 11:40", kind: "change", by: "王芳", task: "EA-260511000001.001",
+      field: "负责人", from: "李娜", to: "张伟" },
+    { at: "2026-07-21 11:20", kind: "reject", by: "李娜", task: "EA-260511000001.001",
+      reason: "低压 Shmoo 非 PE 强项，建议转 PTE" },
+    { at: "2026-07-21 11:00", kind: "dispatch", by: "王芳", task: "EA-260511000001.001",
+      to: "李娜", text: "低压验证先派 PE 预研" },
+    { at: "2026-07-21 09:00", kind: "casestatus", by: "王芳", from: "待处理", to: "进行中" },
+    { at: "2026-07-21 08:40", kind: "link", by: "系统",
+      otherCode: "EA-260410000007", linkType: "重复", byAi: true },
+    { at: "2026-07-21 08:35", kind: "link", by: "张伟",
+      otherCode: "EA-260515000021", linkType: "关联", byAi: false },
+    { at: "2026-07-21 08:30", kind: "participant", by: "王芳", action: "加入", dept: "TE",
+      text: "站点管理员介入协调" },
+    { at: "2026-07-21 08:20", kind: "flow", by: "系统",
+      text: "Case 立案，进入调查阶段" },
+  ];
+
+  // 事件在正文里的信号权重（用于挑「当天一句话摘要」的主事件）
+  var EVENT_WEIGHT = {
+    close: 6, conclusion: 5, casestatus: 4, status: 3, efa: 2, comment: 2,
+    aisummary: 2, attach: 1, progress: 1, newtask: 1, dispatch: 1, accept: 1,
+    reject: 1, terminate: 1, change: 1, voice: 1, flow: 1, participant: 1,
+    caseattach: 1, link: 1,
+  };
+
+  function weekdayOf(d) {
+    var wd = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    return wd[new Date(d.replace(/-/g, "/") + " 00:00").getDay()];
+  }
+  function shortTask(code) { return code ? "…" + code.split(".").pop() : ""; }
+
+  // 把一个事件渲染成正文要点行
+  function fmtEvent(e, scopeType) {
+    var role = ROLE_OF[e.by] || "";
+    var who = e.by + (role ? "（" + role + "）" : "");
+    var t = scopeType === "task" ? "" : (e.task ? shortTask(e.task) : "");
+    var tp = t ? t + " " : "";       // 前缀（带空格）
+    var ts = t ? " " + t : "";       // 后缀（带空格）
+    switch (e.kind) {
+      case "status":
+        return tp + "状态：" + e.from + " → " + e.to + " · " + who + (e.text ? " · " + e.text : "");
+      case "progress":
+        return who + " 推进进度" + ts + "：" + e.from + " → " + e.to;
+      case "comment":
+        return who + " 评论" + ts + "：" + e.text;
+      case "attach":
+        return who + " 上传附件「" + e.file + "」" + (t ? "到 " + t : "") + (e.text ? " · " + e.text : "");
+      case "conclusion":
+        return who + " 写下结论" + (t ? "（" + t + "）" : "") + "：" + e.text + (e.validity ? "（" + e.validity + "）" : "");
+      case "newtask":
+        return who + " 新增任务「" + e.title + "」" + (t ? "（挂在 " + t + " 下）" : "");
+      case "dispatch":
+        return who + " 派发任务" + ts + " 给 " + e.to + (e.text ? " · " + e.text : "");
+      case "accept":
+        return who + " 接受任务" + ts + (e.text ? "：" + e.text : "");
+      case "reject":
+        return who + " 拒绝任务" + ts + "：" + e.reason;
+      case "terminate":
+        return who + " 中止任务" + ts + "：" + e.reason;
+      case "change":
+        return who + " 变更" + ts + " " + e.field + "：" + e.from + " → " + e.to;
+      case "efa":
+        return who + " 的 EFA 分析单 " + e.qms + " " + e.stage + (e.text ? "：" + e.text : "");
+      case "voice":
+        return who + " 新增语音备注" + (e.dur ? "（" + e.dur + "）" : "") + ts + (e.text ? "：" + e.text : "");
+      case "casestatus":
+        return "Case 状态：" + e.from + " → " + e.to + " · " + who;
+      case "aisummary":
+        return "AI 摘要刷新 · " + who + "：" + e.text;
+      case "participant":
+        return who + " " + (e.action || "加入") + "协作" + (e.dept ? "（" + e.dept + "）" : "") + (e.text ? " · " + e.text : "");
+      case "caseattach":
+        return who + " 上传背景附件「" + e.file + "」" + (e.text ? " · " + e.text : "");
+      case "close":
+        return who + " 结案" + (e.text ? " · " + e.text : "") + (e.path ? " · 解题路径：" + e.path : "");
+      case "link":
+        return who + " 关联 Case " + e.otherCode + "（" + e.linkType + (e.byAi ? " · AI 建议" : "") + "）";
+      default:
+        return e.text || "";
+    }
+  }
+
+  // 当天主结果（一句话，去掉任务号等颗粒度）：优先结案 > 结论 > 完成 > 权重最高
+  function leadText(evs) {
+    var pick = function (kind) { return evs.find(function (e) { return e.kind === kind; }); };
+    var close = pick("close"); if (close && close.text) return close.text;
+    var concl = pick("conclusion"); if (concl) return concl.text;
+    var done = evs.find(function (e) { return e.kind === "status" && e.to === "已完成"; });
+    if (done && done.text) return done.text;
+    var sorted = evs.slice().sort(function (a, b) {
+      return (EVENT_WEIGHT[b.kind] || 0) - (EVENT_WEIGHT[a.kind] || 0);
+    });
+    for (var i = 0; i < sorted.length; i++) { if (sorted[i].text) return sorted[i].text; }
+    return sorted.length ? fmtEvent(sorted[0], "case") : "";
+  }
+
+  // 收起态显示的「今天这个 Case 的一句话摘要」（聚合当天所有人/任务的更新）
+  function daySummary(evs, scopeType, isToday) {
+    if (!evs.length) return isToday ? "今天暂无更新" : "当日暂无更新";
+    var names = [];
+    evs.forEach(function (e) { if (names.indexOf(e.by) < 0) names.push(e.by); });
+    var prefix = isToday ? "今日" : "当日";
+    if (scopeType === "task")
+      return prefix + " " + evs.length + " 项更新：" + leadText(evs);
+    return prefix + " " + evs.length + " 项更新（" + names.join("、") + "）：" + leadText(evs);
+  }
+
+  // 核心：按日期把事件流切成「每天的增量」，再派生每条卡片内容
+  function buildDailyUpdates(events, scopeType) {
+    var byDay = {};
+    events.forEach(function (e) {
+      var day = e.at.slice(0, 10);                 // yyyy-MM-dd → 当天的桶
+      (byDay[day] = byDay[day] || []).push(e);
+    });
+    var now = new Date();
+    var today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    if (!byDay[today]) byDay[today] = [];           // 没有更新也保留“今天”
+    var days = Object.keys(byDay).sort().reverse(); // 新 → 旧
+    return days.map(function (day) {
+        var evs = byDay[day].slice().sort(function (a, b) {
+          return a.at < b.at ? 1 : -1;              // 当天内按时间倒序
+        });
+        // 当天参与者（按出现顺序）
+        var names = [];
+        evs.forEach(function (e) { if (names.indexOf(e.by) < 0) names.push(e.by); });
+        // 附件（有 file 字段的事件）
+        var files = evs.filter(function (e) { return e.file; }).map(function (e) { return e.file; });
+        return {
+          date: day.slice(5),
+          weekday: weekdayOf(day),
+          iso: day,              // 完整 yyyy-MM-dd（日历选择器用）
+          isToday: day === today,
+          summary: daySummary(evs, scopeType, day === today),
+          contributors: names.join("、"),
+          bullets: evs.map(function (e) { return fmtEvent(e, scopeType); }),
+          files: files,
+          events: evs,           // 原始事件（全屏演示按事件展开更细节）
+          scopeType: scopeType,
+        };
+      });
+  }
+
+  /* ── EA URL → 数据源 ──────────────────────────────────────────────
+   * 支持：
+   *   /case/{caseId}、/cases/{caseId}、?caseId={caseId}
+   *   /task/{taskId}、/tasks/{taskId}、?taskId={taskId}
+   *   EA 编码直接出现在 URL 中（任务编码带 .001）
+   * 生产环境读取同源 EA embed API；本文件用相同契约的 mock adapter 演示。
+   * API response: { entity:{name,code,caseCode?}, events:[], roles?:{} }
+   */
+  var DEMO_CASE_URL = "https://ea.example.com/cases/EA-260511000001";
+  var DEMO_TASK_URL = "https://ea.example.com/tasks/EA-260511000001.001";
+
+  function parseEAUrl(raw) {
+    var value = String(raw || "").trim();
+    if (!value) throw new Error("请粘贴 EA Case 或任务链接");
+    var url;
+    try { url = new URL(value); }
+    catch (_) { throw new Error("链接格式不正确，请粘贴完整的 EA URL"); }
+    if (url.protocol !== "http:" && url.protocol !== "https:")
+      throw new Error("仅支持 http / https 的 EA URL");
+
+    var decoded = decodeURIComponent(url.pathname + url.hash);
+    var taskId = url.searchParams.get("taskId");
+    var caseId = url.searchParams.get("caseId");
+    var taskPath = decoded.match(/\/(?:tasks?|task-detail)\/([^/?#]+)/i);
+    var casePath = decoded.match(/\/(?:cases?|case-detail)\/([^/?#]+)/i);
+    var taskCode = decoded.match(/EA-(?:[A-Z]+-)?\d{12}\.\d{3}/i);
+    var caseCode = decoded.match(/EA-(?:[A-Z]+-)?\d{12}/i);
+
+    taskId = taskId || (taskPath && taskPath[1]) || (taskCode && taskCode[0]);
+    caseId = caseId || (casePath && casePath[1]) || (caseCode && caseCode[0]);
+    if (taskId) {
+      return { type: "task", id: taskId, caseId: caseId || taskId.split(".")[0], url: url.href, origin: url.origin };
+    }
+    if (caseId) return { type: "case", id: caseId, url: url.href, origin: url.origin };
+    throw new Error("无法从链接识别 Case 或任务，请确认链接来自 EA 详情页");
+  }
+
+  function mockEAResource(parsed) {
+    if (parsed.type === "case" && (parsed.id === MOCK_CASE.code || parsed.id === MOCK_CASE.id)) {
+      return { entity: Object.assign({ type: "case" }, MOCK_CASE), events: CASE_EVENTS.slice(), roles: ROLE_OF };
+    }
+    if (parsed.type === "task" && MOCK_TASKS[parsed.id]) {
+      return {
+        entity: Object.assign({ type: "task" }, MOCK_TASKS[parsed.id]),
+        events: CASE_EVENTS.filter(function (e) { return e.task === parsed.id; }),
+        roles: ROLE_OF,
+      };
+    }
+    return null;
+  }
+
+  async function readEAResource(parsed) {
+    var mock = mockEAResource(parsed);
+    if (mock) return mock;
+
+    // 正式接入：EA 需开放此只读接口，并允许云笔记域名跨域访问。
+    var path = parsed.type === "case"
+      ? "/api/embed/cases/" + encodeURIComponent(parsed.id) + "/events"
+      : "/api/embed/tasks/" + encodeURIComponent(parsed.id) + "/events";
+    var response;
+    try {
+      response = await fetch(new URL(path, parsed.origin).href, {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+    } catch (_) {
+      throw new Error("无法连接 EA。请确认已登录、EA 已开放嵌入接口并允许当前云笔记域名访问");
+    }
+    if (!response.ok) throw new Error("EA 内容读取失败（HTTP " + response.status + "）");
+    var payload = await response.json();
+    if (!payload.entity || !Array.isArray(payload.events))
+      throw new Error("EA 返回的数据格式不正确");
+    return payload;
+  }
+
+  /* ── 图标（内联 SVG） ──────────────────────────────────────────── */
+  var IC = {
+    note: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6l6-6V5a2 2 0 0 0-2-2z"/><path d="M14 21v-4a2 2 0 0 1 2-2h4"/></svg>',
+    link: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07.07l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15"/><path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15"/></svg>',
+    cal: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>',
+    file: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    down: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+    up: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
+    max: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
+    min: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>',
+    x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    left: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    right: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+  };
+
+  /* ── 状态 ──────────────────────────────────────────────────────── */
+  var CASE = null;
+  var SOURCE = null;
+  var UPDATES = [];
+  var state = { day: 0, expanded: false, fullscreen: false, loading: false, error: "", draftUrl: "" };
+  var root = document.getElementById("root");
+  var fsEl = null;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function renderSetup() {
+    var connected = !!(CASE && SOURCE);
+    root.innerHTML =
+      '<div class="setup">' +
+      '<div class="setup-head">' +
+      '<h2 class="setup-title">' + IC.link + " " + (connected ? "更换 EA 链接" : "连接 EA 内容") + "</h2>" +
+      (connected ? '<button class="setup-back" id="setup-back">' + IC.left + " 返回</button>" : "") +
+      "</div>" +
+      '<p class="setup-desc">粘贴一个 EA Case 或任务详情页链接。组件会自动识别类型，并按天读取对应范围内的更新。</p>' +
+      '<div class="source-row">' +
+      (connected
+        ? '<div class="cur-source">' +
+          '<span class="cur-label">当前连接</span>' +
+          '<span class="cur-name">' + esc(CASE.name) + "</span>" +
+          '<span class="code">' + esc(CASE.code) + "</span>" +
+          '<span class="mode-badge">' + (SOURCE.type === "case" ? "Case" : "任务") + "</span>" +
+          "</div>"
+        : "") +
+      '<div class="source-form">' +
+      '<input class="source-input" id="source-url" autocomplete="off" placeholder="粘贴 EA Case / 任务 URL" value="' + esc(state.draftUrl) + '">' +
+      '<button class="source-submit" id="source-submit"' + (state.loading ? " disabled" : "") + ">" +
+      (state.loading ? "正在读取…" : "读取内容") + "</button>" +
+      "</div>" +
+      "</div>" +
+      (state.error ? '<div class="source-error">' + esc(state.error) + "</div>" : "") +
+      "</div>";
+
+    var back = document.getElementById("setup-back");
+    if (back) back.onclick = function () { state.error = ""; renderMain(); };
+
+    var input = document.getElementById("source-url");
+    var submit = document.getElementById("source-submit");
+    input.focus();
+    input.oninput = function () { state.draftUrl = input.value; };
+    input.onkeydown = function (e) { if (e.key === "Enter") connectEAUrl(input.value); };
+    submit.onclick = function () { connectEAUrl(input.value); };
+  }
+
+  async function connectEAUrl(raw) {
+    var parsed;
+    try { parsed = parseEAUrl(raw); }
+    catch (error) {
+      state.error = error.message;
+      state.draftUrl = raw || "";
+      renderSetup();
+      return;
+    }
+    state.loading = true;
+    state.error = "";
+    state.draftUrl = parsed.url;
+    renderSetup();
+    try {
+      var resource = await readEAResource(parsed);
+      if (resource.roles) Object.assign(ROLE_OF, resource.roles);
+      SOURCE = parsed;
+      CASE = resource.entity;
+      UPDATES = buildDailyUpdates(resource.events, parsed.type);
+      if (!UPDATES.length) throw new Error("该链接暂时没有可展示的更新");
+      state.day = 0;
+      state.expanded = false;
+      state.loading = false;
+      renderMain();
+      // 宿主可监听这个消息，持久化用户粘贴的 EA URL。
+      if (window.parent !== window) window.parent.postMessage({ type: "EA_CLOUD_NOTE_READY", source: parsed }, "*");
+    } catch (error) {
+      SOURCE = null;
+      CASE = null;
+      UPDATES = [];
+      state.loading = false;
+      state.error = error.message || "EA 内容读取失败";
+      renderSetup();
+    }
+  }
+
+  // 更新块 HTML（collapsed=true 时只显示摘要；展开显示要点 + 附件）
+  function updateBlockHTML(u, big, idx, collapsed) {
+    var sum = '<div class="u-sum' + (collapsed ? " clamp" : "") + '">' + esc(u.summary) + "</div>";
+    if (collapsed) {
+      return '<div class="' + (big ? "big" : "") + '">' + sum + "</div>";
+    }
+    var bullets = u.bullets
+      .map(function (b) { return "<li>" + esc(b) + "</li>"; })
+      .join("");
+    var files = "";
+    if (u.files && u.files.length) {
+      files = '<div class="files">' +
+        u.files.map(function (f) {
+          return '<span class="file-pill">' + IC.file + esc(f) + "</span>";
+        }).join("") +
+        "</div>";
+    }
+    return (
+      '<div class="' + (big ? "big" : "") + '">' +
+      sum +
+      '<ul class="u-bullets detail">' + bullets + "</ul>" +
+      files +
+      "</div>"
+    );
+  }
+
+  /* ── 全屏演示：当天更新按事件逐条展开（更细节，不再切日期）───── */
+  var KIND_LABEL = {
+    status: "状态变更", progress: "进度推进", comment: "评论", attach: "上传附件",
+    conclusion: "写下结论", newtask: "新增任务", dispatch: "任务派发", accept: "接受任务",
+    reject: "拒绝任务", terminate: "中止任务", change: "变更", efa: "EFA 分析单",
+    voice: "语音备注", flow: "流转", casestatus: "Case 状态", aisummary: "AI 摘要",
+    participant: "参与人", caseattach: "背景附件", close: "结案", link: "关联 Case",
+  };
+  function timeOf(at) { return (String(at).split(" ")[1] || "").slice(0, 5); }
+
+  // 事件正文（全屏细节：不含人名 / 任务号，这些已在顶部行展示）
+  function eventBody(e) {
+    switch (e.kind) {
+      case "status": case "casestatus": case "progress": return e.text || "";
+      case "change": return "";
+      case "comment": case "attach": case "caseattach": case "flow": case "aisummary":
+        return e.text || "";
+      case "conclusion": return e.text + (e.validity ? "（" + e.validity + "）" : "");
+      case "newtask": return "「" + e.title + "」" + (e.text ? " · " + e.text : "");
+      case "dispatch": return "指派给 " + e.to + (e.text ? " · " + e.text : "");
+      case "accept": return e.text || "已接受任务";
+      case "reject": case "terminate": return e.reason || "";
+      case "efa": return "QMS " + e.qms + " · " + e.stage + (e.text ? "：" + e.text : "");
+      case "voice": return (e.dur ? "（" + e.dur + "）" : "") + (e.text || "语音备注");
+      case "participant": return (e.action || "加入") + "协作" + (e.dept ? "（" + e.dept + "）" : "") + (e.text ? " · " + e.text : "");
+      case "close": return (e.text || "") + (e.path ? " · 解题路径：" + e.path : "");
+      case "link": return "关联 " + e.otherCode + "（" + e.linkType + (e.byAi ? " · AI 建议" : "") + "）";
+      default: return e.text || "";
+    }
+  }
+
+  // 单条事件 → 全屏细节卡片
+  function eventCardHTML(e, scopeType) {
+    var role = ROLE_OF[e.by] || "";
+    var task = scopeType === "task" ? "" : (e.task ? shortTask(e.task) : "");
+    var flow = "";
+    if (e.from !== undefined && e.to !== undefined) {
+      flow =
+        '<div class="fs-ev-flow">' +
+        (e.field ? '<span class="fs-ev-field">' + esc(e.field) + "</span>" : "") +
+        '<span class="chip">' + esc(e.from) + "</span>" +
+        '<span class="arrow">→</span><span class="chip done">' + esc(e.to) + "</span>" +
+        "</div>";
+    }
+    var txt = eventBody(e);
+    var textHtml = txt ? '<div class="fs-ev-text">' + esc(txt) + "</div>" : "";
+    var file = e.file
+      ? '<div class="files"><span class="file-pill">' + IC.file + esc(e.file) + "</span></div>"
+      : "";
+    return (
+      '<div class="fs-ev">' +
+      '<div class="fs-ev-time">' + esc(timeOf(e.at)) + "</div>" +
+      '<div class="fs-ev-line"><span class="fs-ev-dot"></span></div>' +
+      '<div class="fs-ev-main">' +
+      '<div class="fs-ev-top">' +
+      '<span class="fs-ev-kind k-' + e.kind + '">' + esc(KIND_LABEL[e.kind] || "更新") + "</span>" +
+      '<span class="fs-ev-who">' + esc(e.by) + (role ? " · " + esc(role) : "") + "</span>" +
+      (task ? '<span class="fs-ev-task">' + esc(task) + "</span>" : "") +
+      "</div>" +
+      flow +
+      textHtml +
+      file +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  // 当天全部事件 → 全屏正文
+  function dayDetailHTML(u) {
+    if (!u.events || !u.events.length) {
+      return '<div class="fs-empty">' + esc(u.summary) + "</div>";
+    }
+    var head =
+      '<div class="fs-day-head">' +
+      '<div class="fs-day-sum">' + esc(u.summary) + "</div>" +
+      '<div class="fs-day-meta">共 ' + u.events.length + " 项更新" +
+      (u.contributors ? " · " + esc(u.contributors) : "") + "</div>" +
+      "</div>";
+    var list = u.events.map(function (e) { return eventCardHTML(e, u.scopeType); }).join("");
+    return head + '<div class="fs-events">' + list + "</div>";
+  }
+
+  /* ── 主体：单日视图 + 日期选择器（上一天 / 下一天） ─────────── */
+  function renderMain() {
+    var u = UPDATES[state.day];
+    var isToday = u.isToday;
+
+    var header =
+      '<div class="hd">' +
+      '<span class="ic">' + IC.note + "</span>" +
+      '<h3><a class="case-link" href="' + esc(SOURCE.url) + '" target="_blank" rel="noopener" title="在 EA 中打开">' + esc(CASE.name) + "</a></h3>" +
+      '<span class="mode-badge">' + (SOURCE.type === "case" ? "Case" : "任务") + "</span>" +
+      '<span class="date-tag">' + (isToday ? "今天" : esc(u.date) + " " + esc(u.weekday)) + "</span>" +
+      '<div class="date-picker">' +
+      '<button class="hd-fs" id="date-btn" title="选择日期">' + IC.cal + "</button>" +
+      '<div class="date-menu" id="date-menu" hidden></div>' +
+      "</div>" +
+      '<button class="hd-fs" id="source-change" title="更换 EA 链接">' + IC.link + "</button>" +
+      '<button class="hd-fs" id="toggle" title="' + (state.expanded ? "收起" : "展开") + '">' +
+      (state.expanded ? IC.up : IC.down) + "</button>" +
+      '<button class="hd-fs" id="present" title="全屏演示">' + IC.max + "</button>" +
+      "</div>";
+
+    var body =
+      '<div class="day">' +
+      updateBlockHTML(u, false, state.day, !state.expanded) +
+      "</div>";
+
+    root.innerHTML = header + body;
+
+    document.getElementById("present").onclick = openFullscreen;
+    document.getElementById("source-change").onclick = function () {
+      state.error = "";
+      state.draftUrl = SOURCE.url;
+      renderSetup();
+    };
+    document.getElementById("toggle").onclick = function () {
+      state.expanded = !state.expanded;
+      renderMain();
+    };
+
+    // 日期选择器：小日历按钮 + 弹出日历
+    var dateBtn = document.getElementById("date-btn");
+    var dateMenu = document.getElementById("date-menu");
+    function onDocDown(ev) {
+      if (!dateMenu.contains(ev.target) && !dateBtn.contains(ev.target)) closeMenu();
+    }
+    function openMenu() {
+      var sel = UPDATES[state.day];
+      var d = new Date(sel.iso.replace(/-/g, "/") + " 00:00");
+      state.calY = d.getFullYear();
+      state.calM = d.getMonth();
+      paintCalendar(dateMenu);
+      dateMenu.removeAttribute("hidden");
+      document.addEventListener("mousedown", onDocDown);
+    }
+    function closeMenu() {
+      dateMenu.setAttribute("hidden", "");
+      document.removeEventListener("mousedown", onDocDown);
+    }
+    dateBtn.onclick = function (e) {
+      e.stopPropagation();
+      if (dateMenu.hasAttribute("hidden")) openMenu(); else closeMenu();
+    };
+
+    // 把日历渲染进弹层，并绑定翻月 / 选日
+    function paintCalendar(container) {
+      container.innerHTML = calendarHTML(state.calY, state.calM);
+      container.querySelector("#cal-prev").onclick = function (e) {
+        e.stopPropagation();
+        state.calM--; if (state.calM < 0) { state.calM = 11; state.calY--; }
+        paintCalendar(container);
+      };
+      container.querySelector("#cal-next").onclick = function (e) {
+        e.stopPropagation();
+        state.calM++; if (state.calM > 11) { state.calM = 0; state.calY++; }
+        paintCalendar(container);
+      };
+      container.querySelectorAll(".cal-day.has").forEach(function (cell) {
+        cell.onclick = function (e) {
+          e.stopPropagation();
+          closeMenu();
+          gotoDay(+cell.getAttribute("data-day"));
+        };
+      });
+    }
+  }
+
+  // 生成某年某月的日历 HTML（有更新的日子可点，今天/当前所选高亮）
+  function calendarHTML(year, month) {
+    var idxByIso = {};
+    UPDATES.forEach(function (uu, i) { idxByIso[uu.iso] = i; });
+    var now = new Date();
+    var todayIso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    var selIso = UPDATES[state.day].iso;
+
+    var first = new Date(year, month, 1);
+    var lead = first.getDay();                       // 周日=0
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var dows = ["日", "一", "二", "三", "四", "五", "六"];
+
+    var cells = "";
+    for (var b = 0; b < lead; b++) cells += '<span class="cal-cell"></span>';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var iso = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+      var has = Object.prototype.hasOwnProperty.call(idxByIso, iso);
+      var cls = "cal-day";
+      if (has) cls += " has";
+      if (iso === todayIso) cls += " today";
+      if (iso === selIso) cls += " active";
+      cells += has
+        ? '<button class="' + cls + '" data-day="' + idxByIso[iso] + '">' + d + '<span class="cal-dot"></span></button>'
+        : '<span class="' + cls + ' empty">' + d + "</span>";
+    }
+
+    return (
+      '<div class="cal">' +
+      '<div class="cal-head">' +
+      '<button class="cal-nav" id="cal-prev" title="上个月">' + IC.left + "</button>" +
+      '<span class="cal-title">' + year + "年" + (month + 1) + "月</span>" +
+      '<button class="cal-nav" id="cal-next" title="下个月">' + IC.right + "</button>" +
+      "</div>" +
+      '<div class="cal-dow">' + dows.map(function (w) { return "<span>" + w + "</span>"; }).join("") + "</div>" +
+      '<div class="cal-days">' + cells + "</div>" +
+      "</div>"
+    );
+  }
+
+  /* ── 全屏演示 ──────────────────────────────────────────────────── */
+  function openFullscreen() {
+    state.fullscreen = true;
+    fsEl = document.createElement("div");
+    fsEl.className = "fs";
+    document.body.appendChild(fsEl);
+    document.body.style.overflow = "hidden";
+    renderFullscreen();
+    // 尝试真·全屏（需宿主 iframe 带 allow="fullscreen"），失败则填满 iframe 视口
+    var el = document.documentElement;
+    if (el.requestFullscreen) { el.requestFullscreen().catch(function () {}); }
+    window.addEventListener("keydown", onKey);
+  }
+
+  function closeFullscreen() {
+    state.fullscreen = false;
+    window.removeEventListener("keydown", onKey);
+    if (fsEl) { fsEl.remove(); fsEl = null; }
+    document.body.style.overflow = "";
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(function () {});
+    }
+    renderMain(); // 同步内联视图到当前天
+  }
+
+  function onKey(e) {
+    if (e.key === "Escape") closeFullscreen();
+  }
+
+  function gotoDay(i) {
+    i = Math.max(0, Math.min(i, UPDATES.length - 1));
+    if (i === state.day) return;
+    state.day = i;
+    if (state.fullscreen) renderFullscreen();
+    else renderMain();
+  }
+
+  function renderFullscreen() {
+    var cur = UPDATES[state.day];
+
+    fsEl.innerHTML =
+      '<div class="fs-top">' +
+      '<span class="ic" style="color:var(--blue)">' + IC.note + "</span>" +
+      '<div class="fs-title"><a class="t case-link" href="' + esc(SOURCE.url) + '" target="_blank" rel="noopener" title="在 EA 中打开">' + esc(CASE.name) + "</a>" +
+      '<span class="s">' + esc(CASE.code) + " · " +
+      (SOURCE.type === "case" ? "Case" : "任务") + "</span></div>" +
+      '<span class="spacer"></span>' +
+      '<button class="icon-btn" id="fs-x" title="退出全屏">' + IC.x + "</button>" +
+      "</div>" +
+      '<div class="fs-content"><div class="inner" id="fs-inner">' +
+      dayDetailHTML(cur) +
+      "</div></div>";
+
+    fsEl.querySelector("#fs-x").onclick = closeFullscreen;
+  }
+
+  // 宿主有两种传入方式：
+  // 1) iframe src="widget.html?eaUrl=<encodeURIComponent(EA_URL)>"
+  // 2) iframe.contentWindow.postMessage({ type:"EA_CLOUD_NOTE_SET_URL", url:EA_URL }, widgetOrigin)
+  window.addEventListener("message", function (event) {
+    var data = event.data;
+    if (!data || data.type !== "EA_CLOUD_NOTE_SET_URL" || !data.url) return;
+    // 正式部署时应把 event.origin 校验为允许的云笔记域名。
+    connectEAUrl(data.url);
+  });
+
+  var initialUrl = new URLSearchParams(location.search).get("eaUrl");
+  if (initialUrl) {
+    state.draftUrl = initialUrl;
+    connectEAUrl(initialUrl);
+  } else {
+    // 本文件为【任务视图】：默认只读取单个任务的每日更新
+    connectEAUrl(DEMO_TASK_URL);
+  }
+})();
+</script>
+</body>
+</html>
