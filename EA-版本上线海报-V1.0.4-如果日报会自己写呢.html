@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EA · V1.0.4 · 如果日报会自己写呢？</title>
+<style>
+  :root{
+    --blue:#0052D9; --blueDk:#003FA8; --cyan:#00A4FF; --purple:#7A3DFF;
+    --ink:#0f172a; --ink2:#334155; --mut:#64748b; --mut2:#94a3b8;
+    --line:#e6ebf3; --line2:#eef2f7;
+    --done:#16a34a; --l1:#bf2d24; --l2:#a35a12; --l3:#256199;
+    --appleInk:#1d1d1f; --appleGray:#86868b; --appleBlueLite:#0066cc; --appleBlueDark:#2997ff; --appleBG:#f5f5f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"SF Pro Display","SF Pro Text","PingFang SC","Helvetica Neue","Inter",system-ui,-apple-system,"Microsoft YaHei",sans-serif;background:#0c1428;color:#fff;-webkit-font-smoothing:antialiased}
+  svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.14em}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* 画廊 / 单图 */
+  .galtitle{text-align:center;padding:34px 0 4px}
+  .galtitle h2{font-size:26px;font-weight:700;letter-spacing:.02em}
+  .galtitle p{margin-top:6px;font-size:14px;color:#9fb0d0}
+  .gallery{display:grid;grid-template-columns:repeat(2,360px);gap:34px;justify-content:center;padding:26px 40px 60px}
+  .cell{display:flex;flex-direction:column;gap:12px}
+  .thumb{width:360px;height:450px;overflow:hidden;border-radius:18px;box-shadow:0 24px 60px -26px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.08)}
+  .thumb .poster{transform:scale(.3333);transform-origin:top left}
+  .lbl{font-size:15px;font-weight:600;color:#cdd8ef;text-align:center}
+  .lbl b{color:#7fd0ff;margin-right:8px}
+
+  body.single{background:#0c1428}
+  body.single .galtitle{display:none}
+  body.single .gallery{display:block;padding:0}
+  body.single .cell{display:none}
+  body.single .cell.active{display:grid;place-items:center;min-height:100vh}
+  body.single .cell.active .thumb{width:1080px;height:1350px;border:0;border-radius:0;box-shadow:none;transform:scale(var(--fit,1));transform-origin:center}
+  body.single .cell.active .thumb .poster{transform:none}
+  body.single .cell.active .lbl{display:none}
+
+  .poster{position:relative;width:1080px;height:1350px;overflow:hidden}
+
+  /* ---- EA 界面 mock 外框 ---- */
+  .eaui{border-radius:18px;overflow:hidden;background:#fff;border:1px solid var(--line);text-align:left}
+  .eaui .ub{height:48px;display:flex;align-items:center;gap:11px;padding:0 18px;background:#0c1f47;color:#d3ddf3}
+  .eaui .ub .e{width:25px;height:25px;border-radius:7px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .eaui .ub .t{font-size:14px;font-weight:600}
+  .eaui .ub .new{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:#0c1f47;background:#7ef0c0;padding:2px 8px;border-radius:999px}
+  .eaui .ub .step{margin-left:auto;font-size:13px;font-weight:700;color:#8fb0ee}
+  .eaui .ub .x{width:24px;height:24px;display:grid;place-items:center;color:#7f97c8}
+  .eaui .ub .x svg{width:16px;height:16px}
+  .logoE{border-radius:11px;color:#fff;font-weight:800;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--blue))}
+
+  /* ---- 新版亮点卡片 ---- */
+  .eaui .relbd{height:500px;padding:20px 22px 24px;background:#f7f9fd}
+  .relbd .relhd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .relbd .vtag{font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--blue));padding:3px 11px;border-radius:999px;letter-spacing:.02em}
+  .relbd .rt{font-size:14px;font-weight:700;color:var(--ink)}
+  .relbd .rd{margin-left:auto;font-size:12px;font-weight:700;color:var(--mut)}
+  .relbd .feat{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 15px;box-shadow:0 2px 6px rgba(15,23,42,.05)}
+  .relbd .feat+.feat{margin-top:9px}
+  .relbd .fic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}
+  .relbd .fic svg{width:22px;height:22px}
+  .relbd .fic.b1{background:linear-gradient(135deg,#00A4FF,#0052D9)}
+  .relbd .fic.b2{background:linear-gradient(135deg,#7A3DFF,#3a53d8)}
+  .relbd .fic.b3{background:linear-gradient(135deg,#12b981,#0a7a45)}
+  .relbd .fic.b4{background:linear-gradient(135deg,#ff9a3d,#f5601a)}
+  .relbd .fic.b5{background:linear-gradient(135deg,#f45b8f,#c81e5b)}
+  .relbd .fic.b6{background:linear-gradient(135deg,#22c1c3,#2b6cb0)}
+  .relbd .ftx{flex:1;min-width:0}
+  .relbd .ftx .ft{font-size:15.5px;font-weight:700;color:var(--ink)}
+  .relbd .ftx .fd{margin-top:3px;font-size:12.5px;color:var(--mut);line-height:1.4;white-space:nowrap}
+  .relbd .fchip{margin-left:auto;font-size:11px;font-weight:700;color:var(--blue);background:#e8f0ff;padding:3px 11px;border-radius:999px;flex:none}
+
+  /* ---- 苹果 · 深色 Keynote 基座 ---- */
+  .ap-d{background:#000;color:#f5f5f7;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:70px 80px}
+  .ap-d .stagelight{position:absolute;left:50%;top:44%;width:1180px;height:820px;transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(0,120,255,.42),rgba(0,120,255,0) 60%);pointer-events:none}
+  .ap-d .stagelight.p{top:70%;width:900px;height:640px;background:radial-gradient(ellipse at center,rgba(122,61,255,.32),transparent 62%)}
+  .ap-d .wm{position:relative;z-index:2;display:inline-flex;align-items:center;gap:10px;color:#f5f5f7}
+  .ap-d .wm .logoE{width:34px;height:34px;font-size:16px}
+  .ap-d .wm b{font-size:19px;font-weight:600;letter-spacing:.01em}
+  .ap-d .eyebrow{position:relative;z-index:2;margin-top:46px;font-size:21px;font-weight:600;letter-spacing:.02em;color:#f5f5f7}
+  .ap-d h1{position:relative;z-index:2;margin-top:8px;font-size:118px;line-height:1.02;font-weight:700;letter-spacing:-3px;background:linear-gradient(180deg,#8fe3ff 0%,#3d8bff 46%,#a06bff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ap-d .tagline{position:relative;z-index:2;margin-top:24px;font-size:43px;font-weight:600;letter-spacing:-.5px;color:#f5f5f7}
+  .ap-d .support{position:relative;z-index:2;margin-top:16px;font-size:21px;font-weight:400;line-height:1.5;color:#a1a1a6;max-width:700px}
+  .ap-d .hero{position:relative;z-index:2;margin-top:38px;width:864px}
+  .ap-d .hero .eaui{box-shadow:0 60px 120px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.06)}
+  .ap-d .hero .shadow{position:absolute;left:50%;bottom:-40px;width:70%;height:60px;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(0,120,255,.5),transparent 70%);filter:blur(20px)}
+  .ap-d .avail{position:relative;z-index:2;margin-top:42px;font-size:24px;font-weight:600;color:#f5f5f7}
+  .ap-d .cta{position:relative;z-index:2;margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:21px;font-weight:400;color:var(--appleBlueDark)}
+  .ap-d .cta svg{width:16px;height:16px}
+
+  /* ---- 苹果 · 经典银白（深色底） ---- */
+  .ap-s .stagelight{background:radial-gradient(ellipse at center,rgba(150,180,220,.26),transparent 60%)}
+  .ap-s .stagelight.p{background:radial-gradient(ellipse at center,rgba(120,140,175,.18),transparent 62%)}
+  .ap-s h1{font-size:100px;letter-spacing:-2px;white-space:nowrap;background:linear-gradient(180deg,#ffffff 0%,#e6e9ef 44%,#a6adba 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ap-s .hero .shadow{background:radial-gradient(ellipse at center,rgba(165,195,235,.38),transparent 70%)}
+
+  /* ---- 方案2 · 同行分隔线头部 ---- */
+  .v2 .wm{gap:14px}
+  .v2 .wm .dv{width:1px;height:22px;background:rgba(255,255,255,.28)}
+  .v2 .wm .ey2{font-size:20px;font-weight:500;color:#c7ccd6}
+  .v2 h1{margin-top:38px}
+</style>
+</head>
+<body>
+  <div class="galtitle">
+    <h2>EA · V1.0.4 版本上线海报</h2>
+    <p>复用「苹果银白 · 方案2」版式 · 点开海报查看单张大图</p>
+  </div>
+
+  <div class="gallery">
+    <div class="cell" data-id="v104">
+      <div class="thumb"><div class="poster ap-d ap-s v2" id="v104">
+        <div class="stagelight"></div><div class="stagelight p"></div>
+        <div class="wm"><span class="logoE">E</span><b>EA Platform</b><span class="dv"></span><span class="ey2">全新版本</span></div>
+        <h1>EA V1.0.4</h1>
+        <div class="tagline">如果日报会自己写呢？</div>
+        <div class="hero"><div class="shadow"></div><div class="eaui" data-rel></div></div>
+        <div class="avail">8 月 10 日，正式发布。</div>
+        <div class="cta">在 EA 中查看新版 <svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div></div>
+      <div class="lbl"><b>方案 A</b>如果日报会自己写呢？</div>
+    </div>
+
+  </div>
+
+  <script>
+    var ICON_X = '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    var MOCK_REL = '' +
+      '<div class="ub"><span class="e">E</span><span class="t">版本更新 · V1.0.4</span>' +
+        '<span class="step tnum">8 月 10 日</span>' +
+        '<span class="x">' + ICON_X + '</span></div>' +
+      '<div class="relbd">' +
+        '<div class="relhd"><span class="vtag">V1.0.4</span><span class="rt">本次更新亮点</span><span class="rd">5 大能力 · 11 项更新</span></div>' +
+        '<div class="feat"><span class="fic b1">' +
+            '<svg class="i" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M7 9h10M7 13h7M7 17h5"/></svg></span>' +
+          '<div class="ftx"><div class="ft">智能汇总</div><div class="fd">系统自动汇总个人日报、周报，时间维度随时定义，告别手动整理</div></div>' +
+          '<span class="fchip">自动生成</span></div>' +
+        '<div class="feat"><span class="fic b2">' +
+            '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M8 11h8M8 15h5"/><path d="M17 14v5M14.5 16.5h5"/></svg></span>' +
+          '<div class="ftx"><div class="ft">批量提单</div><div class="fd">多个 Case 一次提交 · 物料智能拆解 · EFA单自动生成 · CR功能支持</div></div>' +
+          '<span class="fchip">一次搞定</span></div>' +
+        '<div class="feat"><span class="fic b3">' +
+            '<svg class="i" viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16v4z"/><path d="M13.5 6.5l4 4M5 4h6"/></svg></span>' +
+          '<div class="ftx"><div class="ft">新建 Case 体验重构</div><div class="fd">布局全面优化 · 物料选择图例化 · Chip ID 自动带出</div></div>' +
+          '<span class="fchip">全面重构</span></div>' +
+        '<div class="feat"><span class="fic b4">' +
+            '<svg class="i" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/></svg></span>' +
+          '<div class="ftx"><div class="ft">Case 管理升级</div><div class="fd">关联与查重 · MarkCode 搜索 · Fanout 至其他在研产品 · 全面支持 Issue 管理</div></div>' +
+          '<span class="fchip">关联·搜索</span></div>' +
+        '<div class="feat"><span class="fic b5">' +
+            '<svg class="i" viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5"/><path d="M3 8h2M3 12h2M3 16h2"/></svg></span>' +
+          '<div class="ftx"><div class="ft">任务拆解可视化</div><div class="fd">WBS 列表逐条呈现，任务清晰，进度可追踪</div></div>' +
+          '<span class="fchip">列表视图</span></div>' +
+      '</div>';
+    document.querySelectorAll('[data-rel]').forEach(function(el){ el.innerHTML = MOCK_REL; });
+
+    function applyHash(){
+      var id = location.hash.replace('#','') || 'v104';
+      var cells = document.querySelectorAll('.cell');
+      if(!id){ document.body.classList.remove('single'); cells.forEach(function(c){c.classList.remove('active')}); return; }
+      document.body.classList.add('single');
+      cells.forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-id')===id); });
+      var fit = Math.min(window.innerWidth/1080, window.innerHeight/1350, 1);
+      var active = document.querySelector('.cell.active .thumb');
+      if(active) active.style.setProperty('--fit', fit);
+    }
+    window.addEventListener('hashchange', applyHash);
+    window.addEventListener('resize', applyHash);
+    applyHash();
+  </script>
+</body>
+</html>
