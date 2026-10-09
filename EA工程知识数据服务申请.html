@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="EA 工程知识数据服务申请：PC 单页填写应用及共管数据库核心信息，通过文字链接阅读协议，确认后生成待 PDC 审批材料。">
+  <title>EA 工程知识数据服务 · 申请接入</title>
+  <style>
+    :root { --blue:#0052d9; --blue-hover:#003fa8; --soft:#eff6ff; --blue-line:#bedbff; --ink:#0f172b; --text:#314158; --muted:#62748e; --line:#e2e8f0; --canvas:#f8fafc; --danger:#b91c1c; --amber:#a54b08; --green:#007a55; --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+    * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; min-width:1200px; color:var(--text); background:var(--canvas); font:14px/1.75 var(--font); }
+    h1,h2,h3,p,ul,ol,dl,dd { margin:0; }
+    h1,h2,h3 { color:var(--ink); }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    :focus-visible { outline:3px solid #00a4ff; outline-offset:3px; }
+    a { color:var(--blue); text-decoration:none; }
+    .topbar { height:68px; display:flex; align-items:center; padding:0 36px; gap:13px; background:white; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:650; color:var(--ink); }
+    .brand-mark { display:grid; place-items:center; width:32px; height:32px; background:linear-gradient(135deg,#00a4ff,var(--blue)); color:white; border-radius:8px; font-size:12px; }
+    .text-link { border:0; padding:0; background:none; color:var(--blue); font-size:12px; text-decoration:underline; text-underline-offset:3px; }
+    .text-link:hover { color:var(--blue-hover); }
+    .button { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:7px 17px; border:1px solid var(--line); border-radius:7px; background:white; color:var(--text); font-size:13px; }
+    .button:hover:not(:disabled) { color:var(--blue); border-color:var(--blue-line); }
+    .button.primary { background:var(--blue); border-color:var(--blue); color:white; min-width:166px; }
+    .button.primary:hover:not(:disabled) { background:var(--blue-hover); color:white; }
+    main { width:1056px; margin:38px auto 42px; }
+    .intro { margin-bottom:25px; }
+    .eyebrow { font-size:11px; color:var(--blue); letter-spacing:1px; font-weight:600; margin-bottom:9px; }
+    h1 { font-size:31px; line-height:1.4; font-weight:650; letter-spacing:-.7px; }
+    .subtitle { margin-top:11px; color:var(--muted); font-size:14px; }
+    .flow-line { margin-top:17px; display:flex; gap:14px; align-items:center; font-size:12px; color:var(--muted); }
+    .flow-line strong { color:var(--blue); font-weight:600; }
+    .flow-line span.separator { color:#90a1b9; }
+    .notice { padding:13px 17px; font-size:12px; line-height:1.8; border:1px solid var(--blue-line); background:var(--soft); border-radius:9px; margin-bottom:22px; }
+    .notice strong { color:var(--blue); }
+    .notice.caution { border-color:#fde68a; background:#fffbeb; }
+    .notice.caution strong { color:var(--amber); }
+    .card { background:white; border:1px solid var(--line); border-radius:12px; padding:25px 28px; margin-bottom:20px; }
+    .card-header { display:flex; align-items:baseline; gap:13px; margin-bottom:23px; }
+    h2 { font-size:18px; line-height:1.5; font-weight:600; }
+    .card-header p { font-size:12px; color:var(--muted); }
+    .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:19px 25px; }
+    #application-fields { grid-template-columns:repeat(6,minmax(0,1fr)); }
+    #application-fields > .field:not(.wide) { grid-column:span 3; }
+    #application-fields > .field:is([data-field="app_name"],[data-field="department"],[data-field="app_owner"]) { grid-column:span 2; }
+    .field { min-width:0; }
+    .field.wide { grid-column:1 / -1; }
+    fieldset.field { border:0; padding:0; margin:0; }
+    fieldset.field legend { padding:0; }
+    .field-label { display:block; font-size:12px; font-weight:550; margin-bottom:6px; }
+    .required { color:var(--danger); margin-left:4px; }
+    .selection-count { margin-left:10px; font-size:11px; color:var(--muted); font-weight:400; }
+    .check-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px 12px; }
+    .check-options.platforms { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .check-choice { display:flex; align-items:flex-start; gap:9px; min-height:42px; padding:10px 12px; border:1px solid var(--line); border-radius:7px; cursor:pointer; background:white; font-size:12px; }
+    .check-choice:hover { border-color:var(--blue-line); }
+    .check-choice:has(input:checked) { border-color:var(--blue-line); background:var(--soft); color:var(--blue); }
+    .check-choice input { width:15px; height:15px; margin:3px 0 0; flex-shrink:0; accent-color:var(--blue); }
+    .option-body { min-width:0; overflow-wrap:anywhere; }
+    .option-body small { display:block; font-size:10px; color:var(--muted); margin-top:2px; }
+    .scope-empty { padding:11px 13px; border:1px dashed var(--line); background:var(--canvas); border-radius:7px; font-size:12px; color:var(--muted); }
+    .scope-summary { margin-top:9px; font-size:11px; color:var(--blue); }
+    .control { width:100%; min-height:39px; padding:8px 11px; background:white; color:var(--ink); border:1px solid #cad5e2; border-radius:7px; font-size:13px; }
+    textarea.control { min-height:78px; resize:vertical; line-height:1.7; }
+    .control:focus { border-color:var(--blue); }
+    [aria-invalid="true"] { border-color:var(--danger) !important; }
+    .field-error { margin-top:5px; color:var(--danger); font-size:11px; }
+    .error-summary { margin:0 0 20px; padding:13px 17px; border:1px solid #fecaca; background:#fef2f2; color:var(--danger); border-radius:8px; font-size:12px; }
+    .error-summary button { margin-left:12px; color:var(--danger); }
+    .consent-area { padding:3px 2px 0; }
+    .consent-row { display:flex; gap:10px; align-items:flex-start; font-size:13px; }
+    .consent-row input { width:17px; height:17px; flex-shrink:0; margin:4px 0 0; accent-color:var(--blue); }
+    .consent-row label { cursor:pointer; }
+    .consent-row .text-link { font-size:13px; }
+    .actions { display:flex; align-items:center; gap:13px; margin-top:21px; }
+    .prepared { margin-top:25px; border-color:var(--blue-line); }
+    .prepared h2 { color:var(--blue); }
+    .prepared p { margin-top:8px; font-size:12px; color:var(--muted); }
+    .summary { display:grid; grid-template-columns:1fr 1fr; gap:13px 22px; margin:20px 0 0; }
+    .summary dt { font-size:11px; color:var(--muted); }
+    .summary dd { margin-top:3px; font-size:13px; color:var(--ink); overflow-wrap:anywhere; }
+    dialog { border:1px solid var(--line); border-radius:13px; padding:0; color:var(--text); background:white; box-shadow:0 25px 90px #0f172b33; }
+    dialog::backdrop { background:#0f172b66; }
+    .agreement-dialog { width:880px; max-height:calc(100vh - 65px); }
+    .dialog-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:17px 23px; border-bottom:1px solid var(--line); }
+    .dialog-head h2 { font-size:17px; }
+    .dialog-head small { color:var(--muted); font-size:11px; }
+    .terms-scroll { max-height:calc(100vh - 240px); min-height:240px; overflow:auto; overscroll-behavior:contain; padding:22px 28px; }
+    .terms-title { font-size:21px; text-align:center; line-height:1.6; }
+    .terms-meta { text-align:center; font-size:11px; color:var(--muted); margin:8px 0 21px; }
+    .terms-intro { font-size:12px; padding:13px 15px; border:1px solid var(--blue-line); background:var(--soft); border-radius:7px; margin-bottom:20px; }
+    .clause { margin:20px 0; }
+    .clause h3 { font-size:15px; color:var(--blue); margin-bottom:9px; }
+    .clause p { font-size:13px; line-height:1.95; margin-bottom:8px; }
+    .dialog-foot { display:flex; align-items:center; gap:15px; padding:14px 23px; border-top:1px solid var(--line); }
+    .dialog-foot p { margin-right:auto; color:var(--muted); font-size:11px; max-width:520px; }
+    .toast { position:fixed; bottom:24px; right:26px; z-index:50; max-width:470px; padding:13px 17px; border:1px solid var(--blue-line); border-radius:9px; background:white; box-shadow:0 5px 25px #0f172b1a; font-size:12px; }
+    .noscript { margin:20px; padding:18px; color:var(--amber); background:#fffbeb; }
+    .print-only { display:none; }
+    @page { size:A4; margin:15mm; }
+    @media print {
+      body { min-width:0; background:white; font-size:11px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .screen-ui,dialog,.toast { display:none !important; }
+      main { width:auto; margin:0; }
+      .print-only { display:block; }
+      .doc-section { break-before:page; }
+      .doc-section:first-child { break-before:auto; }
+      .print-only h1 { font-size:23px; }
+      .print-only h2 { font-size:18px; margin:18px 0 12px; }
+      .print-only h3 { font-size:14px; }
+      .print-only p { margin:9px 0; font-size:11px; line-height:1.85; white-space:pre-wrap; overflow-wrap:anywhere; }
+      .print-only table { width:100%; border-collapse:collapse; table-layout:fixed; margin:14px 0; font-size:11px; }
+      .print-only th,.print-only td { border:1px solid var(--line); padding:9px; text-align:left; vertical-align:top; white-space:pre-wrap; overflow-wrap:anywhere; }
+      .print-only th { width:27%; background:var(--canvas); }
+      .print-only tr { break-inside:avoid; }
+      .print-only .terms-meta { text-align:left; }
+      .print-only .clause p { font-size:11px; }
+    }
+  </style>
+</head>
+<body>
+  <noscript><p class="noscript">请启用 JavaScript 以填写申请、打开协议并生成材料。本页不向服务器提交数据。</p></noscript>
+  <header class="topbar screen-ui"><div class="brand"><span class="brand-mark">EA</span><span>工程知识数据服务</span></div></header>
+  <main>
+    <div class="screen-ui">
+      <section class="intro"><div class="eyebrow">EA ENGINEERING KNOWLEDGE DATA SERVICE</div><h1>申请 EA 工程知识数据服务</h1></section>
+      <div class="error-summary" id="error-summary" role="alert" hidden><span id="error-text"></span><button type="button" class="text-link" id="focus-error">定位首项</button></div>
+      <form id="application-form" novalidate>
+        <section class="card"><header class="card-header"><h2>应用申请信息</h2></header><div class="field-grid" id="application-fields"></div></section>
+        <section class="card"><header class="card-header"><h2>共管数据库核心信息</h2></header><div class="field-grid" id="database-fields"></div></section>
+        <section class="consent-area">
+          <div class="consent-row"><input type="checkbox" id="agree" disabled aria-describedby="agreement-link"><div><label for="agree">我已阅读并同意</label> <button type="button" class="text-link" id="agreement-link" aria-haspopup="dialog" aria-controls="agreement-dialog">《EA 工程知识数据服务申请与共管数据库使用协议》</button><span>，确认申请信息真实，并已取得提交申请所需的业务部门授权。</span></div></div>
+          <div class="actions"><button type="submit" class="button primary" id="prepare-button">提交</button></div>
+        </section>
+      </form>
+      <section class="card prepared" id="prepared-panel" aria-labelledby="prepared-title" hidden>
+        <h2 id="prepared-title" tabindex="-1">申请材料已准备，待提交 PDC</h2><p>请通过企业批准渠道提交。PDC 未批准，EA 未验收，服务尚未开通；下方文件不是可靠电子签名或批准凭证。</p>
+        <dl class="summary" id="prepared-summary"></dl>
+        <div class="actions"><button type="button" class="button primary" id="download-html">下载申请与协议</button><button type="button" class="button" id="download-json">下载申请 JSON</button><button type="button" class="button" id="print-prepared">打印 / PDF</button></div>
+      </section>
+    </div>
+    <article class="print-only" id="print-document"></article>
+  </main>
+  <dialog id="agreement-dialog" class="agreement-dialog" aria-labelledby="agreement-heading">
+    <header class="dialog-head"><div><h2 id="agreement-heading">EA 工程知识数据服务申请协议</h2></div><button type="button" class="button" id="close-agreement" aria-label="关闭协议">关闭</button></header>
+    <div id="terms-scroll" class="terms-scroll" tabindex="0" role="region" aria-label="完整协议正文，可滚动阅读"></div>
+    <footer class="dialog-foot"><p id="dialog-read-status">请滚动阅读至末尾。滚动记录只是本地交互，不证明实际阅读、身份或正式签署。</p><button type="button" class="button primary" id="finish-reading" disabled>已阅读，返回申请</button></footer>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script>
+    (() => {
+      "use strict";
+      const SERVICE_NAME = "EA 工程知识数据服务";
+      const AGREEMENT_ID = "EA-PDC-DSA-1.1";
+      const AGREEMENT_DATE = "2026-10-09";
+      const FORMAT = "ea-knowledge-service-application";
+      const FORMAT_VERSION = 7;
+      const PRODUCT_PLATFORMS = ["G4","G4B","G5","V1"];
+      const PRODUCT_CATALOG = [
+        {id:"DDR5-X-6400",name:"DDR5 X-die 6400",platform:"G4B"},
+        {id:"LPDDR5-7500",name:"LPDDR5 7500",platform:"G4"},
+        {id:"LPDDR4-4266",name:"LPDDR4 4266",platform:"V1"},
+        {id:"Flash-N",name:"Flash-N NAND",platform:"G4"},
+        {id:"DDR4-3200",name:"DDR4 3200",platform:"G4B"},
+        {id:"DMJFC",name:"DMJFC 内存模组",platform:"G5"},
+        {id:"DDR5-X-7200",name:"DDR5 X-die 7200",platform:"G5"},
+        {id:"LPDDR5-8000",name:"LPDDR5 8000",platform:"V1"},
+        {id:"DMJFD",name:"DMJFD 内存模组",platform:"G4B"}
+      ];
+      const CASE_PARTS = ["基本信息","问题背景","产品与失效信息","责任与时间信息","Case 分析与结论","思维导图","内部任务信息","任务执行记录","关联与复用信息","Case 流转历史","附件信息"];
+      const groups = [
+        {id:"application-fields",title:"应用申请信息",fields:[
+          {id:"app_name",label:"应用名称",placeholder:"请输入"},
+          {id:"department",label:"应用所属部门",placeholder:"部门全称"},
+          {id:"app_owner",label:"应用负责人",placeholder:"请输入姓名",maxLength:80},
+          {id:"product_platforms",label:"需要使用哪些产品平台的 Case",type:"checks",wide:true,options:PRODUCT_PLATFORMS},
+          {id:"product_ids",label:"需要使用哪些产品的 Case",type:"checks",wide:true,options:PRODUCT_CATALOG.map(product=>({value:product.id,label:product.id,description:`${product.name} · ${product.platform}`}))},
+          {id:"case_parts",label:"需要使用 Case 中哪些部分的数据",type:"checks",wide:true,options:CASE_PARTS},
+          {id:"scope_notes",label:"面向用户和数据共享范围说明",type:"textarea",wide:true,required:false,placeholder:"请说明面向的用户及数据共享范围。"},
+          {id:"start_date",label:"数据服务使用开始日期",type:"date"},
+          {id:"end_date",label:"数据服务使用结束日期",type:"date"}
+        ]},
+        {id:"database-fields",title:"共管数据库核心信息",fields:[
+          {id:"data_use_departments",label:"数据使用业务部门",wide:true,placeholder:"请输入部门名称，多个部门用顿号分隔"},
+          {id:"db_readiness",label:"数据库建设状态",type:"select",options:["拟建设，验收前落实","已建成，待 EA 验收"]},
+          {id:"db_owner",label:"数据库提供／维护部门及联系人",placeholder:"实际运维团队、负责人及联系方式"},
+          {id:"db_engine",label:"数据库类型与版本",placeholder:"例如：PostgreSQL 16 / MySQL 8；拟建可填计划"},
+          {id:"db_identity",label:"实例及共管数据库名称",placeholder:"实例／资产编号、数据库名或规划标识"},
+          {id:"db_location",label:"部署位置与隔离范围",wide:true,placeholder:"内部机房／云租户／网络区域；专用实例或专用逻辑库的范围。不填写密码或连接串。"},
+          {id:"db_access_plan",label:"EA 管理员及日志访问安排",type:"textarea",wide:true,placeholder:"简述如何提供 EA 专属管理员身份、监控入口及 SELECT 等调用日志；详细权限和审计配置在验收前补齐。"}
+        ]}
+      ];
+      const fields = groups.flatMap(group=>group.fields.map(field=>({...field,group:group.title,required:field.required!==false,maxLength:field.maxLength??(field.type==="textarea"?2000:240)})));
+      const fieldMap = new Map(fields.map(field=>[field.id,field]));
+      function optionsOf(field){return (field.options??[]).map(option=>typeof option==="string"?{value:option,label:option}:option);}
+      const acceptanceRequirements = [
+        "实际实例资产 ID、引擎版本、地址／端口、区域、数据库／Schema／表范围和隔离证明。",
+        "EA 专属管理员账号／组、权限矩阵、网络／堡垒机／SSO、凭证托管引用、期限、失效告警与应急操作规程；不收集密码或令牌。",
+        "读取 SELECT、写入、导出、结构／权限变更、管理员及失败操作的完整审计；EA 日志入口、独立留存、防篡改、时钟、延迟、保留期和停采告警。",
+        "API 接收账号、原始／加工／结果区、运行环境、缓存／临时文件／索引／报告、备份／灾备与全部出口清单。",
+        "EA 交付→数据库读取→加工 run_id→输出结果的来源关系、实际 Case／节点／任务／记录范围和程序版本。",
+        "同步与整体版本策略、关键输出前检查、异常响应、撤权／删除和退出方案、对账指标及责任人。",
+        "实际权限、读取审计、网络出口、故障与恢复验收证据；明细改变批准范围时须重新取得 PDC 相应批准。"
+      ];
+      const clauses = [
+        {title:"第一条 服务定位、角色与开通前提",paragraphs:[
+          "1.1 本次申请对象为“EA 工程知识数据服务”，而非购买数据所有权。服务可包括获授权的 Case API 接入、持续更新、数据解释与质量维护、访问审计、共管及约定支持；具体服务范围、额度与时效以正式批准和服务约定为准。",
+          "1.2 PDC 是EA Case的数据 Owner 及授权审批方；EA 是数据服务提供及共管方；使用方是登记应用所属部门和责任团队。申请人应具备提交申请所需的业务部门授权。",
+          "1.3 流程为：使用方填报核心信息并同意协议 → PDC 审批申请范围 → 使用方补齐共管技术资料 → EA 验收并核对最终批准范围 → 按企业流程正式确认及开通 API。未批准或未验收不得接入生产数据；技术明细扩大批准范围的，须重新取得 PDC 相应批准。"
+        ]},
+        {title:"第二条 共享范围与允许用途",paragraphs:[
+          "2.1 共享单位为 EA Case，包含获批准的基本信息、背景、产品与失效信息、人员与时间、分析与结论、思维导图、内部任务、执行记录、关联及流转内容。内部节点、任务和记录是 Case 的组成部分，不拆成另一套独立数据产品。原始附件下载另行确认。",
+          "2.2 使用方仅可为批准的应用、目的、人群、环境和期限使用批准内容。关联到其他 Case 或人员信息不自动获得访问权。新增应用、用途、字段、接收者、训练或外部服务调用须事先取得相应授权。",
+          "2.3 原始 Case 及其缓存、中间表、摘要、全文／向量索引、报告、模型输入和其他约定受管衍生物均受边界约束。改变格式不自动解除限制；允许保存或输出的类别、位置、期限与人群应在验收前的附件逐类列明并获批，未列明不得自行豁免。",
+          "2.4 内容保留 Case／任务已有状态、结论有效性及适用范围，最新不等于正确。不得将假设、未验证内容或历史结论脱离状态包装成确定的当前结论。"
+        ]},
+        {title:"第三条 共管数据库由使用方提供与维护",paragraphs:[
+          "3.1 使用方负责提供、建设、维护共管数据库并承担登记范围的资源、许可证、容量、运维和可用性责任。采用专用实例或经验证隔离的逻辑库／Schema，核心信息在申请时填写，地址、端口、表范围和配置等技术明细在 EA 验收前补齐。",
+          "3.2 EA 数据只可经批准的 API、接收身份与链路进入登记环境。原始接收区、加工区和结果区分区管理并保留来源版本。使用方不得修改 EA 权威源；镜像中的人工修正应受控，不得伪装成 EA 原始内容。",
+          "3.3 数据库之外的缓存、临时文件、索引、应用日志、备份、灾备、报告和处理位置必须登记。不得将共管库仅作为中转后再私自复制；运行内存和必要临时处理也必须处于获批环境。没有写数据库不豁免未授权处理。",
+          "3.4 日常容量、备份恢复、补丁、故障、值守和交接由使用方负责。实例、区域、保存位置、隔离边界或出口发生变化前须审批，不得先迁移后补登记。"
+        ]},
+        {title:"第四条 调用日志、加工来源与用途核查",paragraphs:[
+          "4.1 数据库审计覆盖成功和失败的查询读取（含 SELECT）、写入／删除、导出／批量读取、结构及权限变更、管理操作。仅连接、慢查询、写入日志或抽样性能监控不能替代要求范围的完整访问审计。",
+          "4.2 EA API、数据库、加工程序与出口日志须能够关联应用身份、必要用户／服务身份、时间、请求／会话、对象、操作、结果及规模；保留实际 Case ID、版本、节点／任务／执行记录和字段范围。只记录实际返回，不以查询条件推断交付。",
+          "4.3 加工须有 run_id 或等效标识，记录输入来源和版本、程序版本、用途、结果标识及位置。数据库日志能够说明访问行为，但不能单独证明全部业务目的；用途应结合登记场景、加工来源关系和业务证据核查。",
+          "4.4 EA 能独立查看相关数据库调用及加工／出口审计，按应用、Case 与版本查询。验收前明确日志时钟、最大可见延迟、保留期、补传、对账、漏采／篡改告警；审计失效不得静默交付或绕过获批故障策略。",
+          "4.5 日志不默认保存密码、令牌、敏感 SQL 参数、Case 正文或模型提示原文。可使用规范化操作、受控参数指纹及实际范围清单；必要敏感证据另行受控保存。日志权限与使用方普通业务权限分离。",
+          "4.6 服务端发送完成不等于保存、采用或收益；没有近期调用也不单独证明私自落库。异常可触发核查和必要的临时限制；认定违规须结合授权、日志及实际证据。"
+        ]},
+        {title:"第五条 加工环境、出口和禁止行为",paragraphs:[
+          "5.1 只允许登记并获批的服务、账号、运行环境和用户范围访问。网络出口、文件下载、导出、模型／服务调用和报告展示均需纳入控制。不得把数据发到未登记环境加工，即使只在内存中处理。",
+          "5.2 未经批准，不得向其他内部应用、个人、外部模型或服务传输／转供，不得私自另库保存、训练、导出或改变用途。必要委托处理须事先说明接收者、内容、环境、目的和责任，并获得批准。",
+          "5.3 不得以缓存、日志、中间结果、索引或报告等名称规避保存限制。获批结果保留不等于原始内容可自由复制。不得绕过权限、共用身份、伪造用途、关闭日志、私自删除审计或隐瞒异常。"
+        ]},
+        {title:"第六条 更新、一致性与处置",paragraphs:[
+          "6.1 EA 是 Case 当前内容的权威来源，共管库不是另一个自行维护的 EA。分享版本覆盖获批准的思维导图、任务、执行记录及状态变化；使用方保留读取版本、时间和实际范围。",
+          "6.2 按批准周期同步或回源，关键输出与再次使用时检查变化。同步失败、滞后或无法确认时，不得把旧内容显示为最新；高风险场景应按批准规则停用或阻断。",
+          "6.3 授权缩减、取消分享、更正或删除要求，按受影响的版本、内部内容及既往交付范围执行停止使用、隔离、删除、重算或标记。普通 Case 重开不自动撤销权限，但旧结论不能脱离当前状态继续冒充有效依据。",
+          "6.4 技术附件应约定处置时限、责任人、替代通知及回执；应用凭证失效时不能仅依赖该凭证发送通知。声称完成需可核查，离线不等于已经同步或删除。"
+        ]},
+        {title:"第七条 安全异常、违约与内部责任",paragraphs:[
+          "7.1 未经授权保存、复制、处理、传输、转供、训练，以及未履行权限、日志、更新或处置义务，均可能违反本约定或企业制度，不以已经发生外部泄漏为唯一前提。",
+          "7.2 发现未知副本、异常出口、日志中断或权限失效，应按批准时限通知 EA、PDC 与企业安全联系人，采取必要隔离并保全证据。不得销毁记录或擅自发布调查结论。",
+          "7.3 EA、PDC 及有权部门按制度核查、必要时暂停新增访问并要求整改复验。是否泄漏、严重程度及责任由有权限部门依据事实和制度认定，本草案不自行设定处罚。使用方应配合说明数据来源、去向和存储／处理位置。",
+          "7.4 EA 管理员行为同样受权限、保密、变更及审计规则约束，不得借管理员权限访问无关业务或擅自导出数据。"
+        ]},
+        {title:"第八条 技术附件、期限与正式确认",paragraphs:[
+          "8.1 申请页只收集应用与数据库核心信息。完整技术登记与验收证据必须在服务开通前补齐，不能把表单简化理解为管理员、审计或出口控制要求取消。核心申请与最终附件共同构成批准范围。",
+          "8.2 实际期限、数据范围、环境和责任人以最终批准版本为准，到期不自动续期。实质变化需重新申请和必要的重新确认；批准小于申请范围时，仅按批准部分使用。",
+          "8.3 到期或终止后停止新增处理及转供，按批准计划清理原始数据、缓存、索引、中间结果、报告和备份。历史留档及审计证据保留需明确依据、期限和权限。不能立即删除的备份应隔离、禁止生产恢复，并在恢复时先应用撤权清单。",
+          "8.4 正式系统必须绑定申请人身份、协议版本、完整附件、批准人及可信时间、EA 验收证据和 API 授权配置。本地文件可以被修改；姓名、勾选、时间或材料编号不是真实性证明、可靠电子签名或已批准凭证。",
+          "8.5 有争议或与强制制度冲突时，暂停争议范围使用并由责任部门确认；使用方不得自行扩大授权解释。"
+        ]}
+      ];
+      const agreementDialog=document.getElementById("agreement-dialog");
+      const termsScroll=document.getElementById("terms-scroll");
+      const agree=document.getElementById("agree");
+      let readReachedEnd=false;
+      let preparedRecord=null;
+      let firstError=null;
+      let toastTimer;
+
+      function escapeHTML(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
+      function notify(message){clearTimeout(toastTimer);const toast=document.getElementById("toast");toast.textContent=message;toast.hidden=false;toastTimer=setTimeout(()=>{toast.hidden=true;},6500);}
+      function agreementMarkup(){
+        return `<h2 class="terms-title">EA 工程知识数据服务申请与<br>共管数据库使用协议</h2>`+
+          clauses.map(clause=>`<section class="clause"><h3>${escapeHTML(clause.title)}</h3>${clause.paragraphs.map(text=>`<p>${escapeHTML(text)}</p>`).join("")}</section>`).join("")+
+          `<section class="clause"><h3>附件清单：EA 验收前必须补齐</h3>${acceptanceRequirements.map((text,index)=>`<p>${index+1}. ${escapeHTML(text)}</p>`).join("")}</section>`;
+      }
+      termsScroll.innerHTML=agreementMarkup();
+      groups.forEach(group=>group.fields.forEach(def=>{
+        const field=fieldMap.get(def.id),container=document.createElement(field.type==="checks"?"fieldset":"div");
+        container.className=`field${field.wide?" wide":""}`;container.dataset.field=field.id;
+        const label=document.createElement(field.type==="checks"?"legend":"label");label.className="field-label";
+        if(field.type!=="checks")label.htmlFor=field.id;
+        label.append(document.createTextNode(field.label));
+        if(field.required){const star=document.createElement("span");star.className="required";star.textContent="*";label.append(star);}
+        container.append(label);
+        if(field.type==="checks"){
+          container.id=field.id;container.setAttribute("aria-describedby",`${field.id}-error`);
+          const count=document.createElement("span");count.id=`${field.id}-count`;count.className="selection-count";count.setAttribute("aria-live","polite");label.append(count);
+          const list=document.createElement("div");list.className=`check-options${field.id==="product_platforms"?" platforms":""}`;
+          optionsOf(field).forEach((option,index)=>{
+            const choice=document.createElement("label");choice.className="check-choice";
+            const input=document.createElement("input");input.type="checkbox";input.id=`${field.id}-${index}`;input.name=field.id;input.value=option.value;input.setAttribute("aria-describedby",`${field.id}-error`);
+            const text=document.createElement("span");text.className="option-body";text.append(document.createTextNode(option.label));
+            if(option.description){const description=document.createElement("small");description.textContent=option.description;text.append(description);}
+            choice.append(input,text);list.append(choice);
+          });
+          container.append(list);
+          if(field.id==="product_ids"){
+            const empty=document.createElement("p");empty.className="scope-empty";empty.id="product-empty";empty.textContent="请先勾选产品平台，再选择对应产品。";container.append(empty);
+            const selection=document.createElement("p");selection.className="scope-summary";selection.id="product-summary";selection.setAttribute("aria-live","polite");container.append(selection);
+          }
+        }else{
+          const input=document.createElement(field.type==="textarea"?"textarea":field.type==="select"?"select":"input");
+          input.id=field.id;input.name=field.id;input.className="control";input.required=field.required;input.setAttribute("aria-describedby",`${field.id}-error`);
+          if(field.type==="select"){const blank=document.createElement("option");blank.value="";blank.textContent="请选择";input.append(blank);field.options.forEach(value=>{const option=document.createElement("option");option.value=value;option.textContent=value;input.append(option);});}
+          else {if(field.type!=="textarea")input.type=field.type??"text";input.maxLength=field.maxLength;if(field.placeholder)input.placeholder=field.placeholder;}
+          container.append(input);
+        }
+        const error=document.createElement("p");error.id=`${field.id}-error`;error.className="field-error";error.hidden=true;
+        container.append(error);document.getElementById(group.id).append(container);
+      }));
+      function selectedValues(id){return [...document.querySelectorAll(`input[name="${id}"]:checked`)].map(input=>input.value);}
+      function values(){return Object.fromEntries(fields.map(field=>[field.id,field.type==="checks"?selectedValues(field.id):document.getElementById(field.id).value.trim()]));}
+      function updateScope(){
+        const platforms=selectedValues("product_platforms"),removed=[];
+        document.querySelectorAll('input[name="product_ids"]').forEach(input=>{
+          const allowed=platforms.includes(PRODUCT_CATALOG.find(product=>product.id===input.value).platform);
+          if(!allowed&&input.checked){removed.push(input.value);input.checked=false;}
+          input.disabled=!allowed;input.closest(".check-choice").hidden=!allowed;
+        });
+        for(const field of fields.filter(field=>field.type==="checks"))document.getElementById(`${field.id}-count`).textContent=`已选 ${selectedValues(field.id).length} 项`;
+        document.getElementById("product-empty").hidden=platforms.length>0;
+        const products=selectedValues("product_ids");
+        document.getElementById("product-summary").textContent=products.length?`已选产品：${products.join("、")}`:platforms.length?"请勾选需要使用的具体产品。":"";
+        return removed;
+      }
+      function validateValue(field,value,allowEmpty=false){
+        if(field.type==="checks"){
+          const allowed=optionsOf(field).map(option=>option.value);
+          if(!Array.isArray(value)||value.some(item=>typeof item!=="string"||!allowed.includes(item))||new Set(value).size!==value.length)return "勾选值不属于有效清单或包含重复项。";
+          if(field.required&&!allowEmpty&&!value.length)return "请至少勾选一项。";
+          return "";
+        }
+        if(typeof value!=="string")return "字段格式不正确。";
+        if(!value.trim())return allowEmpty||!field.required?"":"请填写此项。";
+        if(value.length>field.maxLength)return `请控制在 ${field.maxLength} 字以内。`;
+        if(field.type==="select"&&!field.options.includes(value))return "请选择有效选项。";
+        if(field.type==="date"){
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return "请填写有效日期。";
+          const date=new Date(`${value}T00:00:00Z`);
+          if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value||value.slice(0,4)<"2000"||value.slice(0,4)>"2100")return "请填写 2000 至 2100 年内的有效日期。";
+        }
+        return "";
+      }
+      function errors(){
+        const data=values(),result=[];
+        fields.forEach(field=>{let message=validateValue(field,data[field.id]);if(!message&&field.id==="end_date"&&data.start_date&&data.end_date<data.start_date)message="数据服务使用结束日期不能早于数据服务使用开始日期。";if(!message&&field.id==="product_ids"&&data.product_ids.some(id=>!data.product_platforms.includes(PRODUCT_CATALOG.find(product=>product.id===id).platform)))message="所选产品与申请平台不一致，请重新选择。";if(message)result.push({id:field.id,label:field.label,message});});
+        return result;
+      }
+      function clearErrors(){
+        fields.forEach(field=>{document.getElementById(`${field.id}-error`).hidden=true;document.getElementById(field.id).removeAttribute("aria-invalid");});
+        document.getElementById("error-summary").hidden=true;firstError=null;
+      }
+      function focusFirstError(){
+        if(!firstError)return;
+        const target=document.getElementById(firstError);
+        const focus=fieldMap.get(firstError).type==="checks"?target.querySelector("input:not(:disabled)"):target;
+        if(focus)focus.focus();else target.setAttribute("tabindex","-1");
+        if(!focus)target.focus();
+        target.scrollIntoView({block:"center",behavior:"auto"});
+      }
+      function showErrors(list){
+        clearErrors();
+        list.forEach(error=>{const text=document.getElementById(`${error.id}-error`);text.textContent=error.message;text.hidden=false;document.getElementById(error.id).setAttribute("aria-invalid","true");});
+        if(list.length){firstError=list[0].id;document.getElementById("error-text").textContent=`请补充或修正 ${list.length} 项。首项：${list[0].label}。`;document.getElementById("error-summary").hidden=false;focusFirstError();}
+      }
+      function updateReading(){
+        agree.disabled=!readReachedEnd;
+        document.getElementById("finish-reading").disabled=!readReachedEnd;
+        document.getElementById("dialog-read-status").textContent=readReachedEnd?"":"请滚动阅读至末尾。滚动记录只是本地交互，不证明实际阅读、身份或正式签署。";
+      }
+      function invalidate(){
+        const hadConsent=agree.checked||preparedRecord;
+        readReachedEnd=false;agree.checked=false;preparedRecord=null;termsScroll.scrollTop=0;
+        document.getElementById("prepared-panel").hidden=true;document.getElementById("prepared-summary").replaceChildren();document.getElementById("print-document").replaceChildren();updateReading();
+        if(hadConsent)notify("申请已修改，原同意和材料已失效；请针对新内容重新阅读确认。");
+      }
+      fields.forEach(field=>document.getElementById(field.id).addEventListener("input",()=>{
+        const removed=field.type==="checks"?updateScope():[];
+        invalidate();document.getElementById(`${field.id}-error`).hidden=true;document.getElementById(field.id).removeAttribute("aria-invalid");document.getElementById("error-summary").hidden=true;
+        if(field.id==="product_platforms"){document.getElementById("product_ids-error").hidden=true;document.getElementById("product_ids").removeAttribute("aria-invalid");}
+        if(removed.length)notify(`已取消不再属于所选平台的产品：${removed.join("、")}。如已确认协议，请重新阅读确认。`);
+      }));
+      document.getElementById("agreement-link").addEventListener("click",()=>{agreementDialog.showModal();if(!readReachedEnd)termsScroll.scrollTop=0;updateReading();termsScroll.focus();});
+      document.getElementById("close-agreement").addEventListener("click",()=>agreementDialog.close());
+      document.getElementById("finish-reading").addEventListener("click",()=>{if(readReachedEnd){agreementDialog.close();agree.focus();}});
+      termsScroll.addEventListener("scroll",()=>{if(agreementDialog.open&&!readReachedEnd&&termsScroll.scrollTop>0&&termsScroll.clientHeight>0&&termsScroll.scrollTop+termsScroll.clientHeight>=termsScroll.scrollHeight-8){readReachedEnd=true;updateReading();}},{passive:true});
+      agree.addEventListener("change",()=>{preparedRecord=null;document.getElementById("prepared-panel").hidden=true;document.getElementById("print-document").replaceChildren();});
+      document.getElementById("focus-error").addEventListener("click",focusFirstError);
+      function makeRecord(){
+        const application=values();
+        return {
+          format:FORMAT,format_version:FORMAT_VERSION,document_type:"application_pending_approval",service_name:SERVICE_NAME,
+          local_reference:`EA-LOCAL-${Date.now()}`,prepared_at_local_clock:new Date().toISOString(),workflow_status:"prepared_locally_not_submitted",
+          parties:{data_owner:"PDC",service_provider:"EA",database_provider_and_operator:application.db_owner,applicant_department:application.department},
+          agreement:{id:AGREEMENT_ID,date:AGREEMENT_DATE,status:"draft",clauses,acceptance_requirements:acceptanceRequirements},
+          application,
+          requested_scope:{selection_mode:"explicit_products_only",platform_type:"product_platform",platforms:application.product_platforms,products:application.product_ids.map(id=>({...PRODUCT_CATALOG.find(product=>product.id===id)})),case_parts:application.case_parts,data_use_departments:application.data_use_departments,catalog_source:"EA V1.0.9 本地产品清单；部门由申请方填写，正式授权前复核，不自动包含平台下全部或新增产品。"},
+          responsible_person:{name:application.app_owner,employee_id:null,employee_id_status:"pending_enterprise_directory_lookup"},
+          applicant_declaration:{agreement_accepted:true,read_to_end_ui:true,identity_verified:false,electronic_signature:false},
+          technical_details:{status:"required_before_ea_acceptance",completed:false,items:acceptanceRequirements},
+          fees:{status:"not_agreed",automatic_charge:false,terms:"费用、额度、生效时间及预算责任须另行明确确认；申请不自动收费。"},
+          approvals:{pdc:{status:"not_submitted",approved_by:null},ea_acceptance:{status:"not_started",accepted_by:null},api_access:{status:"not_enabled",grant_id:null}},
+          disclaimer:"本地声明不是正式签署、身份核验、批准或开通；详细技术资料须在验收前补齐并与 PDC 最终批准一致。"
+        };
+      }
+      function samePrepared(){return Boolean(preparedRecord)&&readReachedEnd&&agree.checked&&errors().length===0&&JSON.stringify(preparedRecord.application)===JSON.stringify(values());}
+      function renderPrepared(){
+        const data=preparedRecord.application;
+        const entries=[["应用／部门",`${data.app_name} / ${data.department}`],["应用负责人",data.app_owner],["产品平台",data.product_platforms.join("、")],["具体产品",data.product_ids.join("、")],["Case 数据部分",data.case_parts.join("、")],["数据使用业务部门",data.data_use_departments],["数据服务使用期限",`${data.start_date} 至 ${data.end_date}`],["共管数据库",`${data.db_engine} · ${data.db_identity}`],["授权与费用","未提交、未批准、未开通；费用未约定"]];
+        const summary=document.getElementById("prepared-summary");summary.replaceChildren();
+        entries.forEach(([label,value])=>{const item=document.createElement("div");const dt=document.createElement("dt");dt.textContent=label;const dd=document.createElement("dd");dd.textContent=value;item.append(dt,dd);summary.append(item);});
+        document.getElementById("prepared-panel").hidden=false;document.getElementById("prepared-title").focus();document.getElementById("prepared-panel").scrollIntoView({block:"start",behavior:"auto"});
+      }
+      document.getElementById("application-form").addEventListener("submit",event=>{
+        event.preventDefault();const list=errors();showErrors(list);if(list.length)return;
+        if(!readReachedEnd){notify("请先打开协议文字链接，阅读完整条款与技术附件要求。");document.getElementById("agreement-link").focus();return;}
+        if(!agree.checked){notify("请明确勾选同意协议后再生成申请材料。");agree.focus();return;}
+        preparedRecord=makeRecord();renderPrepared();
+      });
+      function assertPrepared(){
+        if(samePrepared())return true;
+        preparedRecord=null;document.getElementById("prepared-panel").hidden=true;notify("申请或同意状态已变化，请重新核对、阅读并同意后生成材料。");return false;
+      }
+      function download(name,content,type){
+        let url;
+        try{url=URL.createObjectURL(new Blob([content],{type}));const link=document.createElement("a");link.href=url;link.download=name;document.body.append(link);link.click();link.remove();notify("已发起本地下载，请确认浏览器下载列表；没有发生在线提交或收费。");}
+        catch(error){console.error("申请材料下载失败：",error);notify("无法下载，请检查浏览器权限。没有发生在线提交。");}
+        finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),10000);}
+      }
+      function displayValue(field,value){
+        if(field.type!=="checks")return value||"未填写";
+        if(!value?.length)return "未选择";
+        return value.map(item=>{
+          const option=optionsOf(fieldMap.get(field.id)).find(option=>option.value===item);
+          return option.description?`${option.label}（${option.description}）`:option.label;
+        }).join("；");
+      }
+      function documentMarkup(record,confirmed){
+        const data=record.application;
+        const header=`<section class="doc-section"><h1>EA 工程知识数据服务申请</h1><p>${confirmed?"申请方本地确认完成 · 待提交 PDC":"未确认草稿 · 不代表同意协议"}</p><p>协议版本：${AGREEMENT_ID}；日期：${AGREEMENT_DATE}。</p><p>${escapeHTML(record.local_reference??"未生成申请编号")}；材料时间：${escapeHTML(record.prepared_at_local_clock)}（本地时钟，非可信时间戳）。</p><p>PDC 未审批；EA 未验收；API 未开通。服务费用未约定，本次申请不自动产生费用。详细技术配置须在验收前补齐，不能因表单简化而豁免。</p>`;
+        const tables=groups.map(group=>`<h2>${escapeHTML(group.title)}</h2><table><tbody>${group.fields.map(field=>`<tr><th>${escapeHTML(field.label)}</th><td>${escapeHTML(displayValue(field,data[field.id]))}</td></tr>`).join("")}</tbody></table>`).join("")+
+          `<p>平台为产品平台，具体申请限上述勾选产品，不自动包含平台下全部或新增产品。产品选项依据本地 EA V1.0.9 清单，正式授权前复核。附件信息不自动包含原始文件下载权；补充说明不自动扩大申请授权。</p>`;
+        const declaration=confirmed?`<p>填写的应用负责人：${escapeHTML(data.app_owner)}。工号待企业人员目录回填，当前离线页面未接入目录。申请方已在本页面勾选阅读并同意本版协议、信息真实且具备提交申请所需的业务部门授权；不等于该负责人本人已签署。提交人身份未核验，无可靠电子签名。</p>`:"<p>申请方阅读与同意未完成，本草稿不得表述为已同意、已批准或已签署。</p>";
+        return header+tables+`<h2>申请方声明及后续流程</h2>${declaration}<p>下一步：提交 PDC → 补齐技术附件 → EA 验收及最终范围核对 → 正式配置 API。需收费时，服务费用及生效条件另行确认。</p><p>本文件可被本地修改，不是身份、授权或批准凭证。生产系统必须核验代表权并绑定协议、完整申请、批准与验收证据。</p></section><section class="doc-section">${agreementMarkup()}</section>`;
+      }
+      function filledHTML(record){
+        return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EA 工程知识数据服务申请（待审批）</title><style>body{min-width:1000px;max-width:1080px;margin:0 auto;padding:35px;background:#f8fafc;color:#314158;font:14px/1.9 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}h1,h2,h3{color:#0f172b}h1{font-size:27px}h2{font-size:21px}h3{font-size:16px}.doc-section{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:28px;margin:20px 0}p,td{white-space:pre-wrap;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;table-layout:fixed;margin:15px 0}th,td{padding:10px;border:1px solid #e2e8f0;text-align:left;vertical-align:top;font-size:13px}th{width:27%;background:#f8fafc}.clause{margin:22px 0}.clause h3{color:#0052d9}.help{padding:12px;background:#eff6ff}.terms-meta{font-size:12px;color:#62748e}@page{size:A4;margin:15mm}@media print{body{min-width:0;max-width:none;padding:0;background:white;font-size:11px}.help{display:none}.doc-section{border:0;padding:0;margin:0;break-before:page}.doc-section:first-of-type{break-before:auto}th,td{font-size:10px}tr{break-inside:avoid}h1{font-size:23px}h2{font-size:18px}h3{font-size:14px}}</style></head><body><p class="help">待审批材料 · 未联网提交、未批准、未收费、未开通。可使用浏览器打印保存 PDF；本文件不含脚本或外部资源。</p>${documentMarkup(record,true)}</body></html>`;
+      }
+      document.getElementById("download-html").addEventListener("click",()=>{if(assertPrepared())download("EA工程知识数据服务申请与协议-待审批.html",filledHTML(preparedRecord),"text/html;charset=utf-8");});
+      document.getElementById("download-json").addEventListener("click",()=>{if(assertPrepared())download("EA工程知识数据服务申请-待审批.json",JSON.stringify(preparedRecord,null,2),"application/json;charset=utf-8");});
+      function preparePrint(){const confirmed=samePrepared();const record=confirmed?preparedRecord:{application:values(),prepared_at_local_clock:new Date().toISOString()};document.getElementById("print-document").innerHTML=documentMarkup(record,confirmed);}
+      window.addEventListener("beforeprint",preparePrint);
+      window.addEventListener("afterprint",()=>document.getElementById("print-document").replaceChildren());
+      document.getElementById("print-prepared").addEventListener("click",()=>{if(assertPrepared()){preparePrint();window.print();}});
+      updateScope();
+      updateReading();
+    })();
+  </script>
+</body>
+</html>
